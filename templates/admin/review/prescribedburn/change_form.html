@@ -1,0 +1,275 @@
+{% extends "admin/change_form.html" %}
+
+{% block extrahead %}{{ block.super }}
+
+{% block content_title %}{% if title %}<h1>{{ form_title }}</h1>{% endif %}{% endblock %}
+
+
+<script>
+
+$(function() {
+
+    var current_url = $(location).attr('href');
+    if (current_url.indexOf('add_fire') > -1) {
+        $("#id_breadcrumb_name").text("Add Bushfire");
+    }
+
+    $("#id_date").datepicker({ dateFormat: "yy-mm-dd" }).val();
+    $("#id_planned_area").attr("min", 0.1);
+    $("#id_area").attr("min", 0.0);
+    $("#id_planned_distance").attr("min", 0.1);
+    $("#id_distance").attr("min", 0.0);
+
+    $('label:contains("Today\'s treatment area (ha):")').text('Today\'s treatment area (ha)*:').css("font-weight","Bold")
+    $('label:contains("Today\'s treatment distance (km):")').text('Today\'s treatment distance (km)*:').css("font-weight","Bold")
+    $('label:contains("Yesterday\'s treatment area (ha):")').text('Yesterday\'s treatment area (ha)*:').css("font-weight","Bold")
+    $('label:contains("Yesterday\'s treatment distance (km):")').text('Yesterday\'s treatment distance (km)*:').css("font-weight","Bold")
+
+    {% if not is_sdo %}
+        $("#id_conditions").attr("disabled", "disabled");
+    {% endif %}
+
+    $("#id_district, #id_year").change(function () {
+        var prescription_view_url = "{% url 'admin:prescription_view' %}";
+        var page_form_name = 'add_fire';
+        var district_id = '';
+        var year = '';
+        if ($("#id_year :selected").val() > 0) { year = $("#id_year :selected").text(); }
+        if ($("#id_district :selected").val() > 0) { district_id = $("#id_district :selected").val(); }
+        $( "#id_bushfire_name").remove()
+        $( "#id_tenure_ignition_point").remove()
+            
+        $('#id_fire_number').prop('disabled', true).attr('title', 'Must first select Region/District/Year');
+        if (year || district_id) {
+            $('#id_fire_number').parent().append("<span id=loading_fire_numbers class='label'>Loading . . .</span>");
+            $.ajax({
+                type: 'GET',
+                url: prescription_view_url,
+                data: {
+                    district_id: district_id,
+                    year: year,
+                    form_name: page_form_name
+                },
+                success: function(response){
+                    var response = JSON.parse(response);
+                    var myselect = $('<select>');
+                    var tenure_name = '';
+                    $('#id_fire_number').empty();
+                    console.log(response['fire_numbers'])
+                    $.each(response['fire_numbers'], function(idx, key) {
+                        //myselect.append( $('<option></option>').val(idx).html(key['fire_number']).attr({'name': key['name']}) );
+                        //myselect.append( $('<option></option>').val(key['fire_number']).html(key['fire_number']).attr({'name': key['name']}) );
+                        tenure_name = key['tenure__name'];
+                        if (tenure_name.indexOf('Other') > -1 && key['other_tenure'] != null) {
+                            tenure_name = key['other_tenure'];
+                        }
+                        myselect.append( $('<option></option>').val(key['fire_number']).html(key['fire_number']).attr({'name': key['name']}).attr({'tenure__name': tenure_name}) );
+                    });
+                    $('#id_fire_number').append(myselect.html());
+                    $('#id_fire_number').prop('disabled', false);
+                    $('#loading_fire_numbers').remove();
+                    console.log(response.fire_numbers)
+                }
+            })
+        }
+
+    });
+
+    $("#id_region").change(function () {
+        if (current_url.indexOf('add_active_burn') > -1 || current_url.indexOf('add_burn') > -1) {
+            var prescription_view_url = "{% url 'admin:prescription_view' %}";
+
+            $('#id_prescription').prop('disabled', true);
+            $('#id_prescription').parent().append("<span id=loading_prescriptions class='label'>Loading . . .</span>");
+
+            if (current_url.indexOf('add_active_burn') > -1) {
+                var page_form_name = 'add_active_burn';
+            } else {
+                var page_form_name = 'add_burn';
+            }
+            $.ajax({
+                type: 'GET',
+                url: prescription_view_url,
+                data: {
+                    region: $("#id_region :selected").val(),
+                    form_name: page_form_name
+                },
+                success: function(response){
+                    var response = JSON.parse(response);
+                    $("#id_prescription").html(response.burn_ids)
+                    $('#id_prescription').prop('disabled', false);
+                    $('#loading_prescriptions').remove();
+                }
+            })
+        }
+    });
+   
+/*
+    $("#id_region").change(function () {
+        var prescription_view_url = "{% url 'admin:prescription_view' %}";
+        if (current_url.indexOf('add_fire') > -1) {
+            // pass
+            console.log('A ' + current_url);
+
+        } else {
+            $('#id_prescription').prop('disabled', true);
+            $('#id_prescription').parent().append("<span id=loading_prescriptions class='label'>Loading . . .</span>");
+
+            if (current_url.indexOf('add_active_burn') > -1) {
+                var page_form_name = 'add_active_burn';
+            } else {
+                var page_form_name = 'add_burn';
+            }
+            $.ajax({
+                type: 'GET',
+                url: prescription_view_url,
+                data: {
+                    region: $("#id_region :selected").val(),
+                    form_name: page_form_name
+                },
+                success: function(response){
+                    var response = JSON.parse(response);
+                    $("#id_prescription").html(response.burn_ids)
+                    $('#id_prescription').prop('disabled', false);
+                    $('#loading_prescriptions').remove();
+                }
+            })
+        }
+    });
+*/
+    
+    $("#id_prescription").prop('disabled', true);
+    // next section required for page refresh following validation error on page
+    /*
+    var region_selected = $("#id_region :selected").text();
+    if (region_selected.indexOf('---------') < 0 && current_url.indexOf('edit') < 0) { // search for substring '-----' --> returns true if not present and not an edit form --> can filter prescriptions based on selected filter
+        $.ajax({
+            type: 'GET',
+            url: "{% url 'admin:prescription_view' %}",
+            data: {
+                region: $("#id_region :selected").val()
+            },
+            success: function(response){
+                var response = JSON.parse(response);
+                $("#id_prescription").html(response.burn_ids)
+
+            }
+        })
+    }
+    */
+
+    $("#id_planned_area").change(function () {
+        $.ajax({
+            type: 'GET',
+            url: "{% url 'admin:prescription_view' %}",
+            data: {
+                burn_id: $("#id_prescription :selected").text()
+            },
+            success: function(response){
+                var response = JSON.parse(response);
+                $("#id_planned_area").attr("max", response['prescription_area'])
+
+            }
+        })
+    });
+
+    $("#id_area").change(function () {
+        if (current_url.indexOf('active_burn') > -1 || current_url.indexOf('add_burn') > -1 || current_url.indexOf('edit_burn') > -1 ) {
+            $.ajax({
+                type: 'GET',
+                url: "{% url 'admin:prescription_view' %}",
+                data: {
+                    burn_id: $("#id_prescription :selected").text()
+                },
+                success: function(response){
+                    var response = JSON.parse(response);
+                    //$("#id_area").attr("max", response['prescription_area'])
+                    $( "#id_max_area_exceeded").remove();
+                    if (parseFloat($("#id_area").val()) > parseFloat(response['prescription_area'])) {
+                        $( "<div class='help-inline'><span id='id_max_area_exceeded'><font color='red'> NOTE: Input exceeds max. Planned Area (" + response['prescription_area'] + " ha) </font></span></div>" ).insertAfter( "#id_area_help" );
+                    }
+
+                }
+            })
+        }
+    });
+
+
+    $("#id_prescription").change(function () {
+        //console.log('True  ' + $("#id_prescription").val() )
+        $.ajax({
+            type: 'GET',
+            url: "{% url 'admin:prescription_view' %}",
+            data: {
+                burn_id: $("#id_prescription :selected").text()
+            },
+            success: function(response){
+                var response = JSON.parse(response);
+
+                //console.log("response " + response);
+                //console.log("response.location " + response['location']);
+                $("#id_location").val(response['location']);
+                $("#id_tenures").val(response['tenures']);
+
+                $( "#id_prescription_name").remove()
+                $( "<span id='id_prescription_name'>  " + response['prescription_name'] + "</span>" ).insertAfter( "#id_prescription" );
+                $("#id_planned_area").attr("max", response['prescription_area'])
+
+                $("#id_latitude").val(response['latitude']);
+                $("#id_longitude").val(response['longitude']);
+            }
+        })
+    });
+
+
+    /*
+    $("#id_fire_id").change(function () {
+        console.log('URL: ' + window.location.href )
+        $.ajax({
+            type: 'GET',
+            url: "{% url 'admin:prescription_view' %}",
+            data: {
+                district: $("#id_district :selected").val(),
+                fire_id: $("#id_fire_id").val()
+            },
+            success: function(response){
+                var response = JSON.parse(response);
+                $( "#id_bushfire_code").remove()
+                $( "<span id='id_bushfire_code'>  " + response['bushfire_id'] + "</span>" ).insertAfter( "#id_fire_id" );
+            }
+        })
+    });
+    */
+
+    $("#id_fire_number").change(function () {
+        $( "#id_bushfire_name").remove()
+        $( "#id_tenure_ignition_point").remove()
+        $( "<span id='id_bushfire_name' style='padding: 20px;'>" + $("#id_fire_number :selected").attr('name') + "</span>" ).insertAfter( "#id_fire_number" );
+        $( "<span id='id_tenure_ignition_point'><br>Tenure of Ignition Point:   " + $("#id_fire_number :selected").attr('tenure__name') + "</span>" ).insertAfter( "#id_bushfire_name" );
+        $("#id_fire_id").val($("#id_fire_number :selected").val());
+        $("#id_fire_name").val($("#id_fire_number :selected").attr('name'));
+        $("#id_tenures").val($("#id_fire_number :selected").attr('tenure__name'));
+    });
+
+
+    $( "<div class='help-inline'><span id='id_status_help'> The definition of 'active' can be found in the glossary of the Prescribed Fire Manual</span></div>" ).insertAfter( "#id_status" );
+    $( "<div class='help-inline'><span id='id_est_start_help'> Time format must be HH:MM (24 hour clock)</span></div>" ).insertAfter( "#id_est_start" );
+
+    $( "<div class='help-inline'><span id='id_planned_area_help'> Must input at least one of Area or Distance</span></div>" ).insertAfter( "#id_planned_area" );
+    if (current_url.indexOf('active_burn') > -1) {
+        $( "<div class='help-inline'><span id='id_area_help'> Must input at least one of Area or Distance.<br> This area is the same as the 'Area treated today (ha)' in the day of burn achievement update page</span></div>" ).insertAfter( "#id_area" );
+    }
+
+
+        $("select#id_risk").prop('disabled', true);
+        $("a#add_id_risk").hide();
+        $('form').bind('submit', function() {
+            $('select#id_risk').removeAttr('disabled');
+        });
+
+    $(".datetimeshortcuts").find('a').remove()
+
+});
+
+</script>
+{% endblock %}
