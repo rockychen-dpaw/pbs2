@@ -1,0 +1,4 @@
+
+
+class PrescriptionCreateForm(object):
+    pass

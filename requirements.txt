@@ -1,0 +1,14 @@
+Django==2.1.2
+django-confy==1.0.4
+django-reversion==2.0.13
+
+sqlalchemy==1.2.10
+psycopg2-binary==2.7.4
+
+#git+git://github.com/dbca-wa/dpaw-utils@minimal#egg=dpaw-utils
+
+Pillow>=5.3.0
+python-dateutil>=2.7.3
+Unidecode>=1.0.22
+django-compressor>=2.2
+django-tastypie>=0.14.0

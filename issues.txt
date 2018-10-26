@@ -1,0 +1,38 @@
+prescription/models.py
+    Prescription:
+        1.Save
+            A. contingencies_migrated: From my point, set contengencies_migrated to true only if both actions_migrated and notifications_migrated of all contingencies are set to True; 
+
+    Approval:
+        1. initial_valid_to: default value setting was removed during upgrading
+report/models.py
+    SummaryCompletionState
+        1.clean_context_map : why need to call 'save' if invalid
+        2.clean_success_criteria : why need to call 'save' if invalid
+        3.clean_risk_register : why need to call 'save' if invalid
+        4.clean_context_statement : why need to call 'save' if invalid
+
+    BurnImplementationState
+        1. lots of clean method call 'save' if invalid, but why
+
+Chained Foreign key Not support
+    1. district/region
+        A. PrescribedBurn.district
+    2. Document.tag
+
+ContentTypeRestrictedFileField:
+    1. If upload file is a zip file, then max_upload_size is not applied.
+    2. temporary file is not removed when file is a zip file
+
+
+PrescribedBurn
+    1. copy_ongoing_records,copy_planned_approved_records_adhoc: the following 4 properties don't declared
+                obj.approval_268a_status = PrescribedBurn.APPROVAL_DRAFT
+                obj.approval_268a_status_modified = now
+                obj.approval_268b_status = PrescribedBurn.APPROVAL_DRAFT
+                obj.approval_268b_status_modified = now
+
+risk.Registr
+    1. Save: can't understandl
+        A. Why final_likelihood and final_consequence is reset to draft_likelihood and draft_consequence if they are not changed.
+
