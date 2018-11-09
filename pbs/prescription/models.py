@@ -16,7 +16,7 @@ from django.template.defaultfilters import truncatewords
 from django.utils.safestring import mark_safe
 from django.utils import timezone
 
-from dpaw_utils.models import AuditMixin
+from dpaw_utils.models import AuditMixin,DictMixin
 
 from pbs.risk.models import (Register, Risk, Action, Complexity, Context, Treatment)
 
@@ -236,7 +236,7 @@ class DefaultBriefingChecklist(models.Model):
     smeac = models.ForeignKey(SMEAC, verbose_name="SMEACS", on_delete=models.PROTECT)
     title = models.CharField(max_length=200)
 
-class Prescription(AuditMixin):
+class Prescription(DictMixin,AuditMixin):
     """
     A Prescription is the core object in the system. It should contain all the
     top level attributes imported from Prescription Program Planning except
@@ -462,6 +462,85 @@ class Prescription(AuditMixin):
     # Will probably be removed when all contigency objects have been migrated.
     contingencies_migrated = models.BooleanField(default=False, editable=False)
 #    reviewed = models.BooleanField(verbose_name="Reviewed by FMSB and DRFMS", default=False, editable=False)
+
+    @property
+    def approval_expiry(self):
+        if self.is_approved:
+            return defaultfilters.date(self.current_approval.valid_to)
+        else:
+            return "Not applicable"
+
+    
+    @property
+    def locations(self):
+        if not hasattr(self,"_locations"):
+            if not self.location:
+                setattr(self,"_locations",None)
+            elif self.location.startswith("Within the locality of"):
+                setattr(self,"_locations",[self.location[len("Within the locality of"):].strip()])
+            else:
+                setattr(self,"_locations",[l.strip() for l in self.location.split('|')] if self.location else None)
+        return self._locations
+    @locations.setter
+    def locations(self,value):
+        self._locations = value
+        if not self._locations:
+            self.location = None
+        elif isinstance(self._locations,(list,tuple)):
+            if len(self._locations) == 1 or not any(self._locations[1:]):
+                self.location = "Within the locality of {}".format(self._locations[0])
+            else:
+                self.location = "|".join(self._locations)
+        else:
+            self.location = "Within the locality of {}".format(self._locations)
+
+    def _set_loc(self,index,value):
+        locations = self.locations
+        if value:
+            value = value.strip()
+        else:
+            value = ""
+        if locations and len(locations) > index:
+            locations[index] = value
+        else:
+            if locations is None:
+                locations = []
+            
+            if len(locations) < index:
+                locations.extend([""] * (index - len(locations)))
+                
+            locations.append(value)
+
+        self.locations = locations
+
+    @property
+    def loc_locality(self):
+        return self.locations[0] if self.locations and len(self.locations) >= 1 else None
+    @loc_locality.setter
+    def loc_locality(self,value):
+        self._set_loc(0,value)
+
+    @property
+    def loc_distance(self):
+        return self.locations[1] if self.locations and len(self.locations) >= 2 else None
+    @loc_distance.setter
+    def loc_distance(self,value):
+        self._set_loc(1,value)
+
+    @property
+    def loc_direction(self):
+        return self.locations[2] if self.locations and len(self.locations) >= 3 else None
+    @loc_direction.setter
+    def loc_direction(self,value):
+        self._set_loc(2,value)
+
+    @property
+    def loc_town(self):
+        return self.locations[3] if self.locations and len(self.locations) >= 4 else None
+    @loc_town.setter
+    def loc_town(self,value):
+        self._set_loc(3,value)
+
 
     @property
     def is_reviewed(self):
@@ -1041,6 +1120,9 @@ class Prescription(AuditMixin):
     def drfms_group(self):
         return Group.objects.get(name='Director Fire and Regional Services')
 
+    def get_absolute_url(self):
+        return "prescription/prescription/{}/".format(self.id)
+
     def _max_risk(self, maximum_risk):
         """
         Determine the maximum final/draft risk of this burn plan.
@@ -1105,41 +1187,6 @@ class Prescription(AuditMixin):
             return 'Bushfire Risk Management, ' + ', '.join([i for i in purposes if i != 'Bushfire Risk Management'])
         return ', '.join([i for i in purposes])
 
-    def clean_contentious(self):
-        if self.contentious is None:
-            raise ValidationError("You must select Yes or No for Contentious.")
-
-    def clean_contentious_rationale(self):
-        if self.contentious and not self.contentious_rationale:
-            raise ValidationError("A contentious burn requires a contentious "
-                                  "rationale.")
-
-    def clean_financial_year(self):
-        try:
-            yr1 = int(self.financial_year.split('/')[0].strip())
-            yr2 = int(self.financial_year.split('/')[1].strip())
-            if yr2 != yr1 + 1:
-                raise ValidationError("Financial Year must be consecutive years and "
-                                      "in the format '2015/2016'")
-        except:
-            raise ValidationError("Financial Year must be consecutive years and "
-                                  "in the format '2015/2016'")
-        if self.financial_year and yr2 < timezone.now().year:
-            raise ValidationError("Financial year burnt must be in the current "
-                                  "financial year or in the future.")
-
-    """
-    def clean_last_year(self):
-        if self.last_year and self.last_year > timezone.now().year:
-            raise ValidationError("Last year burnt must not be in the future.")
-        if self.last_year and self.last_year < 1900:
-            raise ValidationError("Last year burnt must be after 1900.")
-
-    def clean_planned_year(self):
-        if self.planned_year and self.planned_year < timezone.now().year:
-            raise ValidationError("Planned year burnt must be in the current "
-                              "year or in the future.")
-    """
 
     def clean_location(self):
         if ((self.location and
@@ -1184,16 +1231,17 @@ class Prescription(AuditMixin):
         # one higher than the last burn id.
         #import pudb; pudb.set_trace()
         if not self.pk:
-            prescriptions = Prescription.objects.filter(
-                district=self.district).order_by('burn_id')
-            values = map(lambda burn_id: int(burn_id.split('_')[1]),
-                         prescriptions.values_list('burn_id', flat=True))
+            try:
+                prescription = Prescription.objects.filter(
+                    district=self.district).latest('burn_id')
+            except Prescription.DoesNotExist as es:
+                prescription = None
 
             # Don't recycle values because its a really bad idea.
-            if len(values) == 0:
+            if prescription is None:
                 burn_id = 1
             else:
-                burn_id = max(values)+1
+                burn_id = int(prescription.burn_id.split('_')[1])
 
             self.burn_id = "%s_%03d" % (self.district.code, burn_id)
 
@@ -1588,7 +1636,7 @@ class PrescriptionListener(object):
         For each new prescription, create new state objects to track their
         completion.
         """
-        from pbs.report.models import (SummaryCompletionState, BurnImplementationState,BurnClosureState,PostBurnCheckList)
+        from pbs.report.models import (SummaryCompletionState, BurnImplementationState,BurnClosureState,PostBurnChecklist)
         if created:
             for state in [SummaryCompletionState, BurnImplementationState,BurnClosureState]:
                 state.objects.create(prescription=instance)

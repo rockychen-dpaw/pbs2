@@ -6,6 +6,22 @@ from django.db import models
 from django.utils import timezone
 import threading
 
+class DictMixin(object):
+    """
+    simulate a dict object 
+    """
+    def __contains__(self,name):
+        return hasattr(self,name)
+
+    def __getitem__(self,name):
+        if hasattr(self,name):
+            return getattr(self,name)
+        else: 
+            raise KeyError(name)
+
+    def get(self,name,default = None):
+        return getattr(self,name) if hasattr(self,name) else default
+
 
 class ActiveMixinManager(models.Manager):
     """Manager class for ActiveMixin.

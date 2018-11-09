@@ -70,7 +70,7 @@ def log(user_request, url, method, data=None, json=None, kwargs=None):
         request_path = ""
     log_msg = log_head_format.format(os.getpid(), request_seq, request_path,
                                      url, method,
-                                     ("\n" + ' ' * 12).join(["{}={}".format(k, v) for k, v in (kwargs or {}).iteritems()]))
+                                     ("\n" + ' ' * 12).join(["{}={}".format(k, v) for k, v in (kwargs or {}).items()]))
     if data:
         log_msg += "{}body(data): {}\n".format(' ' * 8, str(data))
 

@@ -14,6 +14,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.urls import include, path
+from django.contrib import admin
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('docs/', include('django.contrib.admindocs.urls')),
@@ -21,10 +24,14 @@ urlpatterns = [
 ]
 
 import pbs.views
+import pbs.prescription.urls
+
 from tastypie.api import Api
 
 handler500 = pbs.views.handler500
 handler404 = pbs.views.handler404
 
 urlpatterns = urlpatterns + [
-]
+    path("admin/",admin.site.urls),
+    path("prescription/",include(pbs.prescription.urls,namespace="prescription"))
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

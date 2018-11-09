@@ -1,7 +1,8 @@
-from django.urls import include, path
+from .views import (PrescriptionCreateView,PrescriptionListView)
 
-from .views import PrescripionView
+app_name = "prescription"
+urlpatterns = []
 
-urlpatterns = [
-    path('prescription', include('django.contrib.admindocs.urls')),
-]
+urlpatterns.extend(PrescriptionCreateView.urlpatterns())
+urlpatterns.extend(PrescriptionListView.urlpatterns())
+

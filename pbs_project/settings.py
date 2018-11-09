@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'reversion',
+    'django_filters',
 
     'pbs',
     'pbs.prescription',
@@ -69,7 +70,7 @@ ROOT_URLCONF = 'pbs_project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ["templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -144,3 +145,10 @@ STATICFILES_FINDERS = (
 
 FPC_EMAIL_EXT = "@fpc.wa.gov.au"
 
+ENV_TYPE = env('ENV_TYPE') or None
+if not ENV_TYPE:
+    try:
+        ENV_TYPE = os.getcwd().split('-')[1].split('.')[0] # will return either 'dev' or 'uat'
+    except:
+        ENV_TYPE = "TEST"
+ENV_TYPE = ENV_TYPE.upper() if ENV_TYPE else "TEST"

@@ -1,0 +1,39 @@
+{% extends "base_site.html" %}
+{% load i18n %}
+
+{% block content_title %}<h1>{{ title }}</h1>{% endblock %}
+
+{% block content %}
+<div>
+{% if form.errors %}
+    <p class="errornote alert alert-block alert-error fade in">
+    {% blocktrans count counter=errors|length %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
+    </p>
+{% endif %}
+<div class="row">
+<div class="span12">
+<div id="id_pageerrors"><span id="id__all__">
+    {% if form.non_field_errors %}
+        {% include "display_errors.html" with errors=form.non_field_errors %}
+    {% endif %}
+</span></div>
+
+<form action="" method="post">{% csrf_token %}
+    {% block form_content%}
+    {% endblock %}
+    <div class="navbar navbar-fixed-bottom">
+      <div class="navbar-inner">
+        <div class="container">
+          <p class="pull-right">
+            {% for action in form.actions %}
+                {{ action.html }}
+            {% endfor %}
+          </p>
+        </div>
+      </div>
+    </div>
+</form>
+</div>
+</div>
+</div>
+{% endblock %}

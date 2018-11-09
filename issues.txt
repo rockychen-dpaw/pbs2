@@ -36,3 +36,7 @@ risk.Registr
     1. Save: can't understandl
         A. Why final_likelihood and final_consequence is reset to draft_likelihood and draft_consequence if they are not changed.
 
+
+templates/base.html
+    1.is_popup, 
+
