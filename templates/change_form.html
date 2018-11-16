@@ -26,7 +26,7 @@
         <div class="container">
           <p class="pull-right">
             {% for action in form.actions %}
-                {{ action.html }}
+                {{ action.widget.html }}
             {% endfor %}
           </p>
         </div>

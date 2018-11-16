@@ -1,4 +1,5 @@
 from collections import OrderedDict
+import re
 
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.html import html_safe
@@ -16,6 +17,138 @@ from .boundfield import BoundField,CompoundBoundField
 
 from .utils import FieldClassConfigDict,FieldWidgetConfigDict,SubpropertyEnabledDict,ChainDict
 from ..models import DictMixin
+
+class Action(object):
+    """
+    all attr name should be lower case
+    """
+    def __init__(self,action,tag="button",tag_body=None,tag_attrs=None,permission=None):
+        self.permission = permission if permission else None
+        self.tag = tag.lower()
+        self.action = action
+        self.tag_body = tag_body or action
+        self.tag_attrs = tag_attrs or {}
+
+        default_attrs = []
+        if tag == "option":
+            default_attrs=[("value",self.action)]
+        elif tag == "button":
+            if "onclick" in self.tag_attrs:
+                default_attrs=[("class","btn btn-primary"),("value",self.action),("name","action")]
+            else:
+                default_attrs=[("class","btn btn-primary"),("type","submit"),("value",self.action),("name","action")]
+
+        for k,v in default_attrs:
+            if k not in self.tag_attrs:
+                self.tag_attrs[k] = v 
+
+        
+        self._widget = widgets.HtmlTag(self.tag,self.tag_attrs,self.tag_body)
+
+        if not self.permission:
+            self.has_permission = self._always_has_permission
+        elif isinstance(self.permission,str):
+            self.has_permission = self._check_permission
+        else:
+            self.has_permission = self._check_any_permissions
+
+    def _always_has_permission(self,user):
+        return True;
+
+    def _check_permission(self,user):
+        return user.has_perm(self.permission)
+
+    def _check_any_permissions(self,user):
+        for p in self.permission:
+            if user.has_perm(p):
+                return True
+        return False
+
+    @property
+    def widget(self):
+        return self._widget
+
+class ActionMixin(object):
+    """
+    All actions must be a list of Action instance
+    """
+    all_actions = []
+
+    class ActionIterator(object):
+        def __init__(self,form):
+            self._form = form
+        
+        def __iter__(self):
+            self.index = -1
+            return self
+
+        def __next__(self):
+            while self.index < len(self._form.all_actions) - 1:
+                self.index += 1
+                action = self._form.all_actions[self.index]
+                if action.has_permission(self._form.request.user if self._form.request else None):
+                    return action
+
+            raise StopIteration()
+
+    @property
+    def actions(self):
+        if not self.all_actions:
+            return self.all_actions
+        elif not self.request:
+            return self.all_actions
+        else:
+            return self.ActionIterator(self)
+
+    @property
+    def has_action(self):
+        if not self.all_actions:
+            return False
+        elif not self.request:
+            return True
+        elif hasattr(self,"_has_action"): 
+            return self._has_action
+        else:
+            for a in self.ActionIterator(self):
+                self._has_action = True
+                return True
+            self._has_action = False
+            return False
+
+
+class RequestMixin(object):
+
+    def __init__(self,request=None,*args,**kwargs):
+        self.request = request
+        super(RequestMixin,self).__init__(*args,**kwargs)
+
+class RequestUrlMixin(RequestMixin):
+    def __init__(self,requesturl=None,*args,**kwargs):
+        self.requesturl = requesturl
+        super(RequestUrlMixin,self).__init__(*args,**kwargs)
+
+    @property
+    def path(self):
+        return self.requesturl.path
+
+    @property
+    def sorting_status(self):
+        return self.requesturl.sorting_status
+
+    @property
+    def sorting_clause(self):
+        return self.requesturl.sorting_clause
+
+    def querystring(self,ordering=None,page=None):
+        return self.requesturl.querystring(ordering,page)
+
+    @property
+    def querystring_without_ordering(self):
+        return self.requesturl.querystring_without_ordering
+
+    @property
+    def querystring_without_paging(self):
+        return self.requesturl.querystring_without_paging
 
 class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
     """
@@ -249,7 +382,7 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
         
         return new_class
 
-class ModelForm(six.with_metaclass(BaseModelFormMetaclass, forms.models.BaseModelForm)):
+class ModelForm(ActionMixin,RequestMixin,forms.models.BaseModelForm,metaclass=BaseModelFormMetaclass):
     """
     This class only support model class which extends DictMixin
 
@@ -259,12 +392,13 @@ class ModelForm(six.with_metaclass(BaseModelFormMetaclass, forms.models.BaseMode
     3. set the value of model properties or model subproperties from form instance before seting the value of model fields
 
     """
-    def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
-                 initial=None, error_class=ErrorList, label_suffix=None,
-                 empty_permitted=False, instance=None, use_required_attribute=None,
-                 renderer=None):
+    def __init__(self, *args,**kwargs):
         """
         The reason to totally override initial method of BaseModelForm is using ChainDict to replace model_to_dict method call
+        """
+        super(ModelForm,self).__init__(*args,**kwargs)
+        if self._meta.subproperty_enabled:
+            self.initial = SubpropertyEnabledDict(self.initial or {})
         """
         opts = self._meta
         if opts.model is None:
@@ -295,6 +429,7 @@ class ModelForm(six.with_metaclass(BaseModelFormMetaclass, forms.models.BaseMode
         # It is False by default so overriding self.clean() and failing to call
         # super will stop validate_unique from being called.
         self._validate_unique = False
+        self.request = request
         forms.forms.BaseForm.__init__(self,
             data, files, auto_id, prefix, initial, error_class,
             label_suffix, empty_permitted, use_required_attribute=use_required_attribute,
@@ -302,6 +437,7 @@ class ModelForm(six.with_metaclass(BaseModelFormMetaclass, forms.models.BaseMode
         )
         for formfield in self.fields.values():
             forms.models.apply_limit_choices_to_to_formfield(formfield)
+        """
 
     def is_editable(self,name):
         return self._meta.editable_fields is None or name in self._meta.editable_fields
@@ -406,14 +542,18 @@ class ModelForm(six.with_metaclass(BaseModelFormMetaclass, forms.models.BaseMode
             if isinstance(field,models.Field):
                 form_class = kwargs.get("form_class")
                 if form_class:
-                    kwargs["choices_form_class"] = form_class
+                    if isinstance(form_class,forms.fields.Field):
+                        return form_class
+                    elif issubclass(form_class,fields.ChoiceFieldMixin):
+                        return kwargs.pop("form_class")(**kwargs)
+                    else:
+                        kwargs["choices_form_class"] = form_class
                 result = field.formfield(**kwargs)
                 if form_class and not isinstance(result,form_class):
                     raise Exception("'{}' don't use the form class '{}' declared in field_classes".format(field.__class__.__name__,form_class.__name__))
+                return result
             else:
-                result = kwargs.pop("form_class")(**kwargs)
-
-            return result
+                return kwargs.pop("form_class")(**kwargs)
 
         @classmethod
         def is_dbfield(cls,field_name):

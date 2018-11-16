@@ -29,10 +29,23 @@ class FieldClassConfigDict(dict):
 
     def search_keys(self,name,purpose=None):
         purpose = purpose or self.purpose(name)
-        if self._meta_class.is_dbfield(name):
-            return ("{}.{}".format(name,purpose),name)
+        if isinstance(purpose,str):
+            if self._meta_class.is_dbfield(name):
+                return ("{}.{}".format(name,purpose),name)
+            else:
+                return ("{}.{}".format(name,purpose),name,"{}.{}".format(self._default_key_name,purpose),self._default_key_name)
         else:
-            return ("{}.{}".format(name,purpose),name,"{}.{}".format(self._default_key_name,purpose),self._default_key_name)
+            if self._meta_class.is_dbfield(name):
+                keys = ["{}.{}".format(name,p) for p in purpose] + [name]
+                keys.append(name)
+                return keys
+            else:
+                keys =["{}.{}".format(name,p) for p in purpose]
+                keys.append(name)
+                for p in purpose:
+                    keys.append("{}.{}".format(self._default_key_name,p))
+                keys.append(self._default_key_name)
+                return keys
 
     def __contains__(self,name):
         for key in self.search_keys(name):
@@ -61,6 +74,8 @@ class FieldClassConfigDict(dict):
 
 
     def get_config(self,name,purpose=None):
+        if name=="approval_expiry":
+            pass
         for key in self.search_keys(name,purpose):
             try:
                 value = self.data[key]
@@ -83,13 +98,24 @@ class FieldWidgetConfigDict(FieldClassConfigDict):
 
     def search_keys(self,name,purpose=None):
         purpose = purpose or self.purpose(name)
-        if purpose == 'edit':
-            if self._meta_class.is_dbfield(name):
+        if isinstance(purpose,str):
+            if purpose == 'edit' and self._meta_class.is_dbfield(name):
                 return ("{}.{}".format(name,purpose),name)
             else:
                 return ("{}.{}".format(name,purpose),name,"{}.{}".format(self._default_key_name,purpose),self._default_key_name)
         else:
-            return ("{}.{}".format(name,purpose),name,"{}.{}".format(self._default_key_name,purpose),self._default_key_name)
+            if purpose == 'edit' and self._meta_class.is_dbfield(name):
+                keys = ["{}.{}".format(name,p) for p in purpose]
+                keys.append(name)
+                return keys
+            else:
+                keys = ["{}.{}".format(name,p) for p in purpose]
+                keys.append(name)
+                for p in purpose:
+                    keys.append("{}.{}".format(self._default_key_name,p))
+                keys.append(self._default_key_name)
+                return keys
+
 
 class SubpropertyEnabledDict(dict):
     """

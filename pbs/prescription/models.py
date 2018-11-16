@@ -16,7 +16,7 @@ from django.template.defaultfilters import truncatewords
 from django.utils.safestring import mark_safe
 from django.utils import timezone
 
-from dpaw_utils.models import AuditMixin,DictMixin
+from dpaw_utils.models import AuditMixin,DictMixin,SelectOptionMixin
 
 from pbs.risk.models import (Register, Risk, Action, Complexity, Context, Treatment)
 
@@ -63,7 +63,7 @@ class RegionManager(models.Manager):
     def get_by_natural_key(self, name):
         return self.get(name=name)
 
-class Region(models.Model):
+class Region(SelectOptionMixin,models.Model):
     """
     """
     name = models.CharField(max_length=64, unique=True)
@@ -89,7 +89,7 @@ class DistrictManager(models.Manager):
         region = Region.objects.get_by_natural_key(region)
         return self.get(name=name, region=region)
 
-class District(models.Model):
+class District(SelectOptionMixin,models.Model):
     region = models.ForeignKey(Region, on_delete=models.PROTECT)
     name = models.CharField(max_length=200, unique=True)
     code = models.CharField(max_length=3)

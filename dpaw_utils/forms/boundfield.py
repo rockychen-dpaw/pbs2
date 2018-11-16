@@ -29,21 +29,15 @@ class BoundField(forms.boundfield.BoundField):
 
     @property
     def initial(self):
-        data = self.form.initial.get(self.name, self.field.initial)
-        if callable(data):
-            if self._initial_value is not UNSET:
-                data = self._initial_value
-            else:
-                data = data()
-                # If this is an auto-generated default date, nix the
-                # microseconds for standardized handling. See #22502.
-                if (isinstance(data, (datetime.datetime, datetime.time)) and
-                        not self.field.widget.supports_microseconds):
-                    data = data.replace(microsecond=0)
-                self._initial_value = data
-        elif not self.is_display and isinstance(data,models.Model):
+        if self.is_display and hasattr(self.field.widget,"prepare_initial_data"):
+            return self.field.widget.prepare_initial_data(self.form.initial,self.name)
+
+        data = super(BoundField,self).initial
+
+        if not self.is_display and isinstance(data,models.Model):
             return data.pk
-        return data
+        else:
+            return data
 
     @property
     def auto_id(self):
@@ -56,13 +50,16 @@ class BoundField(forms.boundfield.BoundField):
             else:
                 return html_id
 
-    def html(self,template):
+    def html(self,template=None,method="as_widget"):
         if hasattr(self.field,"css_classes"):
             attrs = " class=\"{}\"".format(" ".join(self.field.css_classes))
         else:
             attrs = ""
 
-        return mark_safe(template.format(attrs=attrs,widget=self.as_widget()))
+        if template:
+            return mark_safe(template.format(attrs=attrs,widget=getattr(self,method)()))
+        else:
+            return mark_safe(getattr(self,method)())
 
     def value(self):
         """
@@ -219,9 +216,9 @@ class ListBoundFieldMixin(object):
             sorting_status = self.sorting_status
             sorting_class = self.sorting_html_class
             if hasattr(self.field,"css_classes"):
-                attrs = " onclick=\"document.location='?{}{}order_by={}{}'\" class=\"{} {}\"".format(self.form.url,"&" if self.form.url else "","-" if sorting_status == 'asc' else '',self.name,sorting_class," ".join(self.field.css_classes))
+                attrs = " onclick=\"document.location='{}'\" class=\"{} {}\"".format(self.form.querystring(ordering="{}{}".format("-" if sorting_status == 'asc' else '',self.name)),sorting_class," ".join(self.field.css_classes))
             else:
-                attrs = " onclick=\"document.location='?{}{}order_by={}{}'\" class=\"{}\"".format(self.form.url,"&" if self.form.url else "","-" if sorting_status == 'asc' else '',self.name,sorting_class)
+                attrs = " onclick=\"document.location='{}'\" class=\"{}\"".format(self.form.querystring(ordering="{}{}".format("-" if sorting_status == 'asc' else '',self.name)),sorting_class)
 
         return mark_safe(template.format(label=label,attrs=attrs))
 

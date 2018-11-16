@@ -68,6 +68,10 @@ class ListDataForm(django_forms.BaseForm,collections.Iterable):
         pass
 
     @property
+    def pk(self):
+        return self.initial.pk
+
+    @property
     def is_bound(self):
         return self.listform.is_bound
 
@@ -177,12 +181,12 @@ class ToggleableFieldIterator(collections.Iterable):
             raise StopIteration()
 
 
-class ListForm(django_forms.models.BaseModelForm,collections.Iterable,metaclass=ListModelFormMetaclass):
+class ListForm(forms.ActionMixin,forms.RequestUrlMixin,django_forms.models.BaseModelForm,collections.Iterable,metaclass=ListModelFormMetaclass):
     """
     Use a form to display list data 
     """
 
-    def __init__(self,data_list=None,initial_list=None,sorting_status=None,url=None,index=0,**kwargs):
+    def __init__(self,data_list=None,initial_list=None,**kwargs):
         if "data" in kwargs:
             del kwargs["data"]
 
@@ -193,8 +197,6 @@ class ListForm(django_forms.models.BaseModelForm,collections.Iterable,metaclass=
         #set index to one position before the start position. because we need to call next() before getting the first data 
         self.index = None
         self.dataform = ListDataForm(self)
-        self.sorting_status = sorting_status
-        self.url = url
 
     @property
     def boundfields(self):

@@ -6,6 +6,35 @@ from django.db import models
 from django.utils import timezone
 import threading
 
+class SelectOptionMixin(object):
+    """
+    simulate a selection object, which should be a tuple or list or iterable object with length 2
+    """
+    def __iter__(self):
+        """
+        Returns itself as an iterator
+        """
+        self._position = -1
+        return self
+
+    def __next__(self):
+        self._position += 1
+        if self._position == 0:
+            return self.option_value
+        elif self._position == 1:
+            return self.option_label
+        else:
+            raise StopIteration()
+
+    @property
+    def option_value(self):
+        return self.id
+
+    @property
+    def option_label(self):
+        return str(self)
+
+
 class DictMixin(object):
     """
     simulate a dict object 

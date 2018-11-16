@@ -5,6 +5,7 @@ from django.db import models
 
 from .. import widgets
 from ..utils import hashvalue
+from .coerces import *
 
 class_id = 0
 field_classes = {}
@@ -127,14 +128,17 @@ def MultipleFieldFactory(model,field_name,related_field_names,field_class=None,*
 class ChoiceFieldMixin(object):
     def __init__(self,*args,**kwargs):
         kwargs["choices"] = self.CHOICES
-        for key in ("min_value","max_value","max_length"):
+        for key in ("min_value","max_value","max_length","limit_choices_to","to_field_name","queryset"):
             if key in kwargs:
                 del kwargs[key]
         super(ChoiceFieldMixin,self).__init__(*args,**kwargs)
 
-def ChoiceFieldFactory(choices,choice_class=forms.TypedChoiceField,field_params=None):
+def ChoiceFieldFactory(choices,choice_class=forms.TypedChoiceField,field_params=None,type_name=None):
     global class_id
-    class_key = hashvalue("ChoiceField<{}.{}{}{}>".format(choice_class.__module__,choice_class.__name__,json.dumps(choices),json.dumps(field_params,cls=_JSONEncoder)))
+    if type_name:
+        class_key = hashvalue("ChoiceField<{}.{}{}{}>".format(choice_class.__module__,choice_class.__name__,type_name,json.dumps(field_params,cls=_JSONEncoder)))
+    else:
+        class_key = hashvalue("ChoiceField<{}.{}{}{}>".format(choice_class.__module__,choice_class.__name__,json.dumps(choices),json.dumps(field_params,cls=_JSONEncoder)))
     if class_key not in field_classes:
         class_id += 1
         class_name = "{}_{}".format(choice_class.__name__,class_id)
@@ -354,3 +358,18 @@ class MultipleField(CompoundField):
         return (self.layout,f.field.related_field_names)
         
     
+BooleanChoiceField = ChoiceFieldFactory([
+    (True,"Yes"),
+    (False,"No")
+],field_params={"coerce":coerce_TrueFalse,'empty_value':None},type_name="BooleanChoiceField")
+
+BooleanChoiceFilter = ChoiceFieldFactory([
+    (True,"Yes"),
+    (False,"No")
+    ],choice_class=forms.TypedMultipleChoiceField ,field_params={"coerce":coerce_TrueFalse,'empty_value':None,'required':False},type_name="BooleanChoiceFilter")
+
+NullBooleanChoiceFilter = ChoiceFieldFactory([
+    ('',"Unknown"),
+    (True,"Yes"),
+    (False,"No")
+    ],choice_class=forms.TypedMultipleChoiceField ,field_params={"coerce":coerce_TrueFalse,'empty_value':None,'required':False},type_name="NullBooleanChoiceFilter")

@@ -1,3 +1,5 @@
+import traceback
+
 from django import forms
 from django.core.cache import caches
 from django.urls import reverse
@@ -83,55 +85,52 @@ class DatetimeDisplay(DisplayWidget):
         else:
             return ""
 
-class HyperlinkTextDisplay(DisplayWidget):
+class Hyperlink(DisplayWidget):
     def __init__(self,**kwargs):
-        super(HyperlinkTextDisplay,self).__init__(**kwargs)
+        super(Hyperlink,self).__init__(**kwargs)
         self.widget = self.widget_class(**kwargs)
 
-    def value_from_datadict(self,data,files,name):
-        result = []
+    def prepare_initial_data(self,initial_data,name):
+        value = initial_data.get(name)
+        if not self.ids:
+            #no configured 
+            return (value,None)
+            
+        url = None
+        kwargs = {}
         for f in self.ids:
-            val = data.get(f[0])
+            val = initial_data.get(f[0])
             if val is None:
-                result.clear()
-                break
+                #can't find value for url parameter, no link can be generated
+                kwargs = None
+                break;
             elif isinstance(val,models.Model):
-                result.append(val.pk)
+                kwargs[f[1]] = val.pk
             else:
-                result.append(val)
-        result.append(self.widget.value_from_datadict(data,files,name))
-        return result
+                kwargs[f[1]] = val
+        if kwargs:
+            return (value,reverse(self.url_name,kwargs=kwargs))
+        else:
+            return(value,None)
 
     def render(self,name,value,attrs=None,renderer=None):
-        if value:
-            link = self.hyperlink(value[0:-1])
-            if link:
-                return "<a href='{}'>{}</a>".format(link,self.widget.render(name,value[-1],attrs,renderer)) if value else ""
+        if value :
+            if value[1]:
+                return "<a href='{}'>{}</a>".format(value[1],self.widget.render(name,value[0],attrs,renderer)) if value else ""
             else:
-                return self.widget.render(name,value[-1],attrs,renderer)
+                return self.widget.render(name,value[0],attrs,renderer)
         else:
             return ""
 
-    def hyperlink(self,pks):
-        if len(pks) == 0:
-            return None
-        else:
-            kwargs = {}
-            index = 0
-            while index < len(pks):
-                kwargs[self.ids[index][1]] = pks[index]
-                index += 1
-            return reverse(self.url_name,kwargs=kwargs)
-
 widget_classes = {}
 widget_class_id = 0
-def HyperlinkDisplayFactory(url_name,field_name,widget_class,ids=[("id","pk")],baseclass=HyperlinkTextDisplay):
+def HyperlinkFactory(field_name,url_name,widget_class=TextDisplay,ids=[("id","pk")],baseclass=Hyperlink):
     global widget_class_id
     key = hashvalue("{}{}{}".format(baseclass.__name__,url_name,field_name))
     cls = widget_classes.get(key)
     if not cls:
         widget_class_id += 1
-        class_name = "{}_{}".format(baseclass.__name,widget_class_id)
+        class_name = "{}_{}".format(baseclass.__name__,widget_class_id)
         cls = type(class_name,(baseclass,),{"url_name":url_name,"widget_class":widget_class,"ids":ids})
         widget_classes[key] = cls
     return cls
@@ -395,7 +394,9 @@ class DropdownMenuSelectMultiple(forms.widgets.SelectMultiple):
             attrs["style"]="{};display:none".format(attrs["style"])
         else:
             attrs["style"]="display:none"
-        html = super(DropdownMenuSelectMultiple,self).render(name,value,attrs,renderer)
+
+        attrs["id"] = name
+        html = super(DropdownMenuSelectMultiple,self).render("",value,attrs,renderer)
         html_id = attrs.get("id")
         if html_id:
             html = """

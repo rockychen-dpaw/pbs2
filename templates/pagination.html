@@ -7,7 +7,7 @@
         {% if page_obj.number == i %}
             <li class="active"><a>{{i}}</a></li>
         {% else %}
-            <li><a href="?page={{i}}">{{i}}</a></li>
+            <li><a href="{% call_method requesturl 'querystring' page=i %}">{{i}}</a></li>
         {% endif %}
     {% endfor %}
   {% else %}
@@ -15,18 +15,18 @@
         {% if page_obj.number == i %}
             <li class="active"><a>{{i}}</a></li>
         {% elif i == 1 %}
-            <li><a href="?page={{i}}">{{i}}</a></li>
+            <li><a href="{% call_method requesturl 'querystring' page=i %}">{{i}}</a></li>
         {% elif i == paginator.num_pages %}
-            <li><a href="?page={{i}}">{{i}}</a></li>
+            <li><a href="{% call_method requesturl 'querystring' page=i %}">{{i}}</a></li>
         {% elif page_obj.number <= 10 %}
             {% if i <= 13  %}
-                <li><a href="?page={{i}}">{{i}}</a></li>
+                <li><a href="{% call_method requesturl 'querystring' page=i %}">{{i}}</a></li>
             {% elif i == 14 %}
                 <li class="disabled"><a >...</a></li>
             {% endif %}
         {% elif page_obj.number >= paginator.num_pages|add:-9 %}
             {% if i >= paginator.num_pages|add:-12  %}
-                <li><a href="?page={{i}}">{{i}}</a></li>
+                <li><a href="{% call_method requesturl 'querystring' page=i %}">{{i}}</a></li>
             {% elif i == paginator.num_pages|add:-13 %}
                 <li class="disabled"><a >...</a></li>
             {% endif %}
@@ -36,7 +36,7 @@
             {% elif i == paginator.num_pages|add:-1 %}
                 <li class="disabled"><a >...</a></li>
             {% elif i >= page_obj.number|add:-5  and i <= page_obj.number|add:5 %}
-                <li><a href="?page={{i}}">{{i}}</a></li>
+                <li><a href="{% call_method requesturl 'querystring' page=i %}">{{i}}</a></li>
             {% endif %}
         {% endif %}
     {% endfor %}

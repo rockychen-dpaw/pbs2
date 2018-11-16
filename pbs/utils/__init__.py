@@ -1,26 +1,6 @@
 from django.utils import timezone
 from django import forms
 
-def coerce_TrueFalse(value):
-    if value is None or value == '':
-        return None
-    if isinstance(value,basestring):
-        return value == "True"
-    return value
-
-def coerce_YesNo(value):
-    if value is None or value == '':
-        return None
-    if isinstance(value,basestring):
-        return value == "Yes"
-    return value
-
-def coerce_int(value):
-    if value is None or value == '':
-        return None
-    return int(value)
-
-
 class FinancialYear(object):
     def __init__(self):
         now = timezone.now()

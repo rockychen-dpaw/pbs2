@@ -3,13 +3,20 @@ from django.contrib.auth.models import User
 
 from dpaw_utils import forms
 
-class FormActions(object):
-    ACTIONS = {
-        "save":forms.widgets.HtmlTag("button",{"class":"btn btn-primary btn-success","type":"submit","value":"save","name":"_save"},"Save"),
-        "back":forms.widgets.HtmlTag("button",{"class":"btn btn-danger","onclick":"history.go(-1)","id":"id_cancel_button"},"Cancel"),
-        "update_selection":forms.widgets.HtmlTag("button",{"class":"btn btn-success btn-block","type":"submit","value":"search"},"Update selection")
-    }
+FORM_ACTIONS = {
+    "save":forms.Action("save","button","Save",{"class":"btn btn-primary btn-success","type":"submit",}),
+    "back":forms.Action("back","button","Cancel",{"class":"btn btn-danger","onclick":"history.go(-1)"}),
+    "update_selection":forms.Action("search","button","Update Selection",{"class":"btn btn-success btn-block","type":"submit","style":"width:260px"})
+}
 
+LIST_ACTIONS = {
+    "delete_selected_epfp":forms.Action("delete_selected","option","Delete selected Prescribed Fire Plans"),
+    "export_to_csv":forms.Action("export_to_csv","option","Export to CSV"),
+    "burn_summary_to_csv":forms.Action("burn_summary_to_csv","option","Export Burn Summary to CSV"),
+    "delete_approval_endorsement":forms.Action("delete_approval_endorsement","option","Remove Burn Plan Endorsements and Approval"),
+    "carry_over_burns":forms.Action("carry_over_burns","option","Carry over burns"),
+    "bulk_corporate_approve":forms.Action("bulk_corporate_approve","option","Apply corporate approval")
+}
 
 class UserForm(forms.ModelForm):
 

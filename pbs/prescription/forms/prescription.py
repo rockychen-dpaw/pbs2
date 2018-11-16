@@ -3,13 +3,12 @@ from django.utils import timezone
 
 from dpaw_utils import forms
 
-from pbs.prescription.models import Prescription,Region
-from pbs.forms import FormActions
+from pbs.prescription.models import (Prescription,Region,District)
+from pbs.forms import (FORM_ACTIONS,LIST_ACTIONS)
 from pbs.utils import FinancialYear
-import pbs.fields
 import pbs.widgets
 
-class PrescriptionMixin(object):
+class PrescriptionCleanMixin(object):
     def clean_district(self):
         """
         Force the user to select a district.
@@ -106,6 +105,7 @@ class PrescriptionMixin(object):
         return data
     """
 
+class PrescriptionConfigMixin(object):
     class Meta:
         field_classes_config = {
             "__default__":forms.fields.CharField,
@@ -134,14 +134,42 @@ class PrescriptionMixin(object):
                 <table class='noborder'"><tr><td>{0} </td><td>-</td><td> {1}</td><td> km(s)</td><td> {2}</td> of <td>{3}</td></tr></table>
                 """),
             "financial_year":forms.fields.ChoiceFieldFactory(choices=FinancialYear().options(0,10)),
-            "aircraft_burn.filter":pbs.fields.BooleanChoiceField,
-            "contingencies_migrated.filter":pbs.fields.BooleanChoiceField,
-            "contentious.filter":pbs.fields.BooleanChoiceField,
 
+            "aircraft_burn.filter":forms.fields.BooleanChoiceFilter,
+            "contingencies_migrated.filter":forms.fields.BooleanChoiceFilter,
+            "contentious.filter":forms.fields.BooleanChoiceFilter,
+            "region.filter":forms.fields.ChoiceFieldFactory(choices=Region.objects.all().order_by("name"),type_name="region"
+                ,choice_class=forms.fields.TypedMultipleChoiceField,
+                field_params={"required":False,"coerce":forms.fields.coerce_int,"empty_value":None}),
+            "district.filter":forms.fields.ChoiceFieldFactory(choices=District.objects.all().order_by("region__name","name"),
+                choice_class=forms.fields.TypedMultipleChoiceField,type_name="district",
+                field_params={"required":False,"coerce":forms.fields.coerce_int,"empty_value":None}),
+            "priority.filter":forms.fields.ChoiceFieldFactory(choices=Prescription.PRIORITY_CHOICES,
+                choice_class=forms.fields.TypedMultipleChoiceField,
+                field_params={"required":False,"coerce":forms.fields.coerce_int,"empty_value":None}),
+            "planning_status.filter":forms.fields.ChoiceFieldFactory(choices=Prescription.PLANNING_CHOICES,
+                choice_class=forms.fields.TypedMultipleChoiceField,
+                field_params={"required":False,"coerce":forms.fields.coerce_int,"empty_value":None}),
+            "endorsement_status.filter":forms.fields.ChoiceFieldFactory(choices=Prescription.ENDORSEMENT_CHOICES,
+                choice_class=forms.fields.TypedMultipleChoiceField,
+                field_params={"required":False,"coerce":forms.fields.coerce_int,"empty_value":None}),
+            "approval_status.filter":forms.fields.ChoiceFieldFactory(choices=Prescription.APPROVAL_CHOICES,
+                choice_class=forms.fields.TypedMultipleChoiceField,
+                field_params={"required":False,"coerce":forms.fields.coerce_int,"empty_value":None}),
+            "ignition_status.filter":forms.fields.ChoiceFieldFactory(choices=Prescription.IGNITION_STATUS_CHOICES,
+                choice_class=forms.fields.TypedMultipleChoiceField,
+                field_params={"required":False,"coerce":forms.fields.coerce_int,"empty_value":None}),
+            "status.filter":forms.fields.ChoiceFieldFactory(choices=Prescription.STATUS_CHOICES,
+                    choice_class=forms.fields.TypedMultipleChoiceField,
+                    field_params={"required":False,"coerce":forms.fields.coerce_int,"empty_value":None}),
+            "financial_year.filter":forms.fields.ChoiceFieldFactory(choices=FinancialYear().options(-5,5),
+                    choice_class=forms.fields.TypedMultipleChoiceField,
+                    field_params={"required":False,"empty_value":None}),
         }
         widgets_config = {
             "__default__.view":forms.widgets.TextDisplay(),
             "__default__.edit":forms.widgets.TextInput(),
+            "burn_id.list":forms.widgets.HyperlinkFactory("burn_id","prescription:prescription_update"),
             "name.edit":forms.widgets.TextInput(attrs={"class":"vTextField"}),
             "last_year.edit":forms.widgets.TextInput(attrs={"class":"vTextField"}),
             "last_season.edit":forms.widgets.TextInput(attrs={"class":"vTextField"}),
@@ -175,14 +203,15 @@ class PrescriptionMixin(object):
 
         }
 
-class PrescriptionBaseForm(PrescriptionMixin,forms.ModelForm):
+class PrescriptionBaseForm(PrescriptionCleanMixin,PrescriptionConfigMixin,forms.ModelForm):
     class Meta:
         pass
 
-class PrescriptionFilterForm(PrescriptionMixin,forms.FilterForm):
-    actions = [
-        FormActions.ACTIONS["update_selection"],
+class PrescriptionFilterForm(PrescriptionConfigMixin,forms.FilterForm):
+    all_actions = [
+        FORM_ACTIONS["update_selection"],
     ]
+
     class Meta:
         model = Prescription
         purpose = 'filter'
@@ -193,9 +222,9 @@ class PrescriptionFilterForm(PrescriptionMixin,forms.FilterForm):
 
 
 class PrescriptionCreateForm(PrescriptionBaseForm):
-    actions = [
-        FormActions.ACTIONS["save"],
-        FormActions.ACTIONS["back"]
+    all_actions = [
+        FORM_ACTIONS["save"],
+        FORM_ACTIONS["back"]
     ]
     def __init__(self, *args, **kwargs):
         super(PrescriptionCreateForm, self).__init__(*args, **kwargs)
@@ -213,12 +242,18 @@ class PrescriptionCreateForm(PrescriptionBaseForm):
                   'perimeter', 'remote_sensing_priority','rationale')
         other_fields = ('loc_locality','loc_distance','loc_direction','loc_town')
 
-class PrescriptionBaseListForm(PrescriptionMixin,forms.ListForm):
+class PrescriptionBaseListForm(PrescriptionConfigMixin,forms.ListForm):
     class Meta:
-        pass
+        purpose = ('list','view')
 
 class PrescriptionListForm(PrescriptionBaseListForm):
-    actions = [
+    all_actions = [
+        LIST_ACTIONS["delete_selected_epfp"],
+        LIST_ACTIONS["export_to_csv"],
+        LIST_ACTIONS["burn_summary_to_csv"],
+        LIST_ACTIONS["delete_approval_endorsement"],
+        LIST_ACTIONS["carry_over_burns"],
+        LIST_ACTIONS["bulk_corporate_approve"],
     ]
     def __init__(self, *args, **kwargs):
         super(PrescriptionListForm, self).__init__(*args, **kwargs)
