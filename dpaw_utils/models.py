@@ -49,8 +49,27 @@ class DictMixin(object):
             raise KeyError(name)
 
     def get(self,name,default = None):
-        return getattr(self,name) if hasattr(self,name) else default
+        try:
+            return self[name]
+        except:
+            return default
 
+class ModelDictMixin(DictMixin):
+    """
+    simulate a dict object 
+    """
+    def __contains__(self,name):
+        return hasattr(self,name)
+
+    def __getitem__(self,name):
+        try:
+            result = getattr(self,name)
+            if isinstance(result,models.manager.Manager):
+                return result.all()
+            else:
+                return result
+        except AttributeError as ex: 
+            raise KeyError(name)
 
 class ActiveMixinManager(models.Manager):
     """Manager class for ActiveMixin.

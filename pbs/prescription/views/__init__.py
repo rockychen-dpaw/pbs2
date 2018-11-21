@@ -1,1 +1,1 @@
-from .prescription import (PrescriptionCreateView,PrescriptionListView,PrescriptionUpdateView)
+from .prescription import (PrescriptionCreateView,PrescriptionListView,PrescriptionHomeView)

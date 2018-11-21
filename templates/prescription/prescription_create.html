@@ -7,33 +7,9 @@
 {% endcomment%}
 {% block breadcrumbs %}
 <ul class="breadcrumb">
-  <li><a href="{% url 'admin:index' %}">{% trans 'Regional Overview' %}</a> <span class="divider">/</span></li>
+  <li><a href="{% url 'prescription:prescription_list' %}">{% trans 'Regional Overview' %}</a> <span class="divider">/</span></li>
   <li>{{ title }}</li>
 </ul>
-{% endblock %}
-
-{% block extrahead %}{{ block.super }}
-<link rel="stylesheet" href="{% static "admin/css/widgets.css" %}">
-
-<style>
-    div#id_pageerrors.error {
-        background-color: #F2DEDE;
-        padding-top: 10px;
-        padding-left: 10px;
-        padding-bottom: 1px;
-        margin-bottom: 10px;
-    }
-    div.collapse textarea {
-        width: 99%;
-    }
-    div.collapse {
-        width: 99%;
-    }
-    hr.id_purposes_hr {
-        margin-top: 5px;
-        margin-bottom: 5px;
-    }
-</style>
 {% endblock %}
 
 {% block form_content %}

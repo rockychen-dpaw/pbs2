@@ -6,6 +6,7 @@ from django.db import models
 from .. import widgets
 from ..utils import hashvalue
 from .coerces import *
+from ..boundfield import (CompoundBoundField,)
 
 class_id = 0
 field_classes = {}
@@ -86,6 +87,9 @@ class CompoundField(FieldParametersMixin):
             return self._view_layout(f)
         else:
             return self._edit_layout(f)
+
+    def get_boundfield(self,form,name):
+        return BoundFormField(form,self,name)
 
     def _view_layout(self,f):
         raise Exception("Not implemented")
@@ -373,3 +377,49 @@ NullBooleanChoiceFilter = ChoiceFieldFactory([
     (True,"Yes"),
     (False,"No")
     ],choice_class=forms.TypedMultipleChoiceField ,field_params={"coerce":coerce_TrueFalse,'empty_value':None,'required':False},type_name="NullBooleanChoiceFilter")
+
+
+class FormField(forms.Field):
+    _form_class = None
+    def __init__(self, *args,**kwargs):
+        kwargs["widget"] = kwargs["widget"] or TextDisplay()
+        kwargs["initial"] = None
+        initial = None
+        super(FormField,self).__init__(*args,**kwargs)
+
+        self._is_display = True
+        for f in self._form_class.base_fields.values():
+            if not isinstance(f.widget,widgets.DisplayMixin):
+                self._is_display = False
+                break
+
+
+    @property
+    def form_class(self):
+        return self._form_class
+
+    @property
+    def model(self):
+        return self._form_class._meta.model
+
+    @property
+    def is_display(self):
+        return self._is_display
+
+    def get_initial(self):
+        """
+        guarantee a non-none value will be returned
+        """
+        if not self.initial:
+            self.initial = self.form_class._meta.model()
+        return self.initial
+
+def FormFieldFactory(form_class):
+    global class_id
+    class_key = hashvalue("FormField<{}.{}>".format(form_class.__module__,form_class.__name__))
+    if class_key not in field_classes:
+        class_id += 1
+        class_name = "FormField_{}".format(class_id)
+        field_classes[class_key] = type(class_name,(FormField,),{"_form_class":form_class})
+    return field_classes[class_key]
+

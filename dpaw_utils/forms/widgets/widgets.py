@@ -262,8 +262,11 @@ class ChoiceDisplay(DisplayWidget):
     choices = None
     marked_safe = False
             
-    def render(self,name,value,attrs=None,renderer=None):
-        result = self.__class__.choices.get(value,value)
+    def _render(self,name,value,attrs=None,renderer=None):
+        try:
+            result = self.__class__.choices[value]
+        except KeyError as ex:
+            result = self.__class__.choices.get("__default__",value)
         if result is None:
             return ""
         if self.marked_safe:
@@ -271,8 +274,20 @@ class ChoiceDisplay(DisplayWidget):
         else:
             return result
 
+    def _render_template(self,name,value,attrs=None,renderer=None):
+        try:
+            result = self.__class__.choices[value]
+        except KeyError as ex:
+            result = self.__class__.choices.get("__default__",value)
+        if result is None:
+            return ""
+        if self.marked_safe:
+            return mark_safe(result.format(value))
+        else:
+            return result.format(value)
 
-def ChoiceWidgetFactory(name,choices,marked_safe=False):
+
+def ChoiceWidgetFactory(name,choices,marked_safe=False,template=False):
     global widget_class_id
     widget_class = ChoiceDisplay
     if isinstance(choices,list) or isinstance(choices,tuple):
@@ -287,7 +302,10 @@ def ChoiceWidgetFactory(name,choices,marked_safe=False):
     if not cls:
         widget_class_id += 1
         class_name = "{}_{}".format(widget_class.__name__,name)
-        cls = type(class_name,(widget_class,),{"choices":choices,"marked_safe":marked_safe})
+        if template:
+            cls = type(class_name,(widget_class,),{"choices":choices,"marked_safe":marked_safe,"render":ChoiceDisplay._render_template})
+        else:
+            cls = type(class_name,(widget_class,),{"choices":choices,"marked_safe":marked_safe,"render":ChoiceDisplay._render})
         widget_classes[key] = cls
     return cls
 

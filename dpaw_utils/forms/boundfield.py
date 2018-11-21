@@ -5,6 +5,7 @@ from django.db import models
 from django.utils import safestring
 
 from . import widgets
+from . import fields
 
 class BoundField(forms.boundfield.BoundField):
     """ 
@@ -34,6 +35,7 @@ class BoundField(forms.boundfield.BoundField):
 
         data = super(BoundField,self).initial
 
+        print("{}: {} = {}".format("view" if self.is_display else "edit",self.name ,data))
         if not self.is_display and isinstance(data,models.Model):
             return data.pk
         else:
@@ -236,3 +238,57 @@ class ListBoundField(ListBoundFieldMixin,BoundField):
 
 class CompoundListBoundField(ListBoundFieldMixin,CompoundBoundField):
     pass
+
+
+class BoundFormField(BoundField):
+    def __init__(self,*args,**kwargs):
+        super(BoundFormField,self).__init__(*args,**kwargs)
+        self._bound_fields_cache = {}
+        if self.form.is_bound and not self.field.is_display:
+            raise NotImplementedError
+        else:
+            self.form = self.field.form_class(instance=self.value(),prefix=self.name)
+
+    @property
+    def initial(self):
+        return self.form.initial.get(self.name, self.field.get_initial())
+
+    def html(self,template=None,method="as_widget"):
+        raise NotImplementedError
+
+    @property
+    def is_bound(self):
+        return self.form.is_bound and not self.field.is_display
+
+    def value(self):
+        """
+        Returns the value for this BoundField, using the initial value if
+        the form is not bound or the data otherwise.
+        """
+        if self.form.is_bound and not self.field.is_display:
+            raise NotImplementedError
+        else:
+            return self.form.initial.get(self.name, self.field.get_initial())
+
+    def as_widget(self, widget=None, attrs=None, only_initial=False):
+        raise NotImplementedError
+
+    def __getitem__(self, name):
+        """Return a BoundField with the given name."""
+        try:
+            field = self.field.form_class.base_fields[name]
+        except KeyError:
+            raise KeyError(
+                "Key '%s' not found in '%s'. Choices are: %s." % (
+                    name,
+                    self.__class__.__name__,
+                    ', '.join(sorted(f for f in self.fields)),
+                )
+            )
+        if name not in self._bound_fields_cache:
+            if isinstance(field,fields.CompoundField):
+                self._bound_fields_cache[name] = CompoundBoundField(self.form,field,name)
+            else:
+                self._bound_fields_cache[name] = BoundField(self.form,field,name)
+        return self._bound_fields_cache[name]
+    

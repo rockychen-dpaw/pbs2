@@ -1,1 +1,1 @@
-from .views import (UrlpatternsMixin,CreateView,ListView,UpdateView)
+from .views import (UrlpatternsMixin,CreateView,ListView,UpdateView,ReadonlyView)

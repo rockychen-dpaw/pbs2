@@ -3,12 +3,12 @@ import unicodecsv
 
 from django import http
 
-from dpaw_utils.views import (CreateView,ListView,UpdateView)
+from dpaw_utils.views import (CreateView,ListView,UpdateView,ReadonlyView)
 
 from pbs.report.models import Evaluation
 from pbs.views import (ListActionMixin,FormActionMixin)
 from ..models import (Prescription,)
-from ..forms import (PrescriptionCreateForm,PrescriptionFilterForm,PrescriptionListForm)
+from ..forms import (PrescriptionCreateForm,PrescriptionFilterForm,PrescriptionListForm,PrescriptionViewForm)
 from ..filters import (PrescriptionFilter,)
 
 class PrescriptionCreateView(CreateView):
@@ -16,10 +16,12 @@ class PrescriptionCreateView(CreateView):
     form_class = PrescriptionCreateForm
     template_name_suffix = "_create"
 
-class PrescriptionUpdateView(UpdateView):
+class PrescriptionHomeView(ReadonlyView):
+    urlname = "{}_home"
     model = Prescription
-    form_class = PrescriptionCreateForm
-    template_name_suffix = "_overview"
+    form_class = PrescriptionViewForm
+    template_name_suffix = "_home"
+    title = "ePFP Overview"
 
 class PrescriptionListView(ListActionMixin,ListView):
     title = "Regional Overview"
@@ -28,26 +30,6 @@ class PrescriptionListView(ListActionMixin,ListView):
     filter_class = PrescriptionFilter
     model = Prescription
     paginate_by=8
-
-    def get_queryset_4_selected(self,request):
-        if request.POST.get("select_all") == "true" :
-            print("All epfps are selected")
-            filterform = self.get_filterform_class()(data=self.request.POST,request=self.request)
-            if not filterform.is_valid():
-                raise http.HttpResponseServerError()
-
-            data_filter = self.get_filter_class()(filterform,request=self.request)
-            queryset = data_filter.qs
-            print("All {} epfps() are selected.".format(len(queryset)))
-        else:
-            pks = [int(pk) for pk in request.POST.getlist("selectedpks")]
-            if pks:
-                queryset = Prescription.objects.filter(pk__in=pks)
-            else:
-                raise Exception("No Prescribed Fire Plan is selected.")
-
-            print("{} epfps are selected.".format(len(queryset)))
-        return queryset
 
     def burn_summary_to_csv_post(self, request,*args,**kwargs):
         queryset = self.get_queryset_4_selected(request)

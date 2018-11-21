@@ -9,7 +9,7 @@ from django.core.validators import MinValueValidator
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from dpaw_utils.models import AuditMixin
+from dpaw_utils.models import AuditMixin,DictMixin
 
 from pbs.prescription.models import Prescription, SuccessCriteria
 from pbs.risk.models import Complexity, Context, ContextRelevantAction, Action
@@ -18,7 +18,7 @@ from pbs.implementation.models import IgnitionType, RoadSegment, TrailSegment
 log = logging.getLogger(__name__)
 
 # Create your models here.
-class AbstractState(AuditMixin):
+class AbstractState(DictMixin,AuditMixin):
     """
     Add some helper functions to our state models to track progress.
     """

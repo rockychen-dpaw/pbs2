@@ -6,6 +6,7 @@ from dpaw_utils import forms
 from pbs.prescription.models import (Prescription,Region,District)
 from pbs.forms import (FORM_ACTIONS,LIST_ACTIONS)
 from pbs.utils import FinancialYear
+from pbs.report.forms import (SummaryCompletionStateViewForm,BurnImplementationStateViewForm,BurnClosureStateViewForm)
 import pbs.widgets
 
 class PrescriptionCleanMixin(object):
@@ -165,11 +166,14 @@ class PrescriptionConfigMixin(object):
             "financial_year.filter":forms.fields.ChoiceFieldFactory(choices=FinancialYear().options(-5,5),
                     choice_class=forms.fields.TypedMultipleChoiceField,
                     field_params={"required":False,"empty_value":None}),
+            "pre_state":forms.fields.FormFieldFactory(SummaryCompletionStateViewForm),
+            "day_state":forms.fields.FormFieldFactory(BurnImplementationStateViewForm),
+            "post_state":forms.fields.FormFieldFactory(BurnClosureStateViewForm)
         }
         widgets_config = {
             "__default__.view":forms.widgets.TextDisplay(),
             "__default__.edit":forms.widgets.TextInput(),
-            "burn_id.list":forms.widgets.HyperlinkFactory("burn_id","prescription:prescription_update"),
+            "burn_id.list":forms.widgets.HyperlinkFactory("burn_id","prescription:prescription_home"),
             "name.edit":forms.widgets.TextInput(attrs={"class":"vTextField"}),
             "last_year.edit":forms.widgets.TextInput(attrs={"class":"vTextField"}),
             "last_season.edit":forms.widgets.TextInput(attrs={"class":"vTextField"}),
@@ -179,7 +183,8 @@ class PrescriptionConfigMixin(object):
             "purposes.edit":forms.widgets.CheckboxSelectMultiple(),
             "contentious_rationale.edit":forms.widgets.Textarea(attrs={"style":"width:90%"}),
             "contentious.view":forms.widgets.ImgBooleanDisplay(),
-            "aircraft_burn.view":forms.widgets.ImgBooleanDisplay(),
+            "aircraft_burn.list":forms.widgets.ImgBooleanDisplay(),
+            "aircraft_burn.view":pbs.widgets.IgnitionTypeDisplay(),
             "remote_sensing_priority.view":pbs.widgets.RemoteSensingPriorityDisplay(),
             "planning_status.view":pbs.widgets.PlanningStatusDisplay(),
             "modified.view":forms.widgets.DatetimeDisplay(),
@@ -200,12 +205,12 @@ class PrescriptionConfigMixin(object):
             "ignition_status.filter":forms.widgets.DropdownMenuSelectMultiple(attrs={"title":"Ignition Status"}),
             "status.filter":forms.widgets.DropdownMenuSelectMultiple(attrs={"title":"Status"}),
             "contingencies_migrated.filter":forms.widgets.DropdownMenuSelectMultiple(attrs={"title":"Contingencies Migrated"}),
+            "maximum_risk":pbs.widgets.RiskLevelDisplay(),
+            "maximum_draft_risk":pbs.widgets.RiskLevelDisplay(),
+            "maximum_complexity":pbs.widgets.ComplexityRatingDisplay(),
+            "priority":pbs.widgets.PrescriptionPriorityDisplay,
 
         }
-
-class PrescriptionBaseForm(PrescriptionCleanMixin,PrescriptionConfigMixin,forms.ModelForm):
-    class Meta:
-        pass
 
 class PrescriptionFilterForm(PrescriptionConfigMixin,forms.FilterForm):
     all_actions = [
@@ -220,6 +225,27 @@ class PrescriptionFilterForm(PrescriptionConfigMixin,forms.FilterForm):
                   )
         other_fields = ('contingencies_migrated',)
 
+
+class PrescriptionBaseForm(PrescriptionCleanMixin,PrescriptionConfigMixin,forms.ModelForm):
+    class Meta:
+        pass
+
+class PrescriptionViewForm(PrescriptionBaseForm):
+    all_actions = [
+    ]
+    def __init__(self, *args, **kwargs):
+        super(PrescriptionViewForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = Prescription
+        purpose = "view"
+        fields = ('burn_id','planned_season', 'financial_year', 'name', 'description', 'region',
+                  'district','last_year_unknown', 'last_year',
+                  'last_season_unknown','last_season', 'forest_blocks', 
+                  'contentious','contentious_rationale', 'purposes',
+                  'aircraft_burn', 'priority', 'area', 'treatment_percentage',
+                  'perimeter', 'remote_sensing_priority','rationale')
+        other_fields = ('loc_locality','loc_distance','loc_direction','loc_town',"maximum_risk","maximum_complexity","pre_state","day_state","post_state")
 
 class PrescriptionCreateForm(PrescriptionBaseForm):
     all_actions = [

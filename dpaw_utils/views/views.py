@@ -170,6 +170,8 @@ class RequestUrl(object):
         return self.qs_without_paging
 
 class UrlpatternsMixin(object):
+    urlpattern = None
+    urlname = None
 
     @classmethod
     def urlpatterns(cls):
@@ -182,13 +184,13 @@ class UrlpatternsMixin(object):
         model_name = cls.model.__name__.lower()
         urlpatterns = None
         if issubclass(cls,django_edit_view.CreateView):
-            urlpatterns=[path('{}/add/'.format(model_name), cls.as_view(),name='{}_create'.format(model_name))]
+            urlpatterns=[path((cls.urlpattern or '{}/add/').format(model_name), cls.as_view(),name=(cls.urlname or '{}_create').format(model_name))]
         elif issubclass(cls,django_edit_view.UpdateView):
-            urlpatterns=[path('{}/<int:pk>/'.format(model_name), cls.as_view(),name='{}_update'.format(model_name))]
+            urlpatterns=[path((cls.urlpattern or '{}/<int:pk>/').format(model_name), cls.as_view(),name=(cls.urlname or '{}_update').format(model_name))]
         elif issubclass(cls,django_edit_view.DeleteView):
-            urlpatterns=[path('{}/<int:pk>/delete/'.format(model_name), cls.as_view(),name='{}_delete'.format(model_name))]
+            urlpatterns=[path((cls.urlpattern or '{}/<int:pk>/delete/').format(model_name), cls.as_view(),name=(cls.urlname or '{}_delete').format(model_name))]
         elif issubclass(cls,django_list_view.ListView):
-            urlpatterns=[path('{}/'.format(model_name), cls.as_view(),name='{}_list'.format(model_name))]
+            urlpatterns=[path((cls.urlpattern or '{}/').format(model_name), cls.as_view(),name=(cls.urlname or '{}_list').format(model_name))]
         else:
             urlpatterns = []
 
@@ -215,11 +217,30 @@ class CreateView(UrlpatternsMixin,django_edit_view.CreateView):
         context_data["title"] = self.title or "Add {}".format(self.model._meta.verbose_name)
         return context_data
 
+class ReadonlyView(UrlpatternsMixin,django_edit_view.UpdateView):
+    title = None
+
+    def get_form_kwargs(self):
+        kwargs = super(ReadonlyView,self).get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
+    def get_context_data(self,**kwargs):
+        context_data = super(ReadonlyView,self).get_context_data(**kwargs)
+        context_data["title"] = self.title or self.model._meta.verbose_name
+        return context_data
+
+    def post(self,request,*args,**kwargs):
+        return HttpResponseForbidden()
+
+    def put(self,request,*args,**kwargs):
+        return HttpResponseForbidden()
+
 class UpdateView(UrlpatternsMixin,django_edit_view.UpdateView):
     title = None
 
     def get_form_kwargs(self):
-        kwargs = super(CreateView,self).get_form_kwargs()
+        kwargs = super(UpdateView,self).get_form_kwargs()
         kwargs['request'] = self.request
         return kwargs
 
@@ -265,6 +286,25 @@ class ListView(RequestActionMixin,UrlpatternsMixin,django_list_view.ListView):
             return qs
         else:
             return filterform._meta.objects.none()
+
+    def get_queryset_4_selected(self,request):
+        if request.POST.get("select_all") == "true" :
+            filterform = self.get_filterform_class()(data=self.request.POST,request=self.request)
+            if not filterform.is_valid():
+                raise http.HttpResponseServerError()
+
+            data_filter = self.get_filter_class()(filterform,request=self.request)
+            queryset = data_filter.qs
+            print("All {} records are selected.".format(len(queryset)))
+        else:
+            pks = [int(pk) for pk in request.POST.getlist("selectedpks")]
+            if pks:
+                queryset = Prescription.objects.filter(pk__in=pks)
+            else:
+                raise Exception("No Prescribed Fire Plan is selected.")
+
+            print("{} records are selected.".format(len(queryset)))
+        return queryset
 
     def get_ordering(self):
         return self.requesturl.sorting_clause

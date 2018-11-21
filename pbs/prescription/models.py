@@ -921,18 +921,11 @@ class Prescription(DictMixin,AuditMixin):
         """
         Determine the maximum draft risk of this burn plan.
         """
-        if self.get_maximum_draft_risk:
-            return self.get_maximum_draft_risk.get_draft_risk_level_display()
+        register = self.get_maximum_draft_risk
+        if register:
+            return register.draft_risk_level
         else:
-            return 'Very High'
-
-    @property
-    def maximum_draft_risk_html(self):
-        maximum_draft_risk, label, role = self._max_risk(
-            self.maximum_draft_risk)
-        risk_level = ('<span id="id_max_risk" class="label {0}">{1}</span>'
-                      .format(label, maximum_draft_risk))
-        return mark_safe(risk_level)
+            return Register.LEVEL_VERY_HIGH
 
     @property
     def get_maximum_risk(self):
@@ -947,24 +940,11 @@ class Prescription(DictMixin,AuditMixin):
         """
         Determine the maximum risk of this burn plan.
         """
-        if self.get_maximum_risk:
-            return self.get_maximum_risk.get_final_risk_level_display()
+        register = self.get_maximum_risk
+        if register:
+            return register.final_risk_level
         else:
-            return 'Very High'
-
-    @property
-    def maximum_risk_html(self):
-        maximum_risk, label, role = self._max_risk(self.maximum_risk)
-        risk_level = ('<span id="id_max_risk" class="label {0}">{1}</span>'
-                      .format(label, maximum_risk))
-        return mark_safe(risk_level)
-
-    @property
-    def maximum_risk_role(self):
-        maximum_risk, label, role = self._max_risk(self.maximum_risk)
-        risk_role = ('<span id="id_risk_role" class="label {0}">{1}</span>'
-                      .format(label, role))
-        return mark_safe(risk_role)
+            return Register.LEVEL_VERY_HIGH
 
     @property
     def get_maximum_complexity(self):
@@ -975,7 +955,7 @@ class Prescription(DictMixin,AuditMixin):
         """
         Determine the maximum complexity of this burn plan.
         """
-        return self.get_maximum_complexity.get_rating_display()
+        return self.get_maximum_complexity.rating
 
     @property
     def total_edging_depth(self):
@@ -1122,37 +1102,6 @@ class Prescription(DictMixin,AuditMixin):
 
     def get_absolute_url(self):
         return "prescription/prescription/{}/".format(self.id)
-
-    def _max_risk(self, maximum_risk):
-        """
-        Determine the maximum final/draft risk of this burn plan.
-        Display as HTML span.
-        """
-        # the self.maximum_draft_risk is a property method that triggers TWO db
-        # queries whenever this property is accessed
-        # so the if statement below could cost up to 8 db queries!
-        label = ''
-        if maximum_risk == Register.LEVEL_CHOICES[
-                Register.LEVEL_VERY_LOW - 1][1]:
-            label = 'label-very-low'
-            role = 'District Manager'
-        elif maximum_risk == Register.LEVEL_CHOICES[
-                Register.LEVEL_LOW - 1][1]:
-            label = 'label-low'
-            role = 'District Manager'
-        elif maximum_risk == Register.LEVEL_CHOICES[
-                Register.LEVEL_MEDIUM - 1][1]:
-            label = 'label-medium'
-            role = 'Regional Manager'
-        elif maximum_risk == Register.LEVEL_CHOICES[
-                Register.LEVEL_HIGH - 1][1]:
-            label = 'label-high'
-            role = 'Branch Manager FMSB'
-            #role = 'ePFP Application Administrator'
-        else:
-            label = 'label-very-high'
-            role = 'Not available (the risk level is too high)'
-        return maximum_risk, label, role
 
     # Should have a template filter that does this already?
     def date_modified_local(self):

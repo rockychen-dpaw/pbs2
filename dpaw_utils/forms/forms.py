@@ -13,7 +13,7 @@ from django.utils import safestring
 
 from . import widgets
 from . import fields
-from .boundfield import BoundField,CompoundBoundField
+from .boundfield import (BoundField,CompoundBoundField,BoundFormField)
 
 from .utils import FieldClassConfigDict,FieldWidgetConfigDict,SubpropertyEnabledDict,ChainDict
 from ..models import DictMixin
@@ -392,13 +392,12 @@ class ModelForm(ActionMixin,RequestMixin,forms.models.BaseModelForm,metaclass=Ba
     3. set the value of model properties or model subproperties from form instance before seting the value of model fields
 
     """
-    def __init__(self, *args,**kwargs):
+    def __init__(self,request=None, data=None, files=None, auto_id='id_%s', prefix=None,
+                 initial=None, error_class=ErrorList, label_suffix=None,
+                 empty_permitted=False, instance=None, use_required_attribute=None,
+                 renderer=None):
         """
         The reason to totally override initial method of BaseModelForm is using ChainDict to replace model_to_dict method call
-        """
-        super(ModelForm,self).__init__(*args,**kwargs)
-        if self._meta.subproperty_enabled:
-            self.initial = SubpropertyEnabledDict(self.initial or {})
         """
         opts = self._meta
         if opts.model is None:
@@ -437,7 +436,6 @@ class ModelForm(ActionMixin,RequestMixin,forms.models.BaseModelForm,metaclass=Ba
         )
         for formfield in self.fields.values():
             forms.models.apply_limit_choices_to_to_formfield(formfield)
-        """
 
     def is_editable(self,name):
         return self._meta.editable_fields is None or name in self._meta.editable_fields
@@ -532,6 +530,8 @@ class ModelForm(ActionMixin,RequestMixin,forms.models.BaseModelForm,metaclass=Ba
         if name not in self._bound_fields_cache:
             if isinstance(field,fields.CompoundField):
                 self._bound_fields_cache[name] = CompoundBoundField(self,field,name)
+            elif isinstance(field,fields.FormField):
+                self._bound_fields_cache[name] = BoundFormField(self,field,name)
             else:
                 self._bound_fields_cache[name] = BoundField(self,field,name)
         return self._bound_fields_cache[name]

@@ -1,0 +1,241 @@
+{% extends "../view_form.html" %}
+{% load i18n %}
+{% load staticfiles admin_modify %}
+{% comment%}
+{% load admin_urls admin_list %}
+
+{% endcomment%}
+
+{% block extrastyle %}
+<style>
+.progress {
+    text-align: center;
+    font-size: 12px;
+}
+.pending a,
+.pending a:hover {
+    background-color: rgb(242, 222, 222);
+}
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<ul class="breadcrumb">
+  <li><a href="{% url 'prescription:prescription_list' %}">{% trans 'Regional Overview' %}</a> <span class="divider">/</span></li>
+  <li>{{ form.burn_id }}</li>
+</ul>
+{% endblock %}
+
+
+{% block content_title %}
+{% endblock %}
+
+{% block form_content %}
+<div class="row">
+<div class="span9">
+<ul class="nav nav-tabs">
+    <li class="active"><a href="{{ overview }}">Overview</a></li>
+    <li><a href="{{ parta }}">Part A</a></li>
+    <li><a href="{{ partb }}">Part B</a></li>
+    <li><a href="{{ partc }}">Part C</a></li>
+</ul>
+<h1>{{title}}</h1>
+<table class="table table-striped table-condensed" style="table-layout: fixed;">
+  <tbody>
+    <tr>
+      <th>Burn ID</th>
+      <td>{{ form.burn_id }}</td>
+      <th>Burn name</th>
+      <td style="word-wrap: break-word;" colspan="3">{{ form.name }}</td>
+    </tr>
+    <tr>
+      <th>Region</th>
+      <td>{{ form.region }}</td>
+      <th>District</th>
+      <td colspan="3">{{ form.district }}</td>
+    </tr>
+    <tr>
+      <th>Aerial ignition?</th>
+      <td>{{ form.aircraft_burn }}</td>
+      <th>Planned area (ha)</th>
+      <td colspan="3">{{ form.area }}</td>
+    </tr>
+    <tr>
+      <th>Risk level</th>
+      <td>{{ form.maximum_risk }}</td>
+      <th>Contentious?</th>
+      <td colspan="3">{{ form.contentious}}</td>
+    </tr>
+    <tr>
+      <th>Burn complexity</th>
+      <td>
+          {{form.maximum_complexity }}
+      </td>
+      <th>Burn priority</th>
+      <td colspan="3">{{ form.priority}}</td>
+    </tr>
+  </tbody>
+</table>
+<table class="table table-bordered table-striped">
+  <thead>
+    <tr>
+      <th><a href="">Part A</a></th>
+      <th><a href="">Part B</a></th>
+      <th><a href="">Part C</a></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+          {{ form.pre_state.progress }}
+      </td>
+      <td>
+          {{ form.day_state.progress }}
+      </td>
+      <td>
+          {{ form.post_state.progress }}
+      </td>
+    </tr>
+  </tbody>
+</table>
+<table class="table table-striped table-bordered">
+  <thead>
+    <tr>
+      <th width="20%">Corporate Program Approval</th>
+      <th width="20%">ePFP Endorsement</th>
+      <th width="20%">ePFP Approval</th>
+      <th>Ignition commenced</th>
+      <th>Ignition complete</th>
+      <th>Burn closed</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+          {% if object.has_corporate_approval %}
+            <span class="badge badge-success"><i class="icon-ok"></i> approved on {{ object.planning_status_modified|date }}</span>
+          {% elif object.planning_status == object.PLANNING_SUBMITTED %}
+            <span class="badge badge-warning"><i class="icon-minus"></i> submitted on {{ object.planning_status_modified|date }}</span>
+          {% else %}
+            <span class="badge badge-important"><i class="icon-minus"></i> draft</span>
+          {% endif %}
+      </td>
+      <td>
+          {% if object.is_endorsed %}
+            <span class="badge badge-success"><i class="icon-ok"></i>endorsed on {{ object.endorsement_status_modified|date }}</span>
+          {% elif object.endorsement_status == object.ENDORSEMENT_SUBMITTED %}
+            <span class="badge badge-warning"><i class="icon-minus"></i> submitted on {{ object.endorsement_status_modified|date }}</span>
+          {% else %}
+            <span class="badge badge-important"><i class="icon-minus"></i> draft</span>
+          {% endif %}
+      </td>
+      <td>
+          {% if object.is_approved %}
+          <span class="badge badge-success">
+              <i class="icon-ok" style="display:inline-block; vertical-align:top;"></i>
+              <span style="display:inline-block;">
+              Approved by {{ object.object_approval_approver }} <br />
+              until {{object.object_approval_valid_period }} <br />
+              on {{ object.approval_status_modified|date }}
+              </span>
+          </span>
+          {% elif object.approval_status == object.APPROVAL_SUBMITTED %}
+          <span class="badge badge-warning">
+              <i class="icon-minus"></i>
+              submitted on {{ object.approval_status_modified|date }}
+          </span>
+          {% else %}
+          <span class="badge badge-important">
+              <i class="icon-minus"></i>
+              not approved
+          </span>
+          {% endif %}
+      </td>
+      <td>{% if object.has_ignitions %}<span class="badge badge-success"><i class="icon-ok"></i> {{ object.ignition_commenced.ignition|date }}</span>{% else %}<span class="badge badge-important"><i class="icon-minus"></i>{% endif %}</td>
+      <td>{% if object.is_burnt %}<span class="badge badge-success"><i class="icon-ok"></i> {{ object.ignition_completed_date }}</span>{% else %}<span class="badge badge-important"><i class="icon-minus"></i></span>{% endif %}</td>
+      <td>{% if object.is_closed %}<span class="badge badge-success"><i class="icon-ok"></i></span>{% else %}<span class="badge badge-important"><i class="icon-minus"></i></span>{% endif %}</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div class="span3">
+  <ul class="nav nav-list">
+    <li class="nav-header">Actions</li>
+    <li><a href=""><i class="icon-pencil"></i> Summary & Approval</a></li>
+    <li><a href=""><i class="icon-cloud-upload"></i> Upload document</a></li>
+    <li><a value="Download without attachments" id="id-down-1" class="file-download-1" href="#" url="" target="_self"><i class="icon-download"></i> Download without attachments</a></li>
+    <li><a value="Download with attachments" id="id-down-2" class="file-download-1" href="#" url="" target="_self"><i class="icon-download-alt"></i> Download with attachments</a></li>
+    <li><a href=""><i class="icon-pencil"></i> View PDFs</a></li>
+
+    <li class="nav-header">Corporate Program Approval</li>
+    <li>
+      <div>
+          <a id="corporate-approval"
+             class="{% if object.has_corporate_approval %}
+                        text-success
+                    {% elif object.planning_status == object.PLANNING_SUBMITTED and not perms.prescription.can_corporate_approve %}
+                        muted
+                    {% endif %}"
+             href="">
+              <i class="icon-group"></i>
+              {% if object.has_corporate_approval %}
+                Corporate approval given
+              {% elif not object.planning_status == object.PLANNING_DRAFT and perms.prescription.can_corporate_approve %}
+                Apply corporate approval
+              {% else %}
+                Submit for corporate approval
+              {% endif %}
+          </a>
+        {% if perms.prescription.can_admin and object.has_corporate_approval %}
+          <a id="delete-corporate-approval" href="" class="btn btn-mini alert-error"><i class="icon-trash"></i></a>
+        {% endif %}
+      </div>
+    </li>
+    <li class="nav-header">ePFP Endorsements</li>
+    <li>
+        <a
+        {% if not object.can_select_endorsing_roles %}
+            class="muted"
+        {% endif %}
+        id="endorsing-roles"
+        href=""><i class="icon-user"></i>
+            Determine endorsing roles
+        </a>
+    </li>
+    <li>
+    {% if object.can_endorse and object.is_draft %}
+        {% include "admin/prescription/prescription/modals/submit_for_endorsement_btn.html" %}
+    {% else %}
+        <a id="endorse"
+        class="{% if not object.can_endorse %}
+                    muted
+                {% elif object.is_endorsed %}
+                    text-success
+                {% endif %}"
+        href="">
+            {% if not object.can_endorse or object.endorsement_status != object.ENDORSEMENT_DRAFT %}
+                <i class="icon-tag"></i>
+                {% if object.endorsement_status == object.ENDORSEMENT_DRAFT %}
+                    Submit for endorsement
+                {% elif object.is_endorsed %}
+                    Endorsed
+                {% else %}
+                    Endorse this ePFP
+                {% endif %}
+                {% endif %}
+        </a>
+    {% endif %}
+    </li>
+    <li class="nav-header">ePFP Approval</li>
+    <li>
+      This burn can not be approved
+    </li>
+    <li class="nav-header">Burn closure</li>
+    <li{% if not object.can_close or object.status == object.STATUS_CLOSED %} class="disabled"{% endif %}><a href=""><i class="icon-folder-close"></i> {% if object.can_close %}{% if object.status == object.STATUS_CLOSED %}Burn closed{% else %}Close this burn{% endif %}{% else %}Burn closure unavailable{% endif %}</a></li>
+  </ul>
+</div>
+</div>
+
+<div id="dialog-confirm"></div>
+
+{% endblock %}
