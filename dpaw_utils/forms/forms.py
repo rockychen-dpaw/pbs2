@@ -14,6 +14,7 @@ from django.utils import safestring
 from . import widgets
 from . import fields
 from .boundfield import (BoundField,CompoundBoundField,BoundFormField)
+from .fields import (CompoundField,)
 
 from .utils import FieldClassConfigDict,FieldWidgetConfigDict,SubpropertyEnabledDict,ChainDict
 from ..models import DictMixin
@@ -292,7 +293,11 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
                         model_field = None
                     db_field = False
                 else:
-                    raise Exception("Unknown field {} ".format(field_name))
+                    if hasattr(opts,"field_classes")  and opts.field_classes and field_name in opts.field_classes and (isinstance(opts.field_classes[field_name],CompoundField) or issubclass(opts.field_classes[field_name],CompoundField)):
+                        #it is a compound field, field itself doesn't need to be a real property or field in model class
+                        pass
+                    else:
+                        raise Exception("Unknown field {} ".format(field_name))
 
             kwargs.clear()
             if hasattr(opts,"field_classes")  and opts.field_classes and field_name in opts.field_classes and isinstance(opts.field_classes[field_name],forms.Field):

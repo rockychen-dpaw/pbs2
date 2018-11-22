@@ -86,48 +86,48 @@
 {% url 'admin:review_prescribedburn_add' as add_prescribed_burn %}
 {% url 'admin:review_prescribedburn_add' as add_fire %}
 {% if current %}
-{% url 'admin:prescription_prescription_sitemap' current.id as sitemap %}
-{% url 'admin:prescription_prescription_detail' current.id as overview %}
-{% url 'admin:document_document_add' current.id as upload_document %}
-{% url 'admin:prescription_prescription_download' current.id as download_pdf %}
-{% url 'admin:prescription_prescription_summary' current.id as parta %}
-{% url 'admin:prescription_prescription_pre_summary' current.id as sectiona1 %}
-{% url 'admin:prescription_prescription_pdf_summary' current.id as pdf_view %}
-{% url 'admin:risk_context_changelist' current.id as sectiona2 %}
-{% url 'admin:risk_complexity_changelist' current.id as sectiona5 %}
-{% url 'admin:risk_register_changelist' current.id as sectiona6 %}
-{% url 'admin:prescription_prescription_day_summary' current.id as partb %}
-{% url 'admin:implementation_roadsegment_changelist' current.id as sectionb3_roads %}
-{% url 'admin:implementation_trailsegment_changelist' current.id as sectionb3_trails %}
-{% url 'admin:document_document_tag' current.id 'sign_inspection_and_surveillance_form' as sectionb3_inspection %}
-{% url 'admin:document_document_tag' current.id 'operations_officer_day_of_burn_checklist' as sectionb9 %}
-{% url 'admin:document_document_tag' current.id 'fire_and_weather_observations' as sectionb10 %}
+{% url 'admin:prescription_prescription_sitemap' prescription.id as sitemap %}
+{% url 'admin:prescription_prescription_detail' prescription.id as overview %}
+{% url 'admin:document_document_add' prescription.id as upload_document %}
+{% url 'admin:prescription_prescription_download' prescription.id as download_pdf %}
+{% url 'admin:prescription_prescription_summary' prescription.id as parta %}
+{% url 'admin:prescription_prescription_pre_summary' prescription.id as sectiona1 %}
+{% url 'admin:prescription_prescription_pdf_summary' prescription.id as pdf_view %}
+{% url 'admin:risk_context_changelist' prescription.id as sectiona2 %}
+{% url 'admin:risk_complexity_changelist' prescription.id as sectiona5 %}
+{% url 'admin:risk_register_changelist' prescription.id as sectiona6 %}
+{% url 'admin:prescription_prescription_day_summary' prescription.id as partb %}
+{% url 'admin:implementation_roadsegment_changelist' prescription.id as sectionb3_roads %}
+{% url 'admin:implementation_trailsegment_changelist' prescription.id as sectionb3_trails %}
+{% url 'admin:document_document_tag' prescription.id 'sign_inspection_and_surveillance_form' as sectionb3_inspection %}
+{% url 'admin:document_document_tag' prescription.id 'operations_officer_day_of_burn_checklist' as sectionb9 %}
+{% url 'admin:document_document_tag' prescription.id 'fire_and_weather_observations' as sectionb10 %}
 
-{% url 'admin:prescription_prescription_post_summary' current.id as post_summary %}
-{% url 'admin:prescription_objective_changelist' current.id as objectives_url %}
-{% url 'admin:prescription_successcriteria_changelist' current.id as success_criteria %}
-{% url 'admin:prescription_priorityjustification_changelist' current.id as priority_justification %}
-{% url 'admin:risk_contingency_changelist' current.id as contingency %}
-{% url 'admin:risk_action_changelist' current.id as actions %}
-{% url 'admin:implementation_operationaloverview_changelist' current.id as operational_overview %}
-{% url 'admin:implementation_burningprescription_changelist' current.id as burning_prescription %}
-{% url 'admin:implementation_edgingplan_changelist' current.id as edging_plan %}
-{% url 'admin:implementation_lightingsequence_changelist' current.id as lighting_sequence %}
-{% url 'admin:implementation_exclusionarea_changelist' current.id as exclusion_area %}
-{% url 'admin:document_document_tag' current.id 'prescribed_burning_organisational_structure_and_communications_plan' as org_structure %}
-{% url 'admin:document_document_tag' current.id 'operations_map' as operations_map %}
-{% url 'admin:document_document_tag' current.id 'aerial_burn_map' as aerial_burn_map %}
-{% url 'admin:document_document_tag' current.id 'smeac' as smeac %}
-{% url 'admin:document_document_all' current.id as documents %}
-{% url 'admin:prescription_briefingchecklist_changelist' current.id as briefing_checklist %}
-{% url 'admin:report_areaachievement_changelist' current.id as area_achievement %}
-{% url 'admin:prescription_prescription_post_summary' current.id as partc %}
-{% url 'admin:report_evaluation_changelist' current.id as evaluation %}
-{% url 'admin:report_proposedaction_changelist' current.id as proposed_action %}
-{% url 'admin:report_postburnchecklist_changelist' current.id as post_burn_checklist %}
-{% url 'admin:stakeholder_criticalstakeholder_changelist' current.id as critical_stakeholders %}
-{% url 'admin:stakeholder_publiccontact_changelist' current.id as public_contacts %}
-{% url 'admin:stakeholder_notification_changelist' current.id as notifications %}
+{% url 'admin:prescription_prescription_post_summary' prescription.id as post_summary %}
+{% url 'admin:prescription_objective_changelist' prescription.id as objectives_url %}
+{% url 'admin:prescription_successcriteria_changelist' prescription.id as success_criteria %}
+{% url 'admin:prescription_priorityjustification_changelist' prescription.id as priority_justification %}
+{% url 'admin:risk_contingency_changelist' prescription.id as contingency %}
+{% url 'admin:risk_action_changelist' prescription.id as actions %}
+{% url 'admin:implementation_operationaloverview_changelist' prescription.id as operational_overview %}
+{% url 'admin:implementation_burningprescription_changelist' prescription.id as burning_prescription %}
+{% url 'admin:implementation_edgingplan_changelist' prescription.id as edging_plan %}
+{% url 'admin:implementation_lightingsequence_changelist' prescription.id as lighting_sequence %}
+{% url 'admin:implementation_exclusionarea_changelist' prescription.id as exclusion_area %}
+{% url 'admin:document_document_tag' prescription.id 'prescribed_burning_organisational_structure_and_communications_plan' as org_structure %}
+{% url 'admin:document_document_tag' prescription.id 'operations_map' as operations_map %}
+{% url 'admin:document_document_tag' prescription.id 'aerial_burn_map' as aerial_burn_map %}
+{% url 'admin:document_document_tag' prescription.id 'smeac' as smeac %}
+{% url 'admin:document_document_all' prescription.id as documents %}
+{% url 'admin:prescription_briefingchecklist_changelist' prescription.id as briefing_checklist %}
+{% url 'admin:report_areaachievement_changelist' prescription.id as area_achievement %}
+{% url 'admin:prescription_prescription_post_summary' prescription.id as partc %}
+{% url 'admin:report_evaluation_changelist' prescription.id as evaluation %}
+{% url 'admin:report_proposedaction_changelist' prescription.id as proposed_action %}
+{% url 'admin:report_postburnchecklist_changelist' prescription.id as post_burn_checklist %}
+{% url 'admin:stakeholder_criticalstakeholder_changelist' prescription.id as critical_stakeholders %}
+{% url 'admin:stakeholder_publiccontact_changelist' prescription.id as public_contacts %}
+{% url 'admin:stakeholder_notification_changelist' prescription.id as notifications %}
 {% endif %}
 {% endcomment %}
 {% url 'prescription:prescription_list' as prescription_list %}
@@ -141,9 +141,9 @@
     {% if not user.is_anonymous %}
     {% block topnavbar_content %}
     <div class="container">
-      {% if current %}
+      {% if prescription %}
       <ul class="nav">
-        <li><a href="#"><b>{{ current.burn_id }}</b> - {{ current.name }} ({{ current.season }})</a></li>
+        <li><a href="#"><b>{{ prescription.burn_id }}</b> - {{ prescription.name }} ({{ prescription.season }})</a></li>
         <li><a {% if request.path == sitemap %} class="top-header-active"{% endif %}href="{{ sitemap }}">Sitemap</a></li>
       </ul>
       {% endif %}
@@ -256,14 +256,14 @@
               <li{% if request.path == "" %} class="active"{% endif %}><a href="{{ endorse_authorise_summary }}"><i class="icon-dashboard"></i> Endorse/Authorise Summary</a></li>
               <li{% if request.path == "" %} class="active"{% endif %}><a href="{{ epfp_review_summary }}"><i class="icon-dashboard"></i> Day of Burn ePFP review</a></li>
               <li{% if request.path == "" %} class="active"{% endif %}><a href="{{ daily_burn_program }}"><i class="icon-dashboard"></i> Daily Burn Program</a></li>
-              {% if current %}
+              {% if prescription %}
             </ul>
             <ul class="nav pull-right">
               <li{% if request.path == overview %} class="active"{% endif %}><a href="{{ overview }}">
                   ePFP overview</a></li>
               <li id="summary-dropdown" class="dropdown">
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                  <span class="label {% if current.pre_state.finished %}label-success{% else %}label-important{% endif %}">{{ current.pre_state.complete }}/{{ current.pre_state.total }}</span>
+                  <span class="label {% if prescription.pre_state.finished %}label-success{% else %}label-important{% endif %}">{{ prescription.pre_state.complete }}/{{ prescription.pre_state.total }}</span>
                   Part A
                   <b class="caret"></b>
                 </a>
@@ -281,7 +281,7 @@
               </li>
               <li id="implementation-dropdown" class="dropdown">
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                  <span class="label {% if current.day_state.finished %}label-success{% else %}label-important{% endif %}">{{ current.day_state.complete }}/{{ current.day_state.total }}</span>
+                  <span class="label {% if prescription.day_state.finished %}label-success{% else %}label-important{% endif %}">{{ prescription.day_state.complete }}/{{ prescription.day_state.total }}</span>
                   Part B
                   <b class="caret"></b>
                 </a>
@@ -308,7 +308,7 @@
               </li>
               <li id="closure-dropdown" class="dropdown">
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                  <span class="label {% if current.post_state.finished %}label-success{% else %}label-important{% endif %}">{{ current.post_state.complete }}/{{ current.post_state.total }}</span>
+                  <span class="label {% if prescription.post_state.finished %}label-success{% else %}label-important{% endif %}">{{ prescription.post_state.complete }}/{{ prescription.post_state.total }}</span>
                   Part C
                   <b class="caret"></b>
                 </a>
@@ -318,7 +318,7 @@
                   <li{% if request.path == evaluation %} class="active"{% endif %}><a href="{{ evaluation }}">C2 - Burn evaluation summary</a></li>
                   <li{% if request.path == proposed_action %} class="active"{% endif %}><a href="{{ proposed_action }}">C3 - Lessons learned</a></li>
                   <li{% if request.path == post_burn_checklist %} class="active"{% endif %}><a href="{{ post_burn_checklist }}">C4 - Post burn checklist</a></li>
-                  <li{% if request.path == burn_closure %} class="active"{% endif %}{% if not current.can_close or current.status == current.STATUS_CLOSED %} class="disabled"{% endif %}><a href="{% if current.can_close and current.status != current.STATUS_CLOSED %}{% url 'admin:prescription_prescription_close' current.pk %}{% else %}javascript:void(0);{% endif %}">{% if current.can_close %}{% if current.status == current.STATUS_CLOSED %}Burn closed{% else %}Close this burn{% endif %}{% else %}Burn closure unavailable{% endif %}</a></li>
+                  <li{% if request.path == burn_closure %} class="active"{% endif %}{% if not prescription.can_close or prescription.status == prescription.STATUS_CLOSED %} class="disabled"{% endif %}><a href="{% if prescription.can_close and prescription.status != prescription.STATUS_CLOSED %}{% url 'admin:prescription_prescription_close' prescription.pk %}{% else %}javascript:void(0);{% endif %}">{% if prescription.can_close %}{% if prescription.status == prescription.STATUS_CLOSED %}Burn closed{% else %}Close this burn{% endif %}{% else %}Burn closure unavailable{% endif %}</a></li>
                 </ul>
               </li>
               <li id="document-dropdown" class="dropdown">

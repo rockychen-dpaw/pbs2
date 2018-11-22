@@ -48,3 +48,46 @@ class RangeChoice(dict):
         except KeyError as ex:
             return default
 
+class ConditionalChoice(dict):
+    """
+     a dict object which key is a object or a list or tuple
+     choices is a list of tuple or list with 2 members. the first member is a lambda expression with the same parameters, the second member is the value
+    """
+    def __init__(self,choices,single_parameter = True):
+        self.choices = choices or []
+        self.single_parameter = single_parameter
+
+    def __contains__(self,key):
+        try:
+            value = self[key]
+            return True
+        except:
+            return False
+
+    def __getitem__(self,key):
+        for choice in self.choices:
+            if self.single_parameter:
+                if choice[0](key):
+                    return choice[1]
+            else:
+                if choice[0](*key):
+                    return choice[1]
+
+
+        raise KeyError("Key '{}' does not exist.".format(key))
+        
+    def __len__(self):
+        return len(self.choices)
+
+    def __str__(self):
+        return str(self.choices)
+
+    def __repr__(self):
+        return repr(self.choices)
+
+    def get(self,key,default=None):
+        try:
+            return self[key]
+        except KeyError as ex:
+            return default
+

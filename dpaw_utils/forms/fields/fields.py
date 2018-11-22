@@ -3,6 +3,7 @@ import json
 from django import forms
 from django.db import models
 
+from dpaw_utils.utils import ConditionalChoice
 from .. import widgets
 from ..utils import hashvalue
 from .coerces import *
@@ -111,7 +112,7 @@ def CompoundFieldFactory(compoundfield_class,model,field_name,related_field_name
 
     hidden_layout="{}" * (len(related_field_names) + 1)
     field_class = field_class or model._meta.get_field(field_name).formfield().__class__
-    class_key = hashvalue("CompoundField<{}.{}.{}{}{}{}>".format(compoundfield_class.__name__,field_class.__module__,field_class.__name__,field_name,json.dumps(related_field_names),json.dumps(kwargs,cls=_JSONEncoder)))
+    class_key = hashvalue("CompoundField<{}.{}.{}{}{}{}>".format(compoundfield_class.__name__,model.__module__,model.__name__,field_name,json.dumps(related_field_names),json.dumps(kwargs,cls=_JSONEncoder)))
     if class_key not in field_classes:
         class_id += 1
         class_name = "{}_{}".format(field_class.__name__,class_id)
@@ -128,6 +129,9 @@ def OtherOptionFieldFactory(model,field_name,related_field_names,field_class=Non
 
 def MultipleFieldFactory(model,field_name,related_field_names,field_class=None,**kwargs):
     return CompoundFieldFactory(MultipleField,model,field_name,related_field_names,field_class,**kwargs)
+
+def ConditionalMultipleFieldFactory(model,field_name,related_field_names,field_class=None,**kwargs):
+    return CompoundFieldFactory(ConditionalMultipleField,model,field_name,related_field_names,field_class,**kwargs)
 
 class ChoiceFieldMixin(object):
     def __init__(self,*args,**kwargs):
@@ -198,15 +202,15 @@ class SwitchField(CompoundField):
         val1_str = str(val1) if val1 is not None else ""
         if (not self.reverse and val1_str == self.true_value) or (self.reverse and not val1_str == self.true_value):
             if self.policy == ALWAYS:
-                return (self.off_layout if self.reverse else self.on_layout,f.field.related_field_names)
+                return (self.off_layout if self.reverse else self.on_layout,f.field.related_field_names,True)
             else:
                 val2 = f.related_fields[0].value()
                 if self.policy == NOT_NONE and val2 is not None:
-                    return (self.off_layout if self.reverse else self.on_layout,f.field.related_field_names)
+                    return (self.off_layout if self.reverse else self.on_layout,f.field.related_field_names,True)
                 elif self.policy == HAS_DATA and val2:
-                    return (self.off_layout if self.reverse else self.on_layout,f.field.related_field_names)
+                    return (self.off_layout if self.reverse else self.on_layout,f.field.related_field_names,True)
                 
-        return (self.on_layout if self.reverse else self.off_layout,None)
+        return (self.on_layout if self.reverse else self.off_layout,None,True)
 
         
     def _edit_layout(self,f):
@@ -247,7 +251,7 @@ class SwitchField(CompoundField):
             </script>
         """.format(f.auto_id,condition,hide_fields if self.reverse else show_fields,show_fields if self.reverse else hide_fields)
 
-        return (u"{}{}".format(self.edit_layout,js_script),f.field.related_field_names)
+        return (u"{}{}".format(self.edit_layout,js_script),f.field.related_field_names,True)
     
 class OtherOptionField(CompoundField):
     """
@@ -287,15 +291,15 @@ class OtherOptionField(CompoundField):
         if val1 == self.other_option:
             val2 = f.related_fields[0].value()
             if self.policy == ALWAYS:
-                return (self.other_layout,f.field.related_field_names)
+                return (self.other_layout,f.field.related_field_names,True)
             elif self.policy == NOT_NONE and val2 is not None:
-                return (self.other_layout,f.field.related_field_names)
+                return (self.other_layout,f.field.related_field_names,True)
             elif self.policy == HAS_DATA and val2:
-                return (self.other_layout,f.field.related_field_names)
+                return (self.other_layout,f.field.related_field_names,True)
             elif self.policy == DATA_MAP and val2 in self.other_layout:
-                return (self.other_layout[val2],f.field.related_field_names)
+                return (self.other_layout[val2],f.field.related_field_names,True)
                 
-        return (self.layout,None)
+        return (self.layout,None,True)
 
     def _edit_layout(self,f):
         """
@@ -332,9 +336,9 @@ class OtherOptionField(CompoundField):
             raise Exception("Not  implemented")
 
         if val1 != other_value:
-            return (u"{}<script type='text/javascript'>{}</script>".format(self.edit_layout,hide_fields),f.field.related_field_names)
+            return (u"{}<script type='text/javascript'>{}</script>".format(self.edit_layout,hide_fields),f.field.related_field_names,True)
         else:
-            return (self.edit_layout,f.field.related_field_names)
+            return (self.edit_layout,f.field.related_field_names,True)
         
     
 class MultipleField(CompoundField):
@@ -353,13 +357,41 @@ class MultipleField(CompoundField):
         return kwargs
 
     def _view_layout(self,f):
-        return (self.layout,f.field.related_field_names)
+        return (self.layout,f.field.related_field_names,True)
 
     def _edit_layout(self,f):
         """
         return a tuple(layout,enable related field list) for edit
         """
-        return (self.layout,f.field.related_field_names)
+        return (self.layout,f.field.related_field_names,True)
+        
+class ConditionalMultipleField(CompoundField):
+    """
+    view/edit multiple fields with condition
+
+    """
+    view_layouts = None
+    edit_layouts = None
+
+    @classmethod
+    def init_kwargs(cls,model,field_name,related_field_names,kwargs):
+        if kwargs.get("view_layouts"):
+            kwargs["view_layouts"] = ConditionalChoice(kwargs["view_layouts"])
+        else:
+            kwargs["view_layouts"] = ConditionalChoice([(lambda f:True,u"{{0}} {}".format("".join(["<br>{{{}}}".format(i) for i in range(1,len(related_field_names) + 1)])))])
+
+        if kwargs.get("edit_layouts"):
+            kwargs["view_layouts"] = ConditionalChoice(kwargs["edit_layouts"])
+        else:
+            kwargs["edit_layouts"] = ConditionalChoice([(lambda f:True,u"{{0}} {}".format("".join(["<br>{{{}}}".format(i) for i in range(1,len(related_field_names) + 1)])))])
+
+        return kwargs
+
+    def _view_layout(self,f):
+        return self.view_layouts[f]
+
+    def _edit_layout(self,f):
+        return self.edit_layouts[f]
         
     
 BooleanChoiceField = ChoiceFieldFactory([

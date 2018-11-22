@@ -8,6 +8,7 @@ from pbs.forms import (FORM_ACTIONS,LIST_ACTIONS)
 from pbs.utils import FinancialYear
 from pbs.report.forms import (SummaryCompletionStateViewForm,BurnImplementationStateViewForm,BurnClosureStateViewForm)
 import pbs.widgets
+import pbs.fields
 
 class PrescriptionCleanMixin(object):
     def clean_district(self):
@@ -128,17 +129,16 @@ class PrescriptionConfigMixin(object):
 
                 """
             ),
+            "contentious.filter":forms.fields.BooleanChoiceFilter,
+            "contingencies_migrated.filter":forms.fields.BooleanChoiceFilter,
             "loc_direction.edit":forms.fields.NullDirectionField,
             "loc_locality":forms.fields.MultipleFieldFactory(Prescription,"loc_locality",("loc_distance","loc_direction","loc_town"),forms.fields.CharField,
                 layout="""
                 You must enter/select a value in all fields.<br>Alternatively, if entering only a locality (first input field), location will be stored as "Within the locality of ____"</span><br>
                 <table class='noborder'"><tr><td>{0} </td><td>-</td><td> {1}</td><td> km(s)</td><td> {2}</td> of <td>{3}</td></tr></table>
                 """),
-            "financial_year":forms.fields.ChoiceFieldFactory(choices=FinancialYear().options(0,10)),
 
             "aircraft_burn.filter":forms.fields.BooleanChoiceFilter,
-            "contingencies_migrated.filter":forms.fields.BooleanChoiceFilter,
-            "contentious.filter":forms.fields.BooleanChoiceFilter,
             "region.filter":forms.fields.ChoiceFieldFactory(choices=Region.objects.all().order_by("name"),type_name="region"
                 ,choice_class=forms.fields.TypedMultipleChoiceField,
                 field_params={"required":False,"coerce":forms.fields.coerce_int,"empty_value":None}),
@@ -148,27 +148,43 @@ class PrescriptionConfigMixin(object):
             "priority.filter":forms.fields.ChoiceFieldFactory(choices=Prescription.PRIORITY_CHOICES,
                 choice_class=forms.fields.TypedMultipleChoiceField,
                 field_params={"required":False,"coerce":forms.fields.coerce_int,"empty_value":None}),
+
             "planning_status.filter":forms.fields.ChoiceFieldFactory(choices=Prescription.PLANNING_CHOICES,
                 choice_class=forms.fields.TypedMultipleChoiceField,
                 field_params={"required":False,"coerce":forms.fields.coerce_int,"empty_value":None}),
+            "planning_status.view":pbs.fields.PrescriptionCorporateApprovalStatus,
+            "planning_status.list":None,
+
             "endorsement_status.filter":forms.fields.ChoiceFieldFactory(choices=Prescription.ENDORSEMENT_CHOICES,
                 choice_class=forms.fields.TypedMultipleChoiceField,
                 field_params={"required":False,"coerce":forms.fields.coerce_int,"empty_value":None}),
+            "endorsement_status.view":pbs.fields.PrescriptionEndorsementStatus,
+            "endorsement_status.list":None,
+
             "approval_status.filter":forms.fields.ChoiceFieldFactory(choices=Prescription.APPROVAL_CHOICES,
                 choice_class=forms.fields.TypedMultipleChoiceField,
                 field_params={"required":False,"coerce":forms.fields.coerce_int,"empty_value":None}),
+            "approval_status.view":pbs.fields.PrescriptionApprovalStatus,
+            "approval_status.list":None,
+
             "ignition_status.filter":forms.fields.ChoiceFieldFactory(choices=Prescription.IGNITION_STATUS_CHOICES,
                 choice_class=forms.fields.TypedMultipleChoiceField,
                 field_params={"required":False,"coerce":forms.fields.coerce_int,"empty_value":None}),
+            "ignition_commence_status":pbs.fields.PrescriptionIgnitionCommenceStatus,
+            "ignition_complete_status":pbs.fields.PrescriptionIgnitionCompleteStatus,
+
             "status.filter":forms.fields.ChoiceFieldFactory(choices=Prescription.STATUS_CHOICES,
                     choice_class=forms.fields.TypedMultipleChoiceField,
                     field_params={"required":False,"coerce":forms.fields.coerce_int,"empty_value":None}),
+
+            "financial_year":forms.fields.ChoiceFieldFactory(choices=FinancialYear().options(0,10)),
             "financial_year.filter":forms.fields.ChoiceFieldFactory(choices=FinancialYear().options(-5,5),
                     choice_class=forms.fields.TypedMultipleChoiceField,
                     field_params={"required":False,"empty_value":None}),
+
             "pre_state":forms.fields.FormFieldFactory(SummaryCompletionStateViewForm),
             "day_state":forms.fields.FormFieldFactory(BurnImplementationStateViewForm),
-            "post_state":forms.fields.FormFieldFactory(BurnClosureStateViewForm)
+            "post_state":forms.fields.FormFieldFactory(BurnClosureStateViewForm),
         }
         widgets_config = {
             "__default__.view":forms.widgets.TextDisplay(),
@@ -209,6 +225,13 @@ class PrescriptionConfigMixin(object):
             "maximum_draft_risk":pbs.widgets.RiskLevelDisplay(),
             "maximum_complexity":pbs.widgets.ComplexityRatingDisplay(),
             "priority":pbs.widgets.PrescriptionPriorityDisplay,
+            "planning_status_modified":forms.widgets.DatetimeDisplay("%d-%m-%Y"),
+            "endorsement_status_modified":forms.widgets.DatetimeDisplay("%d-%m-%Y"),
+            "approval_status_modified":forms.widgets.DatetimeDisplay("%d-%m-%Y"),
+            "current_approval_valid_period":forms.widgets.DatetimeDisplay("%d-%m-%Y"),
+            "ignition_completed_date":forms.widgets.DatetimeDisplay("%d-%m-%Y"),
+            'status.view':pbs.widgets.PrescriptionStatusIconDisplay(),
+            'status.list':pbs.widgets.PrescriptionStatusDisplay()
 
         }
 
@@ -244,8 +267,11 @@ class PrescriptionViewForm(PrescriptionBaseForm):
                   'last_season_unknown','last_season', 'forest_blocks', 
                   'contentious','contentious_rationale', 'purposes',
                   'aircraft_burn', 'priority', 'area', 'treatment_percentage',
-                  'perimeter', 'remote_sensing_priority','rationale')
-        other_fields = ('loc_locality','loc_distance','loc_direction','loc_town',"maximum_risk","maximum_complexity","pre_state","day_state","post_state")
+                  'perimeter', 'remote_sensing_priority','rationale','planning_status','endorsement_status','approval_status',
+                  'ignition_status','ignition_completed_date','status')
+        other_fields = ('loc_locality','loc_distance','loc_direction','loc_town',"maximum_risk","maximum_complexity","pre_state","day_state","post_state"
+                ,'planning_status_modified','endorsement_status_modified','approval_status_modified','current_approval_valid_period','current_approval_approver'
+                ,'ignition_commenced_date','ignition_commence_status','ignition_complete_status')
 
 class PrescriptionCreateForm(PrescriptionBaseForm):
     all_actions = [

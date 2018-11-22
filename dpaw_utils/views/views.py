@@ -295,7 +295,7 @@ class ListView(RequestActionMixin,UrlpatternsMixin,django_list_view.ListView):
 
             data_filter = self.get_filter_class()(filterform,request=self.request)
             queryset = data_filter.qs
-            print("All {} records are selected.".format(len(queryset)))
+            #print("All {} records are selected.".format(len(queryset)))
         else:
             pks = [int(pk) for pk in request.POST.getlist("selectedpks")]
             if pks:
@@ -303,7 +303,7 @@ class ListView(RequestActionMixin,UrlpatternsMixin,django_list_view.ListView):
             else:
                 raise Exception("No Prescribed Fire Plan is selected.")
 
-            print("{} records are selected.".format(len(queryset)))
+            #print("{} records are selected.".format(len(queryset)))
         return queryset
 
     def get_ordering(self):

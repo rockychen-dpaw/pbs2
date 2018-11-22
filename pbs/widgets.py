@@ -55,3 +55,10 @@ StateProgressBarDisplay = forms.widgets.ChoiceWidgetFactory("StateProgressBarDis
     (None,"""<div class="progress progress-success"><div class="bar" style="width: {0}%;">{0}%</div></div>"""),
 
 ]),marked_safe=True,template=True)
+
+PrescriptionStatusIconDisplay = forms.widgets.ChoiceWidgetFactory("PrescriptionStatusIconDisplay",{
+    Prescription.STATUS_OPEN:"""<span class="badge badge-important"><i class="icon-minus"></i></span>""",
+    Prescription.STATUS_CLOSED:"""<span class="badge badge-success"><i class="icon-ok"></i></span>""",
+    "__default__":''
+
+},marked_safe=True,template=True)

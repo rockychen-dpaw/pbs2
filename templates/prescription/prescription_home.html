@@ -112,48 +112,23 @@
   <tbody>
     <tr>
       <td>
-          {% if object.has_corporate_approval %}
-            <span class="badge badge-success"><i class="icon-ok"></i> approved on {{ object.planning_status_modified|date }}</span>
-          {% elif object.planning_status == object.PLANNING_SUBMITTED %}
-            <span class="badge badge-warning"><i class="icon-minus"></i> submitted on {{ object.planning_status_modified|date }}</span>
-          {% else %}
-            <span class="badge badge-important"><i class="icon-minus"></i> draft</span>
-          {% endif %}
+          {{form.planning_status}}
       </td>
       <td>
-          {% if object.is_endorsed %}
-            <span class="badge badge-success"><i class="icon-ok"></i>endorsed on {{ object.endorsement_status_modified|date }}</span>
-          {% elif object.endorsement_status == object.ENDORSEMENT_SUBMITTED %}
-            <span class="badge badge-warning"><i class="icon-minus"></i> submitted on {{ object.endorsement_status_modified|date }}</span>
-          {% else %}
-            <span class="badge badge-important"><i class="icon-minus"></i> draft</span>
-          {% endif %}
+          {{form.endorsement_status}}
       </td>
       <td>
-          {% if object.is_approved %}
-          <span class="badge badge-success">
-              <i class="icon-ok" style="display:inline-block; vertical-align:top;"></i>
-              <span style="display:inline-block;">
-              Approved by {{ object.object_approval_approver }} <br />
-              until {{object.object_approval_valid_period }} <br />
-              on {{ object.approval_status_modified|date }}
-              </span>
-          </span>
-          {% elif object.approval_status == object.APPROVAL_SUBMITTED %}
-          <span class="badge badge-warning">
-              <i class="icon-minus"></i>
-              submitted on {{ object.approval_status_modified|date }}
-          </span>
-          {% else %}
-          <span class="badge badge-important">
-              <i class="icon-minus"></i>
-              not approved
-          </span>
-          {% endif %}
+          {{form.approval_status}}
       </td>
-      <td>{% if object.has_ignitions %}<span class="badge badge-success"><i class="icon-ok"></i> {{ object.ignition_commenced.ignition|date }}</span>{% else %}<span class="badge badge-important"><i class="icon-minus"></i>{% endif %}</td>
-      <td>{% if object.is_burnt %}<span class="badge badge-success"><i class="icon-ok"></i> {{ object.ignition_completed_date }}</span>{% else %}<span class="badge badge-important"><i class="icon-minus"></i></span>{% endif %}</td>
-      <td>{% if object.is_closed %}<span class="badge badge-success"><i class="icon-ok"></i></span>{% else %}<span class="badge badge-important"><i class="icon-minus"></i></span>{% endif %}</td>
+      <td>
+          {{form.ignition_commence_status}}
+      </td>
+      <td>
+          {{form.ignition_complete_status}}
+      </td>
+      <td>
+          {{form.status}}
+      </td>
     </tr>
   </tbody>
 </table>

@@ -35,7 +35,7 @@ class BoundField(forms.boundfield.BoundField):
 
         data = super(BoundField,self).initial
 
-        print("{}: {} = {}".format("view" if self.is_display else "edit",self.name ,data))
+        #print("{}: {} = {}".format("view" if self.is_display else "edit",self.name ,data))
         if not self.is_display and isinstance(data,models.Model):
             return data.pk
         else:
@@ -97,7 +97,7 @@ class CompoundBoundField(BoundField):
     The boundfield for compound field
     """
     def __init__(self, form, field, name):
-        super(CompoundBoundField,self).__init__(form,field,name)
+        super(CompoundBoundField,self).__init__(form,field,field.field_name)
         self.related_fields = [self.form[name] for name in field.related_field_names]
 
     def __str__(self):
@@ -129,6 +129,9 @@ class CompoundBoundField(BoundField):
             raise TypeError
         return list(self.__iter__())[idx]
 
+    def get_field(self,field_name):
+        return self.form["field_name"]
+
     def as_widget(self, widget=None, attrs=None, only_initial=False):
         """
         Renders the field by rendering the passed widget, adding any HTML
@@ -137,16 +140,24 @@ class CompoundBoundField(BoundField):
         """
         #if self.name == "last_season_unknown":
         #    import ipdb;ipdb.set_trace()
-        html_layout,field_names = self.field.get_layout(self)
-        html = super(CompoundBoundField,self).as_widget(widget,attrs,only_initial)
-        if field_names:
-            arguments = [f.as_widget(only_initial=only_initial) for f in self.related_fields if f.name in field_names]
-            arguments.append(self.auto_id)
-            return safestring.SafeText(html_layout.format(html,*arguments))
+        html_layout,field_names,include_primary_field = self.field.get_layout(self)
+        if include_primary_field:
+            html = super(CompoundBoundField,self).as_widget(widget,attrs,only_initial)
+            if field_names:
+                arguments = [f.as_widget(only_initial=only_initial) for f in self.related_fields if f.name in field_names]
+                arguments.append(self.auto_id)
+                return safestring.SafeText(html_layout.format(html,*arguments))
+            elif html_layout:
+                return safestring.SafeText(html_layout.format(html,self.auto_id))
+            else:
+                return html
+        elif field_names:
+                arguments = [f.as_widget(only_initial=only_initial) for f in self.related_fields if f.name in field_names]
+                return safestring.SafeText(html_layout.format(*arguments))
         elif html_layout:
-            return safestring.SafeText(html_layout.format(html,self.auto_id))
+            return safestring.SafeText(html_layout)
         else:
-            return html
+            return ""
 
     def as_text(self, attrs=None, **kwargs):
         """

@@ -768,6 +768,11 @@ class Prescription(DictMixin,AuditMixin):
         return self.areaachievement_set.earliest()
 
     @property
+    def ignition_commenced_date(self):
+        obj = self.areaachievement_set.earliest()
+        return obj.ignition if obj else None
+
+    @property
     def current_approval(self):
         """
         This is the __str__ method returned by the approval.latest()
@@ -784,7 +789,7 @@ class Prescription(DictMixin,AuditMixin):
 
     @property
     def current_approval_valid_period(self):
-        return self.current_approval.valid_to.strftime('%d/%b/%Y')
+        return self.current_approval.valid_to
 
     @property
     def carried_season(self):

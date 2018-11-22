@@ -22,6 +22,7 @@ class PrescriptionHomeView(ReadonlyView):
     form_class = PrescriptionViewForm
     template_name_suffix = "_home"
     title = "ePFP Overview"
+    context_object_name = "prescription"
 
 class PrescriptionListView(ListActionMixin,ListView):
     title = "Regional Overview"
