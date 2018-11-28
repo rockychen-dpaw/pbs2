@@ -1,3 +1,10 @@
+import hashlib
+
+def hashvalue(value):
+    m = hashlib.sha1()
+    m.update(value.encode('utf-8'))
+    return m.hexdigest()
+    
 class RangeChoice(dict):
     """
      a dict object which key is choosed against a range

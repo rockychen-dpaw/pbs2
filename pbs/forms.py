@@ -6,7 +6,9 @@ from dpaw_utils import forms
 FORM_ACTIONS = {
     "save":forms.Action("save","button","Save",{"class":"btn btn-primary btn-success","type":"submit",}),
     "back":forms.Action("back","button","Cancel",{"class":"btn btn-danger","onclick":"history.go(-1)"}),
-    "update_selection":forms.Action("search","button","Update Selection",{"class":"btn btn-success btn-block","type":"submit","style":"width:260px"})
+    "update_selection":forms.Action("search","button","Update Selection",{"class":"btn btn-success btn-block","type":"submit","style":"width:260px"}),
+    "download":forms.Action("download","button","Download",{"class":"btn btn-success btn-block","type":"submit","style":"width:260px"})
+
 }
 
 LIST_ACTIONS = {

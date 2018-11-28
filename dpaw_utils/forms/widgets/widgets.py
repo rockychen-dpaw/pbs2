@@ -4,7 +4,6 @@ from django import forms
 from django.core.cache import caches
 from django.urls import reverse
 from django.db import models
-from django.contrib.auth.models import User
 from django.utils.html import mark_safe
 
 from ..utils import hashvalue

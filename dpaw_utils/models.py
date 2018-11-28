@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist,ValidationError
 from django.db import models
 from django.utils import timezone
 import threading
@@ -152,3 +152,29 @@ class AuditMixin(models.Model):
             if getattr(self, field) != value:
                 self._changed_data.append(field)
         return self._changed_data
+
+    def clean_fields(self, exclude=None):
+        """
+        Override clean_fields to do what model validation should have done
+        in the first place -- call clean_FIELD during model validation.
+        """
+        errors = {}
+
+        for f in self._meta.fields:
+            if f.name in exclude:
+                continue
+            if hasattr(self, "clean_%s" % f.attname):
+                try:
+                    getattr(self, "clean_%s" % f.attname)()
+                except ValidationError as e:
+                    # TODO: Django 1.6 introduces new features to
+                    # ValidationError class, update it to use e.error_list
+                    errors[f.name] = e.messages
+
+        try:
+            super(AuditMixin, self).clean_fields(exclude)
+        except ValidationError as e:
+            errors = e.update_error_dict(errors)
+
+        if errors:
+            raise ValidationError(errors)

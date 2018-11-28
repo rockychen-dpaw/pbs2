@@ -1,11 +1,34 @@
 import re
 
 from django.urls import path 
-from django.http import Http404,HttpResponse,HttpResponseForbidden
+from django.http import (Http404,HttpResponse,HttpResponseForbidden,JsonResponse)
 import django.views.generic.edit as django_edit_view
 import django.views.generic.list as django_list_view
 
-class RequestActionMixin(object):
+class AjaxRequestMixin(object):
+    def dispatch(self,request, *args, **kwargs):
+        handler = None
+        try:
+            if request.is_ajax():
+                if request.method == "GET":
+                    handler = "get_ajax"
+                else:
+                    handler = "post_ajax"
+                if hasattr(self,handler):
+                    if hasattr(self,"pre_action"):
+                        self.pre_action()
+                    return JsonResponse(getattr(self,handler)(request,*args,**kwargs))
+                else:
+                    raise Http404("Handler '{}' is not implemented.".format(handler))
+
+            return super(AjaxRequestMixin,self).dispatch(request,*args,**kwargs)
+        except Http404:
+            raise
+        except Exception as ex:
+            return HttpResponse(status=500,reason=str(ex),content=str(ex))
+
+
+class RequestActionMixin(AjaxRequestMixin):
     action = None
     default_action = None
     def get_action(self,action_name):
@@ -17,20 +40,34 @@ class RequestActionMixin(object):
     def dispatch(self,request, *args, **kwargs):
         handler = None
         try:
-            if request.method == "GET":
+            if "action" in kwargs:
+                self.action = kwargs["action"]
+            elif request.method == "GET":
                 if "action" in request.GET:
                     self.action = request.GET["action"]
-                    handler = "{}_{}".format(self.action,"get")
             else:
                 if "action" in request.POST:
                     self.action = request.POST["action"]
-                    handler = "{}_{}".format(self.action,"post")
 
-            if self.action and self.action != self.default_action:
+            self.action = self.action if self.action and self.action != self.default_action else None
+
+            if self.action :
                 if not self.has_permission(request,self.action):
                     return HttpResponseForbidden('Not authorised.')
+                if request.is_ajax():
+                    handler = "{}_ajax".format(self.action)
+                elif request.method == "GET":
+                    handler = "{}_get".format(self.action)
+                else:
+                    handler = "{}_post".format(self.action)
+
                 if hasattr(self,handler):
-                    return getattr(self,handler)(request,*args,**kwargs)
+                    if hasattr(self,"pre_action"):
+                        self.pre_action()
+                    if request.is_ajax():
+                        return JsonResponse(getattr(self,handler)(request,*args,**kwargs))
+                    else:
+                        return getattr(self,handler)(request,*args,**kwargs)
                 else:
                     raise Http404("Action '{}' is not supported.".format(self.action))
 
@@ -205,6 +242,48 @@ class UrlpatternsMixin(object):
     def _get_extra_urlpatterns(cls):
         return None
 
+class OneToOneModelMixin(object):
+    """
+    used for one to one table relationship
+    a special way to get sub table's object through parent table's object
+    """
+    """
+    parent model
+    """
+    pmodel = None
+    ppk_url_kwarg = "ppk"
+    context_pobject_name = None
+    one_to_one_field_name = None
+
+    def get_object(self,queryset=None):
+        ppk = self.kwargs.get(self.ppk_url_kwarg)
+        if ppk is None:
+            raise AttributeError("parent primary key ({}) is missing".format(self.ppk_url_kwarg))
+
+        try:
+            self.pobject = self.pmodel.objects.get(id=ppk)
+        except self.model.DoesNotExist:
+            raise Http404("The {0} (id={1}) does not exist".format(self.pmodel._meta.verbose_name,ppk))
+        queryset = queryset or self.get_queryset()
+        queryset = queryset.filter(**{self.one_to_one_field_name:self.pobject})
+
+        try:
+            obj = queryset.get()
+        except self.model.DoesNotExist:
+            raise Http404("The {0} ({1}={2}) does not exist".format(queryset.model._meta.verbose_name,one_to_one_field_name,ppk))
+
+        return obj
+            
+        
+    def get_context_data(self, **kwargs):
+        context = super(OneToOneModelMixin,self).get_context_data(**kwargs)
+        context["pobject"] = self.pobject
+        if self.context_pobject_name:
+            context[self.context_pobject_name] = self.pobject
+
+        return context
+
+
 class CreateView(UrlpatternsMixin,django_edit_view.CreateView):
     title = None
     def get_form_kwargs(self):
@@ -230,6 +309,9 @@ class ReadonlyView(UrlpatternsMixin,django_edit_view.UpdateView):
         context_data["title"] = self.title or self.model._meta.verbose_name
         return context_data
 
+    def pre_action(self):
+        self.object = self.get_object()
+
     def post(self,request,*args,**kwargs):
         return HttpResponseForbidden()
 
@@ -248,6 +330,18 @@ class UpdateView(UrlpatternsMixin,django_edit_view.UpdateView):
         context_data = super(UpdateView,self).get_context_data(**kwargs)
         context_data["title"] = self.title or "Update {}".format(self.model._meta.verbose_name)
         return context_data
+
+    def pre_action(self):
+        self.object = self.get_object()
+
+    """
+    def get(self,*args,**kwargs):
+        import ipdb;ipdb.set_trace()
+        return super(UpdateView,self).get(*args,**kwargs)
+    """
+
+class OneToOneModelUpdateView(OneToOneModelMixin,UpdateView):
+    pass
 
 class ListView(RequestActionMixin,UrlpatternsMixin,django_list_view.ListView):
     default_action = "search"

@@ -132,9 +132,10 @@
 {% endcomment %}
 {% url 'prescription:prescription_list' as prescription_list %}
 {% url 'prescription:prescription_create' as prescription_create %}
+{% url 'report:prescription_pre_state_update' prescription.id as parta %}
+{% url 'report:prescription_day_state_update' prescription.id as partb %}
 {% block body %}
 <body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}" style={% page_background %}>
-
 {% if not is_popup %}
 <div class="navbar navbar-inverse navbar-fixed-top">
   <div class="navbar-inner">

@@ -145,6 +145,105 @@ STATICFILES_FINDERS = (
 
 FPC_EMAIL_EXT = "@fpc.wa.gov.au"
 
+# PDF MUTEX - file lock max time 4 mins (4*60)
+MAX_LOCK_TIME = os.environ.get('MAX_LOCK_TIME', 240)
+
+# Logging configuration
+# Ensure that the logs directory exists:
+if not os.path.exists(os.path.join(BASE_DIR, 'logs')):
+    os.mkdir(os.path.join(BASE_DIR, 'logs'))
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'standard': {
+            'format': '%(asctime)-.19s [%(process)d] [%(levelname)s] '
+                      '%(message)s'
+        },
+    },
+    'handlers': {
+        'null': {
+            'level': 'DEBUG',
+            'class': 'logging.NullHandler',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard'
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'pbs.log'),
+            'formatter': 'standard',
+            'maxBytes': 16777216
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+        },
+        'pdf_debugging': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'pdf_debugging.log'),
+            'formatter': 'standard',
+            'maxBytes': 16777216
+        }
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['null'],
+            'propagate': True,
+            'level': 'INFO',
+        },
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'pbs': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True
+        },
+        'pdf_debugging': {
+            'handlers': ['pdf_debugging'],
+            'level': 'DEBUG'
+        }
+    }
+}
+
+if DEBUG:
+    # Set up logging differently to give us some more information about what's
+    # going on
+    LOGGING['loggers'] = {
+        'django_auth_ldap': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True
+        },
+        'django.request': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True
+        },
+        'pbs': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': True
+        },
+    }
+
+    TEMPLATE_LOADERS = (
+        'django.template.loaders.filesystem.Loader',
+        'django.template.loaders.app_directories.Loader',
+    )
+    if os.environ.get('INTERNAL_IP', False):  # Optionally add developer local IP
+        INTERNAL_IPS.append(os.environ['INTERNAL_IP'])
+    DEBUG_TOOLBAR_PATCH_SETTINGS = True
+
+
 ENV_TYPE = env('ENV_TYPE') or None
 if not ENV_TYPE:
     try:

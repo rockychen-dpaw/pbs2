@@ -62,3 +62,11 @@ PrescriptionStatusIconDisplay = forms.widgets.ChoiceWidgetFactory("PrescriptionS
     "__default__":''
 
 },marked_safe=True,template=True)
+
+
+CompleteStatusDisplay = forms.widgets.ChoiceWidgetFactory("CompleteStatusDisplay",{
+    True:"Complete",
+    False:"Incomplete",
+    None:""
+})
+

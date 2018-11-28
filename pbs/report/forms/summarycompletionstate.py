@@ -19,6 +19,22 @@ class SummaryCompletionStateConfigMixin(object):
         widgets_config = {
             "__default__.view":forms.widgets.TextDisplay(),
             "__default__.edit":forms.widgets.TextInput(),
+            "summary.view":pbs.widgets.CompleteStatusDisplay(),
+            "summary.edit":forms.widgets.Select(attrs={"onchange":"submit_pre_state(this)"}),
+            "context_statement.view":pbs.widgets.CompleteStatusDisplay(),
+            "context_statement.edit":forms.widgets.Select(attrs={"onchange":"submit_pre_state(this)"}),
+            "context_map.view":pbs.widgets.CompleteStatusDisplay(),
+            "context_map.edit":forms.widgets.Select(attrs={"onchange":"submit_pre_state(this)"}),
+            "objectives.view":pbs.widgets.CompleteStatusDisplay(),
+            "objectives.edit":forms.widgets.Select(attrs={"onchange":"submit_pre_state(this)"}),
+            "success_criteria.view":pbs.widgets.CompleteStatusDisplay(),
+            "success_criteria.edit":forms.widgets.Select(attrs={"onchange":"submit_pre_state(this)"}),
+            "priority_justification.view":pbs.widgets.CompleteStatusDisplay(),
+            "priority_justification.edit":forms.widgets.Select(attrs={"onchange":"submit_pre_state(this)"}),
+            "complexity_analysis.view":pbs.widgets.CompleteStatusDisplay(),
+            "complexity_analysis.edit":forms.widgets.Select(attrs={"onchange":"submit_pre_state(this)"}),
+            "risk_register.view":pbs.widgets.CompleteStatusDisplay(),
+            "risk_register.edit":forms.widgets.Select(attrs={"onchange":"submit_pre_state(this)"}),
             "progress":pbs.widgets.StateProgressBarDisplay,
 
         }
@@ -36,5 +52,17 @@ class SummaryCompletionStateViewForm(SummaryCompletionStateBaseForm):
     class Meta:
         model = SummaryCompletionState
         purpose = "view"
-        fields = []
+        fields = ["summary","context_statement","context_map","objectives","success_criteria","priority_justification","complexity_analysis","risk_register"]
         other_fields = ('progress',)
+
+
+class SummaryCompletionStateUpdateForm(forms.EditableFieldsMixin,SummaryCompletionStateBaseForm):
+    all_actions = [
+    ]
+    def __init__(self, *args, **kwargs):
+        super(SummaryCompletionStateUpdateForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = SummaryCompletionState
+        fields = ["summary","context_statement","context_map","objectives","success_criteria","priority_justification","complexity_analysis","risk_register"]
+        editable_fields = fields

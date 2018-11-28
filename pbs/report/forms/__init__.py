@@ -1,3 +1,3 @@
-from .summarycompletionstate import (SummaryCompletionStateViewForm,)
-from .burnimplementationstate import (BurnImplementationStateViewForm,)
+from .summarycompletionstate import (SummaryCompletionStateViewForm,SummaryCompletionStateUpdateForm)
+from .burnimplementationstate import (BurnImplementationStateViewForm,BurnImplementationStateUpdateForm)
 from .burnclosurestate import (BurnClosureStateViewForm,)

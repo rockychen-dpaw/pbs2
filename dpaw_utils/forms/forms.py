@@ -69,6 +69,27 @@ class Action(object):
     def widget(self):
         return self._widget
 
+class EditableFieldsMixin(object):
+    def __init__(self,editable_fields = None,*args,**kwargs):
+        self._editable_fieldnames = editable_fields
+        super(EditableFieldsMixin,self).__init__(*args,**kwargs)
+
+    @property
+    def editable_fieldnames(self):
+        result = self._meta.editable_fields
+        if self._editable_fieldnames is None:
+            return result
+        else:
+            return [f for f in result if f in self._editable_fieldnames]
+
+    @property
+    def update_db_fields(self):
+        result = self._meta.update_db_fields
+        if self._editable_fieldnames is None:
+            return result
+        else:
+            return [f for f in result if f in self._editable_fieldnames or f in self._meta.extra_update_fields]
+
 class ActionMixin(object):
     """
     All actions must be a list of Action instance
@@ -255,11 +276,17 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
             return new_class
 
 
-        for item in ("other_fields","extra_update_fields","ordered_fields","field_classes_config","widgets_config","editable_fields","purpose"):
+        for item in ("other_fields","ordered_fields","field_classes_config","widgets_config","editable_fields","purpose"):
             if hasattr(meta,item) :
                 setattr(opts,item,getattr(meta,item))
             else:
                 setattr(opts,item,None)
+
+        for item in ("extra_update_fields",):
+            if hasattr(meta,item) :
+                setattr(opts,item,getattr(meta,item))
+            else:
+                setattr(opts,item,[])
 
         formfield_callback = meta.formfield_callback if meta and hasattr(meta,"formfield_callback") else None
 
@@ -364,7 +391,7 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
                 if field in new_class.all_base_fields:
                     new_class.base_fields[field] = new_class.all_base_fields[field]
 
-        update_db_fields = list(getattr(opts,"extra_update_fields") or [])
+        update_db_fields = list(opts.extra_update_fields)
         update_model_properties = []
 
         for name,field in new_class.base_fields.items():
@@ -442,8 +469,16 @@ class ModelForm(ActionMixin,RequestMixin,forms.models.BaseModelForm,metaclass=Ba
         for formfield in self.fields.values():
             forms.models.apply_limit_choices_to_to_formfield(formfield)
 
+    @property
+    def editable_fieldnames(self):
+        return self._meta.editable_fields
+
+    @property
+    def update_db_fields(self):
+        return self._meta.update_db_fields
+
     def is_editable(self,name):
-        return self._meta.editable_fields is None or name in self._meta.editable_fields
+        return self.editable_fieldnames is None or name in self.editable_fieldnames
 
     def _post_clean(self):
         #save the value of model properties
@@ -473,7 +508,7 @@ class ModelForm(ActionMixin,RequestMixin,forms.models.BaseModelForm,metaclass=Ba
         """
         update_properties = self._meta.update_model_properties and hasattr(self.instance,"save_properties") and callable(getattr(self.instance, "save_properties"))
 
-        if self.instance.pk and hasattr(self._meta,"update_db_fields") and self._meta.editable_fields:
+        if self.instance.pk and hasattr(self._meta,"update_db_fields") and self.update_db_fields:
             if self.errors:
                 raise ValueError(
                     "The %s could not be %s because the data didn't validate." % (
@@ -505,16 +540,16 @@ class ModelForm(ActionMixin,RequestMixin,forms.models.BaseModelForm,metaclass=Ba
         return self.instance
 
     def full_clean(self):
-        if self._meta.editable_fields is None:
+        if self.editable_fieldnames is None:
             super(ModelForm,self).full_clean()
             return
 
         opt_fields = self._meta.fields
         fields = self.fields
         try:
-            self._meta.fields = self._meta.editable_fields
-            self.editable_fields = self.editable_fields if hasattr(self,'editable_fields') else dict([(n,f) for n,f in self.fields.items() if n in self._meta.fields])
-            self.fields = self.editable_fields
+            self._meta.fields = self.editable_fieldnames
+            self._editable_fields = self._editable_fields if hasattr(self,'_editable_fields') else dict([(n,f) for n,f in self.fields.items() if n in self._meta.fields])
+            self.fields = self._editable_fields
             super(ModelForm,self).full_clean()
         finally:
             self._meta.fields = opt_fields
