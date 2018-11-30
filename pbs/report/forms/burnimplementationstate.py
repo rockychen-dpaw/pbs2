@@ -61,8 +61,6 @@ class BurnImplementationStateBaseForm(BurnImplementationStateCleanMixin,BurnImpl
 class BurnImplementationStateViewForm(BurnImplementationStateBaseForm):
     all_actions = [
     ]
-    def __init__(self, *args, **kwargs):
-        super(BurnImplementationStateViewForm, self).__init__(*args, **kwargs)
 
     class Meta:
         model = BurnImplementationState
@@ -75,8 +73,6 @@ class BurnImplementationStateViewForm(BurnImplementationStateBaseForm):
 class BurnImplementationStateUpdateForm(forms.EditableFieldsMixin,BurnImplementationStateBaseForm):
     all_actions = [
     ]
-    def __init__(self, *args, **kwargs):
-        super(BurnImplementationStateUpdateForm, self).__init__(*args, **kwargs)
 
     class Meta:
         model = BurnImplementationState

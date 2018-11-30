@@ -102,7 +102,7 @@ class FieldWidgetConfigDict(FieldClassConfigDict):
             if purpose == 'edit' and self._meta_class.is_dbfield(name):
                 return ("{}.{}".format(name,purpose),name)
             else:
-                return ("{}.{}".format(name,purpose),name,"{}.{}".format(self._default_key_name,purpose),self._default_key_name)
+                return ("{}.{}".format(name,purpose),"{}.{}".format(self._default_key_name,purpose),self._default_key_name)
         else:
             if purpose == 'edit' and self._meta_class.is_dbfield(name):
                 keys = ["{}.{}".format(name,p) for p in purpose]
@@ -110,7 +110,6 @@ class FieldWidgetConfigDict(FieldClassConfigDict):
                 return keys
             else:
                 keys = ["{}.{}".format(name,p) for p in purpose]
-                keys.append(name)
                 for p in purpose:
                     keys.append("{}.{}".format(self._default_key_name,p))
                 keys.append(self._default_key_name)

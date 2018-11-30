@@ -1,0 +1,166 @@
+{% extends "../change_form.html" %}
+{% load i18n staticfiles admin_list %}
+
+{% block breadcrumbs %}
+<ul class="breadcrumb">
+  <li><a href="{% url 'prescription:prescription_list' %}">{% trans 'Regional Overview' %}</a> <span class="divider">/</span></li>
+  <li><a href="{% url 'prescription:prescription_home' object.id %}">{{ object.burn_id }}</a> <span class="divider">/</span></li>
+  <li><a href="% url 'report:prescription_pre_state_update' object.id %}">Part A</a> <span class="divider">/</span></li>
+  <li>Section A1 &#x2010; Summary &amp; approval</li>
+</ul>
+{% endblock %}
+
+{% block form_content %}
+<table class="table table-bordered table-striped table-condensed">
+    <tbody>
+        <tr>
+            <th class="cbas">Burn ID *</th>
+            <td colspan="3" class="cbas">{{ form.burn_id }}</td>
+        </tr>
+        <tr>
+            <th class="cbas">Name *</th>
+            <td colspan="3" class="cbas">{{ form.name }}</td>
+        </tr>
+        <tr>
+            <th class="cbas">Description <br/>(leave blank to auto-generate)</th>
+            <td colspan="3" class="cbas">{{ form.description }}</td>
+        </tr>
+        <tr>
+            <th class="cbas" rowspan=2>Planned burn <br>financial year *</th>
+            <td class="cbas" rowspan=2>{{ form.financial_year }}</td>
+            <th class="cbas">Last burnt season</th>
+            <td class="cbas">{{ form.last_season_unknown }}</td>
+        </tr>
+        <tr>
+            <th class="cbas">Last burnt year</th>
+            <td class="cbas">{{ form.last_year_unknown }}</td>
+        </tr>
+        <tr>
+            <th class="cbas">Region *</th>
+            <td class="cbas">{{ form.region }}</td>
+            <th class="cbas">District *</th>
+            <td class="cbas">{{ form.district }}</td>
+        </tr>
+        <tr>
+            <th>Location *</th>
+            <td colspan="3">{{ form.loc_locality }}</td>
+        </tr>
+        <tr>
+            <th>Forest Blocks (if applicable)</th>
+            <td colspan="3">{{ form.forest_blocks }}</td>
+        </tr>
+        <tr>
+            <th>Overall Priority *</th>
+            <td id="id_td_priority">{{ form.priority }}</td>
+            <th>Overall Rationale *</th>
+            <td id="id_td_rationale">{{ form.rationale }}</td>
+        </tr>
+        <tr>
+            <th class="cbas">Contentious *</th>
+            <td class="cbas" colspan=3>{{ form.contentious }}</td>
+        </tr>
+        <tr>
+            <th>Aircraft burn *</th>
+            <td>{{ form.aircraft_burn }}</td>
+            <th>Remote sensing priority *</th>
+            <td>{{ form.remote_sensing_priority }}</td>
+        </tr>
+        <tr>
+            <th>Burn Purpose(s) *</th>
+            <td colspan="3">{{ form.purposes }}</td>
+        </tr>
+        <tr>
+            <th>Planned Burn Area (ha) *</th>
+            <td>{{ form.area }}</td>
+            <th>Perimeter/Length (kms) *</th>
+            <td>{{ form.perimeter }}</td>
+        </tr>
+        <tr>
+            <th>Non-CALM Act Tenure</th>
+            <td colspan="3" >
+                {{form.non_calm_tenure}}
+            </td>
+        </tr>
+        <tr>
+            <th>Burn Tenure(s)</th>
+            <td colspan="3">{{ form.tenures }}</td>
+        </tr>
+        <tr>
+            <th>Fuel Type(s)</th>
+            <td colspan="3">{{ form.fuel_types }}</td>
+        </tr>
+        <tr>
+            <th>Shire(s)</th>
+            <td colspan="3">{{ form.shires }}</td>
+        </tr>
+        <tr>
+            <th>Forecast Area(s)</th>
+            <td colspan="3">{{ form.forecast_areas }}</td>
+        </tr>
+        <tr>
+            <th>Bushfire Act Zone *</th>
+            <td colspan="1">{{ form.bushfire_act_zone }}</td>
+            <th>Estimate of the planned area<br>that will be treated (%) *</th>
+            <td>{{ form.treatment_percentage }}</td>
+        </tr>
+        <tr>
+            <th>Prohibited Period</th>
+            <td colspan="3">{{ form.prohibited_period }}</td>
+        </tr>
+        <tr>
+            <th>Prescribing Officer</th>
+            <td>{{ form.prescribing_officer }}</td>
+            <th>Shortcode</th>
+            <td>{{ form.short_code }}</td>
+        </tr>
+    </tbody>
+</table>
+<table class="table table-bordered table-striped table-condensed">
+    <thead>
+        <tr>
+            <th id="id_fundingallocation_set-__all__">Program allocation(s) *</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- This is the new formsets for PBS-1551 -->
+    </tbody>
+</table>
+<table class="table table-bordered table-striped table-condensed">
+    <tbody>
+        <tr>
+            <th>Date Created</th>
+            <td>{{ form.created }}</td>
+            <th>Date Last Saved</th>
+            <td>{{ form.modified }}</td>
+        </tr>
+        <tr>
+            <th>Risk Level</th>
+            <td>{{ form.maximum_risk }}</td>
+            <th>Complexity Rating</th>
+            <td>{{ form.maximum_complexity }}</td>
+        </tr>
+        <tr>
+            <th>Endorsement Status</th>
+            <td colspan="3">{{ form.endorsement_status }}</td>
+        </tr>
+        <tr>
+            <th>Approval Status</th>
+            <td colspan="3">{{ form.approval_status }}</td>
+        </tr>
+        <tr>
+            <th>Planning Status</th>
+            <td colspan="3">{{ form.planning_status }}</td>
+        </tr>
+        <tr>
+            <th>Ignition Status</th>
+            <td colspan="3">{{ form.ignition_status }}</td>
+        </tr>
+        <tr>
+            <th>Burn Closure Status</th>
+            <td colspan="3">{{ form.status }}</td>
+        </tr>
+    </tbody>
+</table>
+</div>
+</div>
+{% endblock %}

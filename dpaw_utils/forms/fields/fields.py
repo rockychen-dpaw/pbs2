@@ -381,7 +381,7 @@ class ConditionalMultipleField(CompoundField):
             kwargs["view_layouts"] = ConditionalChoice([(lambda f:True,u"{{0}} {}".format("".join(["<br>{{{}}}".format(i) for i in range(1,len(related_field_names) + 1)])))])
 
         if kwargs.get("edit_layouts"):
-            kwargs["view_layouts"] = ConditionalChoice(kwargs["edit_layouts"])
+            kwargs["edit_layouts"] = ConditionalChoice(kwargs["edit_layouts"])
         else:
             kwargs["edit_layouts"] = ConditionalChoice([(lambda f:True,u"{{0}} {}".format("".join(["<br>{{{}}}".format(i) for i in range(1,len(related_field_names) + 1)])))])
 

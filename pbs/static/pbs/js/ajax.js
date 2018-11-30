@@ -81,3 +81,6 @@ function submit_pre_state(field) {
 function submit_day_state(field) {
     submit_summary(field,$('#implementation-dropdown .label'))
 }
+function submit_post_state(field) {
+    submit_summary(field,$('#closure-dropdown .label'))
+}

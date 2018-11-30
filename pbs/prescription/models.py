@@ -16,7 +16,7 @@ from django.template.defaultfilters import truncatewords
 from django.utils.safestring import mark_safe
 from django.utils import timezone
 
-from dpaw_utils.models import AuditMixin,DictMixin,SelectOptionMixin
+from dpaw_utils.models import AuditMixin,ModelDictMixin,SelectOptionMixin
 
 from pbs.risk.models import (Register, Risk, Action, Complexity, Context, Treatment)
 
@@ -236,7 +236,7 @@ class DefaultBriefingChecklist(models.Model):
     smeac = models.ForeignKey(SMEAC, verbose_name="SMEACS", on_delete=models.PROTECT)
     title = models.CharField(max_length=200)
 
-class Prescription(DictMixin,AuditMixin):
+class Prescription(ModelDictMixin,AuditMixin):
     """
     A Prescription is the core object in the system. It should contain all the
     top level attributes imported from Prescription Program Planning except
@@ -344,6 +344,12 @@ class Prescription(DictMixin,AuditMixin):
         [prev_yr3, prev_yr3],
         [prev_yr4, prev_yr4],
     ]
+
+    NON_CALM_TENURE_COMPLETE_CHOICES = (
+        (1,"Yes"),
+        (2,"No"),
+        (3,"Yes and No")
+    )
 
     burn_id = models.CharField(max_length=7, verbose_name="Burn ID")
     name = models.CharField(max_length=128)
@@ -462,6 +468,13 @@ class Prescription(DictMixin,AuditMixin):
     # Will probably be removed when all contigency objects have been migrated.
     contingencies_migrated = models.BooleanField(default=False, editable=False)
 #    reviewed = models.BooleanField(verbose_name="Reviewed by FMSB and DRFMS", default=False, editable=False)
+    non_calm_tenure = models.NullBooleanField(verbose_name="Non-CALM Act Tenure")
+    non_calm_tenure_included = models.TextField(verbose_name="Non-CALM Act Tenure Included", blank=True,null=True)
+    non_calm_tenure_value = models.TextField(verbose_name="Public Value in Burn", blank=True,null=True)
+    non_calm_tenure_complete = models.PositiveSmallIntegerField(
+        verbose_name="Can the burn be completed safely without the inclusion of other tenure?",
+        choices=NON_CALM_TENURE_COMPLETE_CHOICES, null=True,blank=True)
+    non_calm_tenure_risks = models.TextField(verbose_name="Risks based issues if other tenure not included", blank=True,null=True)
 
     @property
     def approval_expiry(self):

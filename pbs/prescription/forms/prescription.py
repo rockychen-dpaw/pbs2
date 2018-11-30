@@ -11,6 +11,46 @@ import pbs.widgets
 import pbs.fields
 
 class PrescriptionCleanMixin(object):
+    def clean_non_calm_tenure_included(self):
+        if self.cleaned_data["non_calm_tenure"]:
+            value = self.cleaned_data.get("non_calm_tenure_included")
+            if value:
+                return value
+            else:
+                raise forms.ValidationError("Required.")
+        else:
+            return None
+
+    def clean_non_calm_tenure_value(self):
+        if self.cleaned_data["non_calm_tenure"]:
+            value = self.cleaned_data.get("non_calm_tenure_value")
+            if value:
+                return value
+            else:
+                raise forms.ValidationError("Required.")
+        else:
+            return None
+
+    def clean_non_calm_tenure_complete(self):
+        if self.cleaned_data["non_calm_tenure"]:
+            value = self.cleaned_data.get("non_calm_tenure_complete")
+            if value is None:
+                raise forms.ValidationError("Required.")
+            else:
+                return value
+        else:
+            return None
+
+    def clean_non_calm_tenure_risks(self):
+        if self.cleaned_data["non_calm_tenure"]:
+            value = self.cleaned_data.get("non_calm_tenure_risks")
+            if value:
+                return value
+            else:
+                raise forms.ValidationError("Required.")
+        else:
+            return None
+
     def clean_district(self):
         """
         Force the user to select a district.
@@ -113,10 +153,14 @@ class PrescriptionConfigMixin(object):
             "__default__":forms.fields.CharField,
             "last_season_unknown":forms.fields.SwitchFieldFactory(Prescription,"last_season_unknown",("last_season",),
                 reverse=True,
+                on_layout="Unknown",
+                off_layeout="{1}",
                 edit_layout="last burnt season unknown? {0}<div id='id_{2}_body'>{1}</div>"
             ),
             "last_year_unknown":forms.fields.SwitchFieldFactory(Prescription,"last_year_unknown",("last_year",),
                 reverse=True,
+                on_layout="Unknown",
+                off_layeout="{1}",
                 edit_layout="last burnt year unknown? {0}<div id='id_{2}_body'>{1}</div>"
             ),
             "contentious":forms.fields.SwitchFieldFactory(Prescription,"contentious",("contentious_rationale",),
@@ -129,15 +173,54 @@ class PrescriptionConfigMixin(object):
 
                 """
             ),
+            "non_calm_tenure":forms.fields.SwitchFieldFactory(Prescription,"non_calm_tenure",("non_calm_tenure_included","non_calm_tenure_value","non_calm_tenure_complete","non_calm_tenure_risks"),
+                on_layout=u"""
+                {0}
+                <br><br><span style="font-weight:bold"> Non-CALM Act tenure included * </span>
+                <div class="freetext">{1}</div>
+                <br><span style="font-weight:bold"> Public value in burn * </span>
+                <div class="freetext">{2}</div>
+                <br><span style="font-weight:bold"> Can the burn be completed safely without the inclusion of other tenure? </span> {3}
+                <br><br><span style="font-weight:bold"> Risk based issues if other tenure not included * </span>
+                <div class="freetext">{4}</div>
+                """,
+                edit_layout=u"""
+                {0}
+                <div id="id_{5}_body">
+                    <div>
+                        <span style="font-weight:bold">Non-CALM Act tenure included *</span>
+                        {1}
+                    </div>
+                    <div>
+                        <span style="font-weight:bold">Public value in burn * </span>
+                        <br>{2}
+                    </div>
+                    <div>
+                        <span style="font-weight:bold">Can the burn be completed safely without the inclusion of other tenure?</span> {3}
+                    </div>
+                    <div style="margin-top:3px">
+                        <span style="font-weight:bold">Risk based issues if other tenure not included * </span>
+                        <br>{4}
+                    </div>
+                </div>
+                """
+            ),
             "contentious.filter":forms.fields.BooleanChoiceFilter,
             "contingencies_migrated.filter":forms.fields.BooleanChoiceFilter,
             "loc_direction.edit":forms.fields.NullDirectionField,
-            "loc_locality":forms.fields.MultipleFieldFactory(Prescription,"loc_locality",("loc_distance","loc_direction","loc_town"),forms.fields.CharField,
-                layout="""
-                You must enter/select a value in all fields.<br>Alternatively, if entering only a locality (first input field), location will be stored as "Within the locality of ____"</span><br>
-                <table class='noborder'"><tr><td>{0} </td><td>-</td><td> {1}</td><td> km(s)</td><td> {2}</td> of <td>{3}</td></tr></table>
-                """),
-
+            "loc_locality":forms.fields.ConditionalMultipleFieldFactory(Prescription,"loc_locality",("loc_distance","loc_direction","loc_town"),forms.fields.CharField,
+                view_layouts=[
+                    (lambda f:True if (f.get_fieldvalue("loc_distance") or f.get_fieldvalue("loc_direction") or f.get_fieldvalue("loc_town")) else False,
+                        (u"""{0} - {1}km(s) {2} of {3}""",("loc_distance","loc_direction","loc_town"),True)),
+                    (lambda f:True,(u"""Within the locality of {0}""",[],True))
+                ],
+                edit_layouts=[
+                    (lambda f:True,(u"""
+                    You must enter/select a value in all fields.<br>Alternatively, if entering only a locality (first input field), location will be stored as "Within the locality of ____"</span><br>
+                    <table class='noborder'"><tr><td>{0} </td><td>-</td><td> {1}</td><td> km(s)</td><td> {2}</td> of <td>{3}</td></tr></table>
+                    """,("loc_distance","loc_direction","loc_town"),True))
+                ],
+            ),
             "aircraft_burn.filter":forms.fields.BooleanChoiceFilter,
             "region.filter":forms.fields.ChoiceFieldFactory(choices=Region.objects.all().order_by("name"),type_name="region"
                 ,choice_class=forms.fields.TypedMultipleChoiceField,
@@ -189,15 +272,28 @@ class PrescriptionConfigMixin(object):
         widgets_config = {
             "__default__.view":forms.widgets.TextDisplay(),
             "__default__.edit":forms.widgets.TextInput(),
+            'description.edit':forms.widgets.Textarea(attrs={"class":"vTextField"}),
+            'forest_blocks.edit':forms.widgets.Textarea(attrs={"class":"vTextField"}),
+            'rationale.edit':forms.widgets.Textarea(attrs={"class":"vTextField"}),
+            'bushfire_act_zone.edit':forms.widgets.Textarea(attrs={"class":"vTextField"}),
+            'prohibited_period.edit':forms.widgets.Textarea(attrs={"class":"vTextField"}),
+            'short_code.edit':forms.widgets.Textarea(attrs={"class":"vTextField"}),
+            'treatment_percentage.edit':forms.widgets.NumberInput(attrs={"min":0,"max":100}),
             "burn_id.list":forms.widgets.HyperlinkFactory("burn_id","prescription:prescription_home"),
             "name.edit":forms.widgets.TextInput(attrs={"class":"vTextField"}),
+            "non_calm_tenure.edit":forms.widgets.NullBooleanSelect(),
             "last_year.edit":forms.widgets.TextInput(attrs={"class":"vTextField"}),
             "last_season.edit":forms.widgets.TextInput(attrs={"class":"vTextField"}),
             "loc_distance.edit":forms.widgets.NumberInput(attrs={"min":0,"style":"width:60px"}),
             "loc_direction.edit":forms.widgets.Select(),
             "financial_year.edit":forms.widgets.Select(attrs={"style":"width:120px"}),
-            "purposes.edit":forms.widgets.CheckboxSelectMultiple(),
-            "contentious_rationale.edit":forms.widgets.Textarea(attrs={"style":"width:90%"}),
+            "purposes.edit":forms.widgets.TemplateWidgetFactory(forms.widgets.CheckboxSelectMultiple,"""
+                <span >Burn purpose text must be updated for Biodiversity Management, Bushfire Risk Management and Vegetation Management purposes.
+                    <br>All other purposes will use the default text as per Appendix 4 in the Prescribed Fire Manual.</span>
+                <hr class="id_purposes_hr">
+                {0}
+            """),
+            "contentious_rationale.edit":forms.widgets.Textarea(attrs={"class":"vTextField"}),
             "contentious.view":forms.widgets.ImgBooleanDisplay(),
             "aircraft_burn.list":forms.widgets.ImgBooleanDisplay(),
             "aircraft_burn.view":pbs.widgets.IgnitionTypeDisplay(),
@@ -224,15 +320,18 @@ class PrescriptionConfigMixin(object):
             "maximum_risk":pbs.widgets.RiskLevelDisplay(),
             "maximum_draft_risk":pbs.widgets.RiskLevelDisplay(),
             "maximum_complexity":pbs.widgets.ComplexityRatingDisplay(),
-            "priority":pbs.widgets.PrescriptionPriorityDisplay,
+            "priority.view":pbs.widgets.PrescriptionPriorityDisplay,
             "planning_status_modified":forms.widgets.DatetimeDisplay("%d-%m-%Y"),
             "endorsement_status_modified":forms.widgets.DatetimeDisplay("%d-%m-%Y"),
             "approval_status_modified":forms.widgets.DatetimeDisplay("%d-%m-%Y"),
             "current_approval_valid_period":forms.widgets.DatetimeDisplay("%d-%m-%Y"),
             "ignition_completed_date":forms.widgets.DatetimeDisplay("%d-%m-%Y"),
             'status.view':pbs.widgets.PrescriptionStatusIconDisplay(),
-            'status.list':pbs.widgets.PrescriptionStatusDisplay()
-
+            'status.list':pbs.widgets.PrescriptionStatusDisplay(),
+            "non_calm_tenure_complete.edit":forms.widgets.RadioSelect(),
+            "non_calm_tenure_included.edit":forms.widgets.Textarea(attrs={"style":"width:90%;"}),
+            "non_calm_tenure_value.edit":forms.widgets.Textarea(attrs={"style":"width:90%;"}),
+            "non_calm_tenure_risks.edit":forms.widgets.Textarea(attrs={"style":"width:90%;"})
         }
 
 class PrescriptionFilterForm(PrescriptionConfigMixin,forms.FilterForm):
@@ -272,6 +371,39 @@ class PrescriptionViewForm(PrescriptionBaseForm):
         other_fields = ('loc_locality','loc_distance','loc_direction','loc_town',"maximum_risk","maximum_complexity","pre_state","day_state","post_state"
                 ,'planning_status_modified','endorsement_status_modified','approval_status_modified','current_approval_valid_period','current_approval_approver'
                 ,'ignition_commenced_date','ignition_commence_status','ignition_complete_status')
+
+class PrescriptionUpdateForm(PrescriptionBaseForm):
+    all_actions = [
+        FORM_ACTIONS["save"],
+    ]
+
+    class Meta:
+        model = Prescription
+        fields = ('burn_id','name','description','financial_year','last_season','last_season_unknown','last_year','last_year_unknown',
+            'region','district','forest_blocks','priority','rationale','contentious','contentious_rationale','aircraft_burn',
+            'remote_sensing_priority','purposes','area','perimeter','tenures','fuel_types','shires','forecast_areas','bushfire_act_zone',
+            "non_calm_tenure","non_calm_tenure_included","non_calm_tenure_value","non_calm_tenure_complete","non_calm_tenure_risks",
+            'treatment_percentage','prohibited_period','prescribing_officer','short_code','endorsement_status','approval_status',
+            'planning_status','ignition_status','status'
+        )
+        editable_fields = ('forest_blocks','aircraft_burn','remote_sensing_priority','purposes','area','perimeter','tenures',
+            "non_calm_tenure","non_calm_tenure_included","non_calm_tenure_value","non_calm_tenure_complete","non_calm_tenure_risks",
+            'fuel_types','shires','forecast_areas','bushfire_act_zone','treatment_percentage','prohibited_period','prescribing_officer',
+            'short_code'
+        )
+        other_fields = ('loc_locality','loc_distance','loc_direction','loc_town','created','modified','maximum_risk','maximum_complexity')
+
+class DraftPrescriptionUpdateForm(PrescriptionUpdateForm):
+    class Meta:
+        model = Prescription
+        editable_fields = ('name','description','financial_year','last_season','last_season_unknown','last_year','last_year_unknown',
+            'loc_locality','loc_distance','loc_direction','loc_town',
+            'forest_blocks','priority','rationale','contentious','contentious_rationale','aircraft_burn','remote_sensing_priority','purposes','area','perimeter',
+            "non_calm_tenure","non_calm_tenure_included","non_calm_tenure_value","non_calm_tenure_complete","non_calm_tenure_risks",
+            'tenures','fuel_types','shires','forecast_areas','bushfire_act_zone','treatment_percentage','prohibited_period','prescribing_officer',
+            'short_code'
+        )
+        extra_update_fields = ('location',)
 
 class PrescriptionCreateForm(PrescriptionBaseForm):
     all_actions = [

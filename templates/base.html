@@ -134,6 +134,8 @@
 {% url 'prescription:prescription_create' as prescription_create %}
 {% url 'report:prescription_pre_state_update' prescription.id as parta %}
 {% url 'report:prescription_day_state_update' prescription.id as partb %}
+{% url 'report:prescription_post_state_update' prescription.id as partc %}
+{% url 'prescription:prescription_update' prescription.id as sectiona1 %}
 {% block body %}
 <body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}" style={% page_background %}>
 {% if not is_popup %}
@@ -314,7 +316,7 @@
                   <b class="caret"></b>
                 </a>
                 <ul class="dropdown-menu">
-                  <li{% if request.path == post_summary %} class="active"{% endif %}><a href="{{ post_summary }}">Part C Summary</a></li>
+                  <li{% if request.path == partc %} class="active"{% endif %}><a href="{{ partc }}">Part C Summary</a></li>
                   <li{% if actions|add:"?post_burn=true" in request.get_full_path %} class="active"{% endif %}><a href="{{ actions }}?post_burn=true">C1 - Post burn actions</a></li>
                   <li{% if request.path == evaluation %} class="active"{% endif %}><a href="{{ evaluation }}">C2 - Burn evaluation summary</a></li>
                   <li{% if request.path == proposed_action %} class="active"{% endif %}><a href="{{ proposed_action }}">C3 - Lessons learned</a></li>

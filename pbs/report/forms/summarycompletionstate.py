@@ -46,8 +46,6 @@ class SummaryCompletionStateBaseForm(SummaryCompletionStateCleanMixin,SummaryCom
 class SummaryCompletionStateViewForm(SummaryCompletionStateBaseForm):
     all_actions = [
     ]
-    def __init__(self, *args, **kwargs):
-        super(SummaryCompletionStateViewForm, self).__init__(*args, **kwargs)
 
     class Meta:
         model = SummaryCompletionState
@@ -59,8 +57,6 @@ class SummaryCompletionStateViewForm(SummaryCompletionStateBaseForm):
 class SummaryCompletionStateUpdateForm(forms.EditableFieldsMixin,SummaryCompletionStateBaseForm):
     all_actions = [
     ]
-    def __init__(self, *args, **kwargs):
-        super(SummaryCompletionStateUpdateForm, self).__init__(*args, **kwargs)
 
     class Meta:
         model = SummaryCompletionState

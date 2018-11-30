@@ -19,6 +19,26 @@ class BurnClosureStateConfigMixin(object):
         widgets_config = {
             "__default__.view":forms.widgets.TextDisplay(),
             "__default__.edit":forms.widgets.TextInput(),
+            "post_actions.view":pbs.widgets.CompleteStatusDisplay(),
+            "post_actions.edit":forms.widgets.Select(attrs={"onchange":"submit_post_state(this)"}),
+            "evaluation_summary.view":pbs.widgets.CompleteStatusDisplay(),
+            "evaluation_summary.edit":forms.widgets.Select(attrs={"onchange":"submit_post_state(this)"}),
+            "evaluation.view":pbs.widgets.CompleteStatusDisplay(),
+            "evaluation.edit":forms.widgets.Select(attrs={"onchange":"submit_post_state(this)"}),
+            "post_ignitions.view":pbs.widgets.CompleteStatusDisplay(),
+            "post_ignitions.edit":forms.widgets.Select(attrs={"onchange":"submit_post_state(this)"}),
+            "aerial_intensity.view":pbs.widgets.CompleteStatusDisplay(),
+            "aerial_intensity.edit":forms.widgets.Select(attrs={"onchange":"submit_post_state(this)"}),
+            "satellite_intensity.view":pbs.widgets.CompleteStatusDisplay(),
+            "satellite_intensity.edit":forms.widgets.Select(attrs={"onchange":"submit_post_state(this)"}),
+            "other.view":pbs.widgets.CompleteStatusDisplay(),
+            "other.edit":forms.widgets.Select(attrs={"onchange":"submit_post_state(this)"}),
+            "post_burn_checklist.view":pbs.widgets.CompleteStatusDisplay(),
+            "post_burn_checklist.edit":forms.widgets.Select(attrs={"onchange":"submit_post_state(this)"}),
+            "closure_declaration.view":pbs.widgets.CompleteStatusDisplay(),
+            "closure_declaration.edit":forms.widgets.Select(attrs={"onchange":"submit_post_state(this)"}),
+            "signage.view":pbs.widgets.CompleteStatusDisplay(),
+            "signage.edit":forms.widgets.Select(attrs={"onchange":"submit_post_state(this)"}),
             "progress":pbs.widgets.StateProgressBarDisplay,
 
         }
@@ -30,11 +50,18 @@ class BurnClosureStateBaseForm(BurnClosureStateCleanMixin,BurnClosureStateConfig
 class BurnClosureStateViewForm(BurnClosureStateBaseForm):
     all_actions = [
     ]
-    def __init__(self, *args, **kwargs):
-        super(BurnClosureStateViewForm, self).__init__(*args, **kwargs)
 
     class Meta:
         model = BurnClosureState
         purpose = "view"
-        fields = []
+        fields = ["post_actions","evaluation_summary","evaluation","post_ignitions","aerial_intensity","satellite_intensity","other","post_burn_checklist","closure_declaration","signage"]
         other_fields = ('progress',)
+
+class BurnClosureStateUpdateForm(forms.EditableFieldsMixin,BurnClosureStateBaseForm):
+    all_actions = [
+    ]
+
+    class Meta:
+        model = BurnClosureState
+        fields = ["post_actions","evaluation_summary","evaluation","post_ignitions","aerial_intensity","satellite_intensity","other","post_burn_checklist","closure_declaration","signage"]
+        editable_fields = fields

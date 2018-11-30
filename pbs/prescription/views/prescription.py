@@ -20,7 +20,7 @@ from pbs import mutex, SemaphoreException
 import pbs.forms
 
 from ..models import (Prescription,)
-from ..forms import (PrescriptionCreateForm,PrescriptionFilterForm,PrescriptionListForm,PrescriptionViewForm)
+from ..forms import (PrescriptionCreateForm,PrescriptionFilterForm,PrescriptionListForm,PrescriptionViewForm,PrescriptionUpdateForm,DraftPrescriptionUpdateForm)
 from ..filters import (PrescriptionFilter,)
 
 class PrescriptionCreateView(CreateView):
@@ -230,6 +230,24 @@ class PrescriptionHomeView(RequestActionMixin,ReadonlyView):
             send_mail(subject, message, email_from, email_to)
 
         
+class PrescriptionUpdateView(UpdateView):
+    urlpattern = "prescription/<int:pk>/summary/pre/"
+    urlname = "{}_update"
+    model = Prescription
+    form_class = PrescriptionUpdateForm
+    template_name_suffix = "_update"
+    title = "Summary & Approval"
+    context_object_name = "prescription"
+
+    def get_form_class(self):
+        if self.object.planning_status == Prescription.PLANNING_DRAFT or self.user.has_perm("prescription.can_admin"):
+            return DraftPrescriptionUpdateForm
+        else:
+            return PrescriptionUpdateForm
+
+    def get_action(self,action_name):
+        return pbs.forms.FORM_ACTIONS.get(action_name)
+
 
 class PrescriptionListView(ListActionMixin,ListView):
     title = "Regional Overview"

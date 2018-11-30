@@ -320,6 +320,23 @@ TextBooleanDisplay = ChoiceWidgetFactory("TextBooleanDisplay",{
     None:""
 })
 
+class NullBooleanSelect(forms.widgets.Select):
+    def __init__(self, attrs=None):
+        choices = (
+            ('', 'Unknown'),
+            ('True', 'Yes'),
+            ('False','No'),
+        )
+        super(NullBooleanSelect,self).__init__(attrs, choices)
+
+    def format_value(self, value):
+        return "" if value is None else str(value)
+
+    def value_from_datadict(self, data, files, name):
+        value = data.get(name)
+        return None if (value == "" or value is None) else (True if value == 'True' else False) 
+
+
 html_id_seq = 0
 class SelectableSelect(forms.Select):
     def __init__(self,**kwargs):

@@ -130,7 +130,10 @@ class CompoundBoundField(BoundField):
         return list(self.__iter__())[idx]
 
     def get_field(self,field_name):
-        return self.form["field_name"]
+        return self.form[field_name]
+
+    def get_fieldvalue(self,field_name):
+        return self.form[field_name].value()
 
     def as_widget(self, widget=None, attrs=None, only_initial=False):
         """

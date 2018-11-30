@@ -381,6 +381,7 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
             new_class.base_fields.update(field_list)
 
         if hasattr(new_class,"all_base_fields"):
+            new_class.all_base_fields = OrderedDict(new_class.all_base_fields)
             new_class.all_base_fields.update(new_class.base_fields)
         else:
             new_class.all_base_fields = new_class.base_fields
