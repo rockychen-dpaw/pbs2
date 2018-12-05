@@ -2,7 +2,7 @@
 from dpaw_utils import forms
 from dpaw_utils import utils
 
-from pbs.prescription.models import (Prescription,)
+from pbs.prescription.models import (Prescription,FundingAllocation)
 from pbs.risk.models import (Register,Complexity)
 
 
@@ -20,29 +20,29 @@ IgnitionTypeDisplay = forms.widgets.ChoiceWidgetFactory("IgnitionTypeDisplay",{
 })
 
 RiskLevelDisplay = forms.widgets.ChoiceWidgetFactory("RiskLevelDisplay",{
-    Register.LEVEL_VERY_LOW:'<span class="label lavel-very-low">{}</span>'.format(Register.LEVEL_CHOICES[Register.LEVEL_VERY_LOW - 1][1]),
-    Register.LEVEL_LOW:'<span class="label lavel-low">{}</span>'.format(Register.LEVEL_CHOICES[Register.LEVEL_LOW - 1][1]),
-    Register.LEVEL_MEDIUM:'<span class="label lavel-medium">{}</span>'.format(Register.LEVEL_CHOICES[Register.LEVEL_MEDIUM - 1][1]),
-    Register.LEVEL_HIGH:'<span class="label lavel-high">{}</span>'.format(Register.LEVEL_CHOICES[Register.LEVEL_HIGH - 1][1]),
-    Register.LEVEL_VERY_HIGH:'<span class="label lavel-very-high">{}</span>'.format(Register.LEVEL_CHOICES[Register.LEVEL_VERY_HIGH - 1][1]),
-    "__default__":'<span class="label lavel-very-high">{}</span>'.format(Register.LEVEL_CHOICES[Register.LEVEL_VERY_HIGH - 1][1])
+    Register.LEVEL_VERY_LOW:'<span class="label label-very-low">{}</span>'.format(Register.LEVEL_CHOICES[Register.LEVEL_VERY_LOW - 1][1]),
+    Register.LEVEL_LOW:'<span class="label label-low">{}</span>'.format(Register.LEVEL_CHOICES[Register.LEVEL_LOW - 1][1]),
+    Register.LEVEL_MEDIUM:'<span class="label label-medium">{}</span>'.format(Register.LEVEL_CHOICES[Register.LEVEL_MEDIUM - 1][1]),
+    Register.LEVEL_HIGH:'<span class="label label-high">{}</span>'.format(Register.LEVEL_CHOICES[Register.LEVEL_HIGH - 1][1]),
+    Register.LEVEL_VERY_HIGH:'<span class="label label-very-high">{}</span>'.format(Register.LEVEL_CHOICES[Register.LEVEL_VERY_HIGH - 1][1]),
+    "__default__":'<span class="label label-very-high">{}</span>'.format(Register.LEVEL_CHOICES[Register.LEVEL_VERY_HIGH - 1][1])
 },marked_safe=True)
 
 RiskRoleDisplay = forms.widgets.ChoiceWidgetFactory("RiskRoleDisplay",{
-    Register.LEVEL_VERY_LOW:'<span class="label lavel-very-low">District Manager</span>',
-    Register.LEVEL_LOW:'<span class="label lavel-low">District Manager</span>',
-    Register.LEVEL_MEDIUM:'<span class="label lavel-medium">Regional Manager</span>',
-    Register.LEVEL_HIGH:'<span class="label lavel-high">Branch Manager FMSB</span>',
-    Register.LEVEL_VERY_HIGH:'<span class="label lavel-very-high">Not available(the risk level is too high)</span>',
-    "__default__":'<span class="label lavel-very-high">Not available(the risk level is too high)</span>'
+    Register.LEVEL_VERY_LOW:'<span class="label label-very-low">District Manager</span>',
+    Register.LEVEL_LOW:'<span class="label label-low">District Manager</span>',
+    Register.LEVEL_MEDIUM:'<span class="label label-medium">Regional Manager</span>',
+    Register.LEVEL_HIGH:'<span class="label label-high">Branch Manager FMSB</span>',
+    Register.LEVEL_VERY_HIGH:'<span class="label label-very-high">Not available(the risk level is too high)</span>',
+    "__default__":'<span class="label label-very-high">Not available(the risk level is too high)</span>'
 },marked_safe=True)
 
 
 ComplexityRatingDisplay = forms.widgets.ChoiceWidgetFactory("ComplexityRatingDisplay",{
-    Complexity.RATING_UNRATED:'<span class="label lavel-unrated">{}</span>'.format(Complexity.RATING_CHOICES[Complexity.RATING_UNRATED][1]),
-    Complexity.RATING_LOW:'<span class="label lavel-low">{}</span>'.format(Complexity.RATING_CHOICES[Complexity.RATING_LOW - 1][1]),
-    Complexity.RATING_MEDIUM:'<span class="label lavel-medium">{}</span>'.format(Complexity.RATING_CHOICES[Complexity.RATING_MEDIUM - 1][1]),
-    Complexity.RATING_HIGH:'<span class="label lavel-high">{}</span>'.format(Complexity.RATING_CHOICES[Complexity.RATING_HIGH - 1][1]),
+    Complexity.RATING_UNRATED:'<span class="label label-unrated">{}</span>'.format(Complexity.RATING_CHOICES[Complexity.RATING_UNRATED][1]),
+    Complexity.RATING_LOW:'<span class="label label-low">{}</span>'.format(Complexity.RATING_CHOICES[Complexity.RATING_LOW - 1][1]),
+    Complexity.RATING_MEDIUM:'<span class="label label-medium">{}</span>'.format(Complexity.RATING_CHOICES[Complexity.RATING_MEDIUM - 1][1]),
+    Complexity.RATING_HIGH:'<span class="label label-high">{}</span>'.format(Complexity.RATING_CHOICES[Complexity.RATING_HIGH - 1][1]),
 },marked_safe=True)
 
 PrescriptionPriorityDisplay = forms.widgets.ChoiceWidgetFactory("PrescriptionPriorityDisplay",Prescription.PRIORITY_CHOICES)
@@ -69,4 +69,6 @@ CompleteStatusDisplay = forms.widgets.ChoiceWidgetFactory("CompleteStatusDisplay
     False:"Incomplete",
     None:""
 })
+
+FundingAllocationDisplay = forms.widgets.ChoiceWidgetFactory("FundingAllocationDisplay",FundingAllocation.ALLOCATION_CHOICES)
 

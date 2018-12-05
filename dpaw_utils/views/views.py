@@ -340,6 +340,12 @@ class UpdateView(UrlpatternsMixin,django_edit_view.UpdateView):
         return super(UpdateView,self).get(*args,**kwargs)
     """
 
+    """
+    def post(self,*args,**kwargs):
+        import ipdb;ipdb.set_trace()
+        return super(UpdateView,self).post(*args,**kwargs)
+    """
+
 class OneToOneModelUpdateView(OneToOneModelMixin,UpdateView):
     pass
 

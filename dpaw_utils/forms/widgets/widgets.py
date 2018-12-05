@@ -323,7 +323,7 @@ TextBooleanDisplay = ChoiceWidgetFactory("TextBooleanDisplay",{
 class NullBooleanSelect(forms.widgets.Select):
     def __init__(self, attrs=None):
         choices = (
-            ('', 'Unknown'),
+            ('-', 'Unknown'),
             ('True', 'Yes'),
             ('False','No'),
         )
@@ -334,7 +334,7 @@ class NullBooleanSelect(forms.widgets.Select):
 
     def value_from_datadict(self, data, files, name):
         value = data.get(name)
-        return None if (value == "" or value is None) else (True if value == 'True' else False) 
+        return None if (value == "-" or value == "" or value is None) else (True if value == 'True' else False) 
 
 
 html_id_seq = 0
@@ -448,3 +448,17 @@ class DropdownMenuSelectMultiple(forms.widgets.SelectMultiple):
             </script>
             """.format(html_id,html)
         return html
+
+
+class Hidden(forms.Widget):
+    def __init__(self,display_widget=None,*args,**kwargs):
+        super(Hidden,self).__init__(*args,**kwargs)
+        self.display_widget = display_widget
+
+    def render(self,name,value,attrs=None,renderer=None):
+        if self.display_widget:
+            return "<input type='hidden' name='{}' value='{}' >{}".format(name,"" if value is None else value,self.display_widget.render(name,value,attrs,renderer))
+        else:
+            return "<input type='hidden' name='{}' value='{}' >".format(name,"" if value is None else value)
+        return to_str(value)
+

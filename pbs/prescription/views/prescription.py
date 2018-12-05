@@ -5,6 +5,7 @@ import os
 import subprocess
 
 from django import http
+from django import urls
 from django.urls import path 
 from django.http.response import (HttpResponse,)
 from django.utils import timezone
@@ -238,6 +239,9 @@ class PrescriptionUpdateView(UpdateView):
     template_name_suffix = "_update"
     title = "Summary & Approval"
     context_object_name = "prescription"
+
+    def get_success_url(self):
+        return urls.reverse("prescription:prescription_update",args=(self.object.id,))
 
     def get_form_class(self):
         if self.object.planning_status == Prescription.PLANNING_DRAFT or self.user.has_perm("prescription.can_admin"):

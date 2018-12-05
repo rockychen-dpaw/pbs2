@@ -1,4 +1,7 @@
+import inspect
+
 from django.utils.html import html_safe,conditional_escape,mark_safe
+from django.core.exceptions import ValidationError
 from django.utils import six
 from django import forms
 from django.db import models
@@ -261,7 +264,7 @@ class BoundFormField(BoundField):
         if self.form.is_bound and not self.field.is_display:
             raise NotImplementedError
         else:
-            self.form = self.field.form_class(instance=self.value(),prefix=self.name)
+            self.innerform = self.field.form_class(instance=self.value(),prefix=self.name)
 
     @property
     def initial(self):
@@ -301,8 +304,67 @@ class BoundFormField(BoundField):
             )
         if name not in self._bound_fields_cache:
             if isinstance(field,fields.CompoundField):
-                self._bound_fields_cache[name] = CompoundBoundField(self.form,field,name)
+                self._bound_fields_cache[name] = CompoundBoundField(self.innerform,field,name)
             else:
-                self._bound_fields_cache[name] = BoundField(self.form,field,name)
+                self._bound_fields_cache[name] = BoundField(self.innerform,field,name)
         return self._bound_fields_cache[name]
+    
+class BoundFormSetField(BoundField):
+    def __init__(self,*args,**kwargs):
+        super(BoundFormSetField,self).__init__(*args,**kwargs)
+        self.formset = self.field.formset_class(data=self.form.data if self.form.is_bound else None,instances=self.initial,prefix=self.name)
+
+        if "parent_form" in inspect.getargspec(self.field.formset_class.form._clean_form)[0]:
+            self.clean = self._clean_with_form_parameter
+        else:
+            self.clean = self._clean
+
+    @property
+    def initial(self):
+        return self.form.initial.get(self.name, self.field.get_initial())
+
+    def html(self,template=None,method="as_widget"):
+        raise NotImplementedError
+
+    @property
+    def is_bound(self):
+        return self.form.is_bound and not self.field.is_display
+
+    def clean_field(self):
+        if self.formset.is_valid():
+            return [form.cleaned_data for form in self.formset]
+        else:
+           raise ValidationError("") #error placeholder, but not display in page
+
+    def post_clean(self):
+        for form in self.formset:
+            form._post_clean()
+
+    def _clean(self):
+        for form in self.formset:
+            form._clean_form()
+
+        self.formset.clean()
+
+    def _clean_with_form_parameter(self):
+        for form in self.formset:
+            form._clean_form(self.form)
+
+        self.formset.clean()
+
+    def save(self):
+        for form in self.formset:
+            if form.can_delete:
+                if form.instance.pk:
+                    form.instance.delete()
+            else:
+                form.save()
+
+    def as_widget(self, widget=None, attrs=None, only_initial=False):
+        return "{}{}".format(str(self.formset.management_form),self.field.template.render({"formset":self.formset,"errors":self.form.errors.get(self.name)}))
+
+    def __iter__(self):
+        return self.formset
+
+
     

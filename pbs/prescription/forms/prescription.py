@@ -7,6 +7,7 @@ from pbs.prescription.models import (Prescription,Region,District)
 from pbs.forms import (FORM_ACTIONS,LIST_ACTIONS)
 from pbs.utils import FinancialYear
 from pbs.report.forms import (SummaryCompletionStateViewForm,BurnImplementationStateViewForm,BurnClosureStateViewForm)
+from .fundingallocation import FundingAllocationUpdateFormSet
 import pbs.widgets
 import pbs.fields
 
@@ -70,7 +71,7 @@ class PrescriptionCleanMixin(object):
         elif not data:
             raise forms.ValidationError("This field is required.")
         else:
-            return None
+            return data
 
     def clean_last_year(self):
         data = self.cleaned_data.get("last_year")
@@ -79,7 +80,7 @@ class PrescriptionCleanMixin(object):
         elif not data:
             raise forms.ValidationError("This field is required.")
         else:
-            return None
+            return data
 
     def clean_loc_locality(self):
         data = self.cleaned_data.get("loc_locality")
@@ -99,6 +100,7 @@ class PrescriptionCleanMixin(object):
                 self.add_error("loc_direction",forms.ValidationError("This field is required"))
             if not town:
                 raise forms.ValidationError("This field is required.")
+        return town if town else None
 
     def clean_contentious(self):
         data = self.cleaned_data.get("contentious")
@@ -128,6 +130,14 @@ class PrescriptionCleanMixin(object):
             raise forms.ValidationError("Financial year burnt must be in the current financial year or in the future.")
 
         return financial_year.format(year)
+    def clean_all_allocations(self):
+        total_proportion = 0
+        for form in self["all_allocations"].formset:
+            if not form.can_delete:
+                total_proportion += form.cleaned_data['proportion']
+
+        if total_proportion != 100:
+            raise forms.ValidationError("Total proportion allocated must be 100%; currently {}%".format(total_proportion))
 
     """
     def clean_last_year(self):
@@ -205,6 +215,7 @@ class PrescriptionConfigMixin(object):
                 </div>
                 """
             ),
+            "non_calm_tenure_complete.edit":forms.fields.ChoiceFieldFactory(Prescription.NON_CALM_TENURE_COMPLETE_CHOICES,field_params={"required":False,"coerce":forms.fields.coerce_int,"empty_value":None}),
             "contentious.filter":forms.fields.BooleanChoiceFilter,
             "contingencies_migrated.filter":forms.fields.BooleanChoiceFilter,
             "loc_direction.edit":forms.fields.NullDirectionField,
@@ -268,6 +279,35 @@ class PrescriptionConfigMixin(object):
             "pre_state":forms.fields.FormFieldFactory(SummaryCompletionStateViewForm),
             "day_state":forms.fields.FormFieldFactory(BurnImplementationStateViewForm),
             "post_state":forms.fields.FormFieldFactory(BurnClosureStateViewForm),
+            "all_allocations":forms.fields.FormSetFieldFactory(FundingAllocationUpdateFormSet,"""
+            <table class="table table-bordered table-striped table-condensed">
+                <thead>
+                    <tr>
+                        <th >Program allocation(s) *
+                        {% if errors %}
+                        <br>
+                        {% for error in errors %}
+                        <p class='text-error'><i class='icon-warning-sign'></i>{{ error }}</p>
+                        {% endfor %}
+                        {% endif %}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- This is the new formsets for PBS-1551 -->
+		    {% for form in formset %}
+                    <tr>
+                        <th> Allocation code </th>
+                        <td>{{form.id}}{{form.allocation}}</td>
+                        <th> Proportion of funding [%] </th>
+                        <td>{{form.proportion}}</td>
+                    </tr>
+		    {% endfor %}
+                    
+                </tbody>
+            </table>
+
+            """)
         }
         widgets_config = {
             "__default__.view":forms.widgets.TextDisplay(),
@@ -317,9 +357,9 @@ class PrescriptionConfigMixin(object):
             "ignition_status.filter":forms.widgets.DropdownMenuSelectMultiple(attrs={"title":"Ignition Status"}),
             "status.filter":forms.widgets.DropdownMenuSelectMultiple(attrs={"title":"Status"}),
             "contingencies_migrated.filter":forms.widgets.DropdownMenuSelectMultiple(attrs={"title":"Contingencies Migrated"}),
-            "maximum_risk":pbs.widgets.RiskLevelDisplay(),
-            "maximum_draft_risk":pbs.widgets.RiskLevelDisplay(),
-            "maximum_complexity":pbs.widgets.ComplexityRatingDisplay(),
+            "maximum_risk.view":pbs.widgets.RiskLevelDisplay(),
+            "maximum_draft_risk.view":pbs.widgets.RiskLevelDisplay(),
+            "maximum_complexity.view":pbs.widgets.ComplexityRatingDisplay(),
             "priority.view":pbs.widgets.PrescriptionPriorityDisplay,
             "planning_status_modified":forms.widgets.DatetimeDisplay("%d-%m-%Y"),
             "endorsement_status_modified":forms.widgets.DatetimeDisplay("%d-%m-%Y"),
@@ -328,6 +368,10 @@ class PrescriptionConfigMixin(object):
             "ignition_completed_date":forms.widgets.DatetimeDisplay("%d-%m-%Y"),
             'status.view':pbs.widgets.PrescriptionStatusIconDisplay(),
             'status.list':pbs.widgets.PrescriptionStatusDisplay(),
+            "tenures.edit":forms.widgets.FilteredSelectMultiple("Burn Tenures",False),
+            "fuel_types.edit":forms.widgets.FilteredSelectMultiple("Fuel Types",False),
+            "shires.edit":forms.widgets.FilteredSelectMultiple("Shires",False),
+            "forecast_areas.edit":forms.widgets.FilteredSelectMultiple("Forecast Areas",False),
             "non_calm_tenure_complete.edit":forms.widgets.RadioSelect(),
             "non_calm_tenure_included.edit":forms.widgets.Textarea(attrs={"style":"width:90%;"}),
             "non_calm_tenure_value.edit":forms.widgets.Textarea(attrs={"style":"width:90%;"}),
@@ -377,21 +421,27 @@ class PrescriptionUpdateForm(PrescriptionBaseForm):
         FORM_ACTIONS["save"],
     ]
 
+    def get_update_success_message(self) :
+        return "{} summary updated successfully".format(self.instance.burn_id)
+
     class Meta:
         model = Prescription
-        fields = ('burn_id','name','description','financial_year','last_season','last_season_unknown','last_year','last_year_unknown',
+        fields = ('burn_id','name','description','financial_year','last_season_unknown','last_season','last_year_unknown','last_year',
             'region','district','forest_blocks','priority','rationale','contentious','contentious_rationale','aircraft_burn',
             'remote_sensing_priority','purposes','area','perimeter','tenures','fuel_types','shires','forecast_areas','bushfire_act_zone',
             "non_calm_tenure","non_calm_tenure_included","non_calm_tenure_value","non_calm_tenure_complete","non_calm_tenure_risks",
-            'treatment_percentage','prohibited_period','prescribing_officer','short_code','endorsement_status','approval_status',
+            'treatment_percentage','prohibited_period','prescribing_officer','short_code','endorsement_status',
+            'approval_status',
             'planning_status','ignition_status','status'
         )
         editable_fields = ('forest_blocks','aircraft_burn','remote_sensing_priority','purposes','area','perimeter','tenures',
             "non_calm_tenure","non_calm_tenure_included","non_calm_tenure_value","non_calm_tenure_complete","non_calm_tenure_risks",
             'fuel_types','shires','forecast_areas','bushfire_act_zone','treatment_percentage','prohibited_period','prescribing_officer',
-            'short_code'
+            'short_code','all_allocations'
         )
-        other_fields = ('loc_locality','loc_distance','loc_direction','loc_town','created','modified','maximum_risk','maximum_complexity')
+        other_fields = ('loc_locality','loc_distance','loc_direction','loc_town','created','modified','maximum_risk','maximum_complexity','all_allocations',
+                "planning_status_modified","endorsement_status_modified","approval_status_modified","current_approval_approver","current_approval_valid_period")
+        extra_update_fields = ('modifier_id','modified')
 
 class DraftPrescriptionUpdateForm(PrescriptionUpdateForm):
     class Meta:
@@ -401,9 +451,9 @@ class DraftPrescriptionUpdateForm(PrescriptionUpdateForm):
             'forest_blocks','priority','rationale','contentious','contentious_rationale','aircraft_burn','remote_sensing_priority','purposes','area','perimeter',
             "non_calm_tenure","non_calm_tenure_included","non_calm_tenure_value","non_calm_tenure_complete","non_calm_tenure_risks",
             'tenures','fuel_types','shires','forecast_areas','bushfire_act_zone','treatment_percentage','prohibited_period','prescribing_officer',
-            'short_code'
+            'short_code','all_allocations'
         )
-        extra_update_fields = ('location',)
+        extra_update_fields = ('location','modifier_id','modified')
 
 class PrescriptionCreateForm(PrescriptionBaseForm):
     all_actions = [

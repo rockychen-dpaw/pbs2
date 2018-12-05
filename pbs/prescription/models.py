@@ -572,6 +572,33 @@ class Prescription(ModelDictMixin,AuditMixin):
         return alloc
 
     @property
+    def all_allocations(self):
+        """allocation object list for editing"""
+        fas = list(FundingAllocation.objects.filter(prescription=self))
+        if not fas:
+            return [ FundingAllocation(allocation=alloc[0],proportion=0) for alloc in FundingAllocation.ALLOCATION_CHOICES ]
+        else:
+            allocations = []
+            for alloc in FundingAllocation.ALLOCATION_CHOICES:
+                index = 0
+                while index < len(fas):
+                    if fas[index].allocation == alloc[0]:
+                        #found 
+                        break
+                    else:
+                        #not found
+                        index += 1
+                if index >= len(fas):
+                    #not found
+                    allocations.append(FundingAllocation(allocation=alloc[0],proportion=0))
+                else:
+                    allocations.append(fas[index])
+                    del fas[index]
+
+
+            return allocations
+
+    @property
     def uploaded_documents_total_size(self):
         """
         Returns the total size of uploaded documents in MB
@@ -1311,7 +1338,7 @@ class Prescription(ModelDictMixin,AuditMixin):
         )
 
 
-class FundingAllocation(models.Model):
+class FundingAllocation(ModelDictMixin,models.Model):
     """
     Allow multiple funding allocations for a Prescription.
 
@@ -1320,9 +1347,9 @@ class FundingAllocation(models.Model):
     Note that `proportion` is a value between 0 and 1.
     """
     ALLOCATION_CHOICES = (
+        (72, '72 - Prescribed fire'),
         (42, '42 - Native forest'),
         (43, '43 - Plantations'),
-        (72, '72 - Prescribed fire'),
         (7204, '72-04 - Recoupable projects'),
     )
 

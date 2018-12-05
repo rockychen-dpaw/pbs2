@@ -51,7 +51,7 @@ class BurnImplementationStateConfigMixin(object):
             "operation_maps.edit":forms.widgets.Select(attrs={"onchange":"submit_day_state(this)"}),
             "aerial_maps.view":pbs.widgets.CompleteStatusDisplay(),
             "aerial_maps.edit":forms.widgets.Select(attrs={"onchange":"submit_day_state(this)"}),
-            "progress":pbs.widgets.StateProgressBarDisplay,
+            "progress.view":pbs.widgets.StateProgressBarDisplay,
         }
 
 class BurnImplementationStateBaseForm(BurnImplementationStateCleanMixin,BurnImplementationStateConfigMixin,forms.ModelForm):

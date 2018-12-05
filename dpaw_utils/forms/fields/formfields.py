@@ -1,9 +1,7 @@
 
 from django import forms
 
-from ..forms import ModelForm
-from ..boundfield import (BoundField,CompoundBoundField)
-from ..widgets import (TextDisplay,DisplayMixin)
+from .. import widgets
 from ..utils import hashvalue
 from .fields import (class_id,field_classes)
 
@@ -17,7 +15,7 @@ class FormField(forms.Field):
 
         self._is_display = True
         for f in self._form_class.base_fields.values():
-            if not isinstance(f.widget,DisplayMixin):
+            if not isinstance(f.widget,widgets.DisplayMixin):
                 self._is_display = False
                 break
 
@@ -34,15 +32,12 @@ class FormField(forms.Field):
     def is_display(self):
         return self._is_display
 
-    def get_boundfield(self,form,name):
-        return BoundFormField(form,self,name)
-
     def get_initial(self):
         """
         guarantee a non-none value will be returned
         """
         if not self.initial:
-            self.initial = self.form._meta.model()
+            self.initial = self.form_class._meta.model()
         return self.initial
 
 def FormFieldFactory(form_class):

@@ -35,7 +35,7 @@ class SummaryCompletionStateConfigMixin(object):
             "complexity_analysis.edit":forms.widgets.Select(attrs={"onchange":"submit_pre_state(this)"}),
             "risk_register.view":pbs.widgets.CompleteStatusDisplay(),
             "risk_register.edit":forms.widgets.Select(attrs={"onchange":"submit_pre_state(this)"}),
-            "progress":pbs.widgets.StateProgressBarDisplay,
+            "progress.view":pbs.widgets.StateProgressBarDisplay,
 
         }
 

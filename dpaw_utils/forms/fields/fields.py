@@ -71,6 +71,23 @@ class FieldParametersMixin(object):
                 kwargs[k] = v
         super(FieldParametersMixin,self).__init__(*args,**kwargs)
 
+def OverrideFieldFactory(model,field_name,field_class=None,**kwargs):
+    """
+    A factory method to create a compoundfield class
+    """
+    global class_id
+
+    kwargs = kwargs or {}
+    field_class = field_class or model._meta.get_field(field_name).formfield().__class__
+    class_key = hashvalue("OverrideField<{}.{}.{}.{}.{}.{}>".format(model.__module__,model.__name__,field_name,field_class.__module__,field_class.__name__,json.dumps(kwargs,cls=_JSONEncoder)))
+    if class_key not in field_classes:
+        class_id += 1
+        class_name = "{}_{}".format(field_class.__name__,class_id)
+        kwargs.update({"field_name":field_name})
+        field_classes[class_key] = type(class_name,(FieldParametersMixin,field_class),kwargs)
+        #print("{}.{}={}".format(field_name,field_classes[class_key],field_classes[class_key].get_layout))
+    return field_classes[class_key]
+
 class CompoundField(FieldParametersMixin):
     """
     A base class of compund field which consists of multiple form fields
@@ -88,9 +105,6 @@ class CompoundField(FieldParametersMixin):
             return self._view_layout(f)
         else:
             return self._edit_layout(f)
-
-    def get_boundfield(self,form,name):
-        return BoundFormField(form,self,name)
 
     def _view_layout(self,f):
         raise Exception("Not implemented")
@@ -112,7 +126,7 @@ def CompoundFieldFactory(compoundfield_class,model,field_name,related_field_name
 
     hidden_layout="{}" * (len(related_field_names) + 1)
     field_class = field_class or model._meta.get_field(field_name).formfield().__class__
-    class_key = hashvalue("CompoundField<{}.{}.{}{}{}{}>".format(compoundfield_class.__name__,model.__module__,model.__name__,field_name,json.dumps(related_field_names),json.dumps(kwargs,cls=_JSONEncoder)))
+    class_key = hashvalue("CompoundField<{}.{}.{}.{}.{}.{}.{}.{}>".format(compoundfield_class.__name__,model.__module__,model.__name__,field_name,field_class.__module__,field_class.__name__,json.dumps(related_field_names),json.dumps(kwargs,cls=_JSONEncoder)))
     if class_key not in field_classes:
         class_id += 1
         class_name = "{}_{}".format(field_class.__name__,class_id)
@@ -410,48 +424,4 @@ NullBooleanChoiceFilter = ChoiceFieldFactory([
     (False,"No")
     ],choice_class=forms.TypedMultipleChoiceField ,field_params={"coerce":coerce_TrueFalse,'empty_value':None,'required':False},type_name="NullBooleanChoiceFilter")
 
-
-class FormField(forms.Field):
-    _form_class = None
-    def __init__(self, *args,**kwargs):
-        kwargs["widget"] = kwargs["widget"] or TextDisplay()
-        kwargs["initial"] = None
-        initial = None
-        super(FormField,self).__init__(*args,**kwargs)
-
-        self._is_display = True
-        for f in self._form_class.base_fields.values():
-            if not isinstance(f.widget,widgets.DisplayMixin):
-                self._is_display = False
-                break
-
-
-    @property
-    def form_class(self):
-        return self._form_class
-
-    @property
-    def model(self):
-        return self._form_class._meta.model
-
-    @property
-    def is_display(self):
-        return self._is_display
-
-    def get_initial(self):
-        """
-        guarantee a non-none value will be returned
-        """
-        if not self.initial:
-            self.initial = self.form_class._meta.model()
-        return self.initial
-
-def FormFieldFactory(form_class):
-    global class_id
-    class_key = hashvalue("FormField<{}.{}>".format(form_class.__module__,form_class.__name__))
-    if class_key not in field_classes:
-        class_id += 1
-        class_name = "FormField_{}".format(class_id)
-        field_classes[class_key] = type(class_name,(FormField,),{"_form_class":form_class})
-    return field_classes[class_key]
 

@@ -135,7 +135,7 @@ class ListModelFormMetaclass(forms.BaseModelFormMetaclass,collections.Iterable._
         if opts.toggleable_fields:
             for field in opts.toggleable_fields:
                 field = field.lower()
-                classes = getattr(new_class.all_base_fields[field],"css_classes") if hasattr(new_class.all_base_fields[field],"css_classes") else []
+                classes = getattr(new_class.base_fields[field],"css_classes") if hasattr(new_class.base_fields[field],"css_classes") else []
                 classes.append("{}".format(field))
                 """
                 if field not in classes:
@@ -143,7 +143,7 @@ class ListModelFormMetaclass(forms.BaseModelFormMetaclass,collections.Iterable._
                 """
                 if opts.default_toggled_fields and field not in opts.default_toggled_fields:
                     classes.append("hide")
-                setattr(new_class.all_base_fields[field],"css_classes",classes)
+                setattr(new_class.base_fields[field],"css_classes",classes)
 
         #if has a class initialization method, then call it
         if hasattr(new_class,"_init_class"):

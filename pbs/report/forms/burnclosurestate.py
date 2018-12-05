@@ -39,7 +39,7 @@ class BurnClosureStateConfigMixin(object):
             "closure_declaration.edit":forms.widgets.Select(attrs={"onchange":"submit_post_state(this)"}),
             "signage.view":pbs.widgets.CompleteStatusDisplay(),
             "signage.edit":forms.widgets.Select(attrs={"onchange":"submit_post_state(this)"}),
-            "progress":pbs.widgets.StateProgressBarDisplay,
+            "progress.view":pbs.widgets.StateProgressBarDisplay,
 
         }
 

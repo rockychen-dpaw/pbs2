@@ -30,7 +30,7 @@ class FieldClassConfigDict(dict):
     def search_keys(self,name,purpose=None):
         purpose = purpose or self.purpose(name)
         if isinstance(purpose,str):
-            if self._meta_class.is_dbfield(name):
+            if self._meta_class.is_editable_dbfield(name):
                 return ("{}.{}".format(name,purpose),name)
             else:
                 return ("{}.{}".format(name,purpose),name,"{}.{}".format(self._default_key_name,purpose),self._default_key_name)
@@ -128,7 +128,7 @@ class SubpropertyEnabledDict(dict):
     def __contains__(self,name):
         if not self.data: return False
 
-        pos = name.find(".")
+        pos = name.find("__")
         if pos >= 0:
             name = name[0:pos]
 
@@ -137,9 +137,9 @@ class SubpropertyEnabledDict(dict):
     def __getitem__(self,name):
         if self.data is None: raise TypeError("dict is None")
 
-        pos = name.find(".")
+        pos = name.find("__")
         if pos >= 0:
-            names = name.split(".")
+            names = name.split("__")
             result = self.data
             for key in names:
                 if not result: raise KeyError(name)
@@ -157,7 +157,7 @@ class SubpropertyEnabledDict(dict):
 
         pos = name.find(".")
         if pos >= 0:
-            names = name.split(".")
+            names = name.split("__")
             result = self.data
             for key in names[0:-1]:
                 try:
