@@ -2,14 +2,14 @@ from django.http.response import (HttpResponseBadRequest,)
 from django import urls
 
 
-from dpaw_utils.views import (OneToOneModelUpdateView,AjaxRequestMixin)
+from dpaw_utils.views import (OneToOneUpdateView,AjaxRequestMixin)
 
 from pbs.report.models import (BurnImplementationState,)
 from pbs.report.forms import (BurnImplementationStateUpdateForm,BurnImplementationStateViewForm)
 from pbs.prescription.models import (Prescription,)
 from pbs import mutex, SemaphoreException
 
-class BurnImplementationStateUpdateView(AjaxRequestMixin,OneToOneModelUpdateView):
+class BurnImplementationStateUpdateView(AjaxRequestMixin,OneToOneUpdateView):
     pmodel = Prescription
     model = BurnImplementationState
     context_pobject_name = "prescription"

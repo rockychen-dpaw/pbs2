@@ -10,7 +10,7 @@ from django.dispatch import receiver
 from django.template.defaultfilters import truncatewords
 from django.utils.translation import ugettext_lazy as _
 
-from dpaw_utils.models import AuditMixin
+from dpaw_utils.models import (AuditMixin,ModelDictMixin)
 
 logger = logging.getLogger("log." + __name__)
 # Create your models here.
@@ -90,8 +90,8 @@ class Risk(AuditMixin):
         verbose_name = "Potential Sources of Risk"
 
 
-class Context(AuditMixin):
-    prescription = models.ForeignKey(
+class Context(ModelDictMixin,AuditMixin):
+    prescription = models.OneToOneField(
         'prescription.Prescription',
         help_text="Prescription this issue belongs to.", on_delete=models.PROTECT)
     statement = models.TextField(verbose_name="Context Statement", blank=True)

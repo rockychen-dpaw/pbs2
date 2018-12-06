@@ -2,14 +2,14 @@ from django.http.response import (HttpResponseBadRequest,)
 from django import urls
 
 
-from dpaw_utils.views import (OneToOneModelUpdateView,AjaxRequestMixin)
+from dpaw_utils.views import (OneToOneUpdateView,AjaxRequestMixin)
 
 from pbs.report.models import (SummaryCompletionState,)
 from pbs.report.forms import (SummaryCompletionStateUpdateForm,SummaryCompletionStateViewForm)
 from pbs.prescription.models import (Prescription,)
 from pbs import mutex, SemaphoreException
 
-class SummaryCompletionStateUpdateView(AjaxRequestMixin,OneToOneModelUpdateView):
+class SummaryCompletionStateUpdateView(AjaxRequestMixin,OneToOneUpdateView):
     pmodel = Prescription
     model = SummaryCompletionState
     context_pobject_name = "prescription"

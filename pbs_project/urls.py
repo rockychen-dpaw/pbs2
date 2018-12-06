@@ -26,6 +26,7 @@ urlpatterns = [
 import pbs.views
 import pbs.prescription.urls
 import pbs.report.urls
+import pbs.risk.urls
 
 from tastypie.api import Api
 
@@ -35,7 +36,8 @@ handler404 = pbs.views.handler404
 urlpatterns = urlpatterns + [
     path("admin/",admin.site.urls),
     path("prescription/",include(pbs.prescription.urls,namespace="prescription")),
-    path("prescription/",include(pbs.report.urls,namespace="report"))
+    path("prescription/",include(pbs.report.urls,namespace="report")),
+    path("risk/",include(pbs.risk.urls,namespace="risk"))
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 for p in urlpatterns:

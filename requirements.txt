@@ -13,6 +13,7 @@ Unidecode>=1.0.22
 django-compressor>=2.2
 django-tastypie>=0.14.0
 unicodecsv==0.14.1
+django-guardian>=1.4.9
 
 git+git://github.com/carltongibson/django-filter@master
 

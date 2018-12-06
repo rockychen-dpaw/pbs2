@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'reversion',
     'django_filters',
+    'guardian',
 
     'pbs',
     'pbs.prescription',

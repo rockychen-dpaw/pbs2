@@ -52,6 +52,14 @@ class ListDataForm(django_forms.BaseForm,collections.Iterable):
         return self.listform.fields
 
     @property
+    def instance(self):
+        return self.listform.instance
+
+    @instance.setter
+    def instance(self,value):
+        pass
+
+    @property
     def initial(self):
         return self.listform.initial
 
@@ -186,14 +194,14 @@ class ListForm(forms.ActionMixin,forms.RequestUrlMixin,django_forms.models.BaseM
     Use a form to display list data 
     """
 
-    def __init__(self,data_list=None,initial_list=None,**kwargs):
+    def __init__(self,data_list=None,instance_list=None,**kwargs):
         if "data" in kwargs:
             del kwargs["data"]
 
         super(ListForm,self).__init__(**kwargs)
 
         self.data_list = data_list
-        self.initial_list = initial_list
+        self.instance_list = instance_list
         #set index to one position before the start position. because we need to call next() before getting the first data 
         self.index = None
         self.dataform = ListDataForm(self)
@@ -223,11 +231,24 @@ class ListForm(forms.ActionMixin,forms.RequestUrlMixin,django_forms.models.BaseM
         return self._meta.model._meta.verbose_name_plural;
 
     @property
+    def instance(self):
+        if self.index < 0:
+            return None
+        elif self.instance_list and self.index < len(self.instance_list):
+            return self.instance_list[self.index]
+        else:
+            return None
+
+    @instance.setter
+    def instance(self,value):
+        pass
+
+    @property
     def initial(self):
         if self.index < 0:
             return {}
-        elif self.initial_list and self.index < len(self.initial_list):
-            return self.initial_list[self.index]
+        elif self.instance_list and self.index < len(self.instance_list):
+            return self.instance_list[self.index]
         else:
             return {}
 
@@ -263,8 +284,8 @@ class ListForm(forms.ActionMixin,forms.RequestUrlMixin,django_forms.models.BaseM
     def __len__(self):
         if self.data_list:
             return len(self.data_list)
-        elif self.initial_list:
-            return len(self.initial_list)
+        elif self.instance_list:
+            return len(self.instance_list)
         else:
             return 0
 
@@ -279,8 +300,8 @@ class ListForm(forms.ActionMixin,forms.RequestUrlMixin,django_forms.models.BaseM
                 return self.dataform
             else:
                 raise StopIteration()
-        elif self.initial_list:
-            if self.index < len(self.initial_list):
+        elif self.instance_list:
+            if self.index < len(self.instance_list):
                 return self.dataform
             else:
                 raise StopIteration()
@@ -307,120 +328,8 @@ class ListForm(forms.ActionMixin,forms.RequestUrlMixin,django_forms.models.BaseM
                 self._bound_fields_cache[name] = boundfield.ListBoundField(self,field,name)
         return self._bound_fields_cache[name]
 
-
-    def toggleable_fields_html(self):
-        if self._meta.toggleable_fields:
-            #add the javascript file for show/hide column features
-            output.append(safe("""
-                <script type="text/javascript">
-                    var {0}_toggle_columns = new ToggleTableColumn("{0}","#{0}_column_tools button","#{0}_result_list");
-                    $(document).ready(function(){{
-                        {0}_toggle_columns.init();
-                    }})
-                </script>
-            """.format(self._meta.model.__name__.lower())))
-
-            output.append("""
-               <div class="row toggletools" id="{}_column_tools">
-                  <div class="span12">
-                      <div class="alert alert-info">
-                          <strong>Show/Hide Columns</strong><br>
-                          <div class="column-tools btn-group" style="white-space:normal;">
-            """.format(self._meta.model.__name__.lower()))
-
-            for field in self._meta.toggleable_fields:
-                output.append('<button id="toggle-{1}" class="btn btn-small{2}" data-class="{1}">{0}</button>'.format(
-                    self[field].label,field.lower(),
-                    "" if field not in self._meta.default_toggled_fields else " btn-info"))
-
-            output.append("""
-                      </div>
-                  </div>
-              </div>
-            </div>
-            """)
-
-
-    def _html_output(self, list_starter,list_ender,header_starter,header_ender,body_starter,body_ender,row_starter,row_ender,column_header,data_outputer):
-        #output the header
-        output = []
-
-        #output list table
-        output.append(list_starter)
-        output.append(header_starter)
-        output.append(row_starter)
-        #output table header
-        for name, field in self.fields.items():
-            bf = self[name]
-            # Escape and cache in local variable.
-            if bf.is_hidden:
-                continue
-            else:
-                if bf.label:
-                    label = conditional_escape(bf.label) or ''
-                else:
-                    label = ''
-                html_class_attr = ""
-                html_onclick_attr = ""
-                if self.url:
-                    ordering=""
-                    if self._meta.sortable_fields and name in self._meta.sortable_fields:
-                        if self.sorting_status:
-                            if self.sorting_status[0] == name:
-                                if self.sorting_status[1]:
-                                    html_class_attr = " headerSortUp"
-                                    ordering = "-{}".format(name) 
-                                else:
-                                    html_class_attr = " headerSortDown"
-                                    ordering = name
-                            else:
-                                html_class_attr = " headerSortable"
-                                ordering = name
-                        else:
-                            html_class_attr = " headerSortable"
-                            ordering = name
-                    html_onclick_attr = " onclick=\"document.location='{}order_by={}'\"".format(self.url,ordering) if ordering else ""
-
-                if hasattr(field,"css_classes"):
-                    html_class_attr = " class='{}{}'".format(" ".join(field.css_classes),html_class_attr)
-                elif html_class_attr:
-                    html_class_attr = " class='{}'".format(html_class_attr)
-                
-
-                output.append(column_header % {
-                    'label': label,
-                    'html_attr':"{}{}".format(html_class_attr,html_onclick_attr)
-                })
-        output.append(row_ender)
-        output.append(header_ender)
-        #output table data
-        output.append(body_starter)
-        while self.next():
-            output.append(row_starter)
-            output.append(data_outputer())
-            output.append(row_ender)
-
-        output.append(body_ender)
-        output.append(list_ender)
-        return mark_safe('\n'.join(output))
-
     def as_table(self):
-        "Return list header."
         raise NotImplementedError()
-        """
-        return self._html_output(
-            list_starter='<table id="{}_result_list" class="table table-striped table-condensed table-hober table-fixed-header">'.format(self._meta.model.__name__.lower()),
-            list_ender='</table>',
-            header_starter="<thead>",
-            header_ender="</thead>",
-            body_starter="<tbody>",
-            body_ender="</tbody>",
-            row_starter="<tr>",
-            row_ender="</tr>",
-            column_header='<th%(html_attr)s style="vertical-align:middle">%(label)s</th>',
-            data_outputer=self.dataform.as_table
-            )
-        """
 
     class Meta:
         @staticmethod

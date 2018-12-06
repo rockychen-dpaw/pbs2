@@ -145,6 +145,7 @@
 {% url 'report:prescription_day_state_update' prescription.id as partb %}
 {% url 'report:prescription_post_state_update' prescription.id as partc %}
 {% url 'prescription:prescription_update' prescription.id as sectiona1 %}
+{% url 'risk:context_update' prescription.id as sectiona2 %}
 {% url 'prescription:prescription_home' prescription.id as overview %}
 {% block body %}
 <body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}" style={% page_background %}>

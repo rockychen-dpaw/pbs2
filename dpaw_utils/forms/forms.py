@@ -499,7 +499,7 @@ class ModelForm(ActionMixin,RequestMixin,forms.models.BaseModelForm,metaclass=Ba
 
         if self.instance:
             if not isinstance(self.instance,DictMixin) :
-                raise "{}.{} does not extend from DictMixin".format(self.instance.__class__.__module__,self.instance.__class__.__name__)
+                raise Exception("{}.{} does not extend from DictMixin".format(self.instance.__class__.__module__,self.instance.__class__.__name__))
 
         if instance and initial:
             initial = ChainDict([initial,instance])

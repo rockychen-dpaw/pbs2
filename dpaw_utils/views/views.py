@@ -346,19 +346,67 @@ class UpdateView(UrlpatternsMixin,django_edit_view.UpdateView):
         return super(UpdateView,self).post(*args,**kwargs)
     """
 
-class OneToOneModelUpdateView(OneToOneModelMixin,UpdateView):
+class OneToOneUpdateView(OneToOneModelMixin,UpdateView):
     pass
 
-class ListView(RequestActionMixin,UrlpatternsMixin,django_list_view.ListView):
+class OneToManyModelMixin(object):
+    """
+    used for one to many table relationship
+    a special way to get sub table's object list through parent table's object
+    """
+    """
+    parent model
+    """
+    pmodel = None
+    ppk_url_kwarg = "ppk"
+    context_pobject_name = None
+    one_to_many_field_name = None
+
+    def get_queryset(self,queryset=None):
+        ppk = self.kwargs.get(self.ppk_url_kwarg)
+        if ppk is None:
+            raise AttributeError("parent primary key ({}) is missing".format(self.ppk_url_kwarg))
+
+        try:
+            self.pobject = self.pmodel.objects.get(id=ppk)
+        except self.model.DoesNotExist:
+            raise Http404("The {0} (id={1}) does not exist".format(self.pmodel._meta.verbose_name,ppk))
+
+        queryset = queryset or self.get_queryset()
+        queryset = queryset.filter(**{self.one_to_many_field_name:self.pobject})
+
+        return super(OneToManyModelMixin,self).get_queryset(self,queryset)
+
+    def get_queryset_4_selected(self,request,queryset=None):
+        ppk = self.kwargs.get(self.ppk_url_kwarg)
+        if ppk is None:
+            raise AttributeError("parent primary key ({}) is missing".format(self.ppk_url_kwarg))
+
+        try:
+            self.pobject = self.pmodel.objects.get(id=ppk)
+        except self.model.DoesNotExist:
+            raise Http404("The {0} (id={1}) does not exist".format(self.pmodel._meta.verbose_name,ppk))
+
+        queryset = queryset or self.get_queryset()
+        queryset = queryset.filter(**{self.one_to_many_field_name:self.pobject})
+
+        return super(OneToManyModelMixin,self).get_queryset_4_selected(self,request,queryset)
+
+    def get_context_data(self, **kwargs):
+        context = super(OneToManyModelMixin,self).get_context_data(**kwargs)
+        context["pobject"] = self.pobject
+        if self.context_pobject_name:
+            context[self.context_pobject_name] = self.pobject
+
+        return context
+
+
+class ListBaseView(RequestActionMixin,UrlpatternsMixin,django_list_view.ListView):
     default_action = "search"
     title = None
     order_by_re = re.compile('[?&]order_by=([-+]?)([a-zA-Z0-9_\-]+)')
-    listform_class = None
     fiter_class = None
     filterform_class = None
-
-    def get_listform_class(self):
-        return self.listform_class
 
     def get_filter_class(self):
         return self.filter_class
@@ -366,40 +414,83 @@ class ListView(RequestActionMixin,UrlpatternsMixin,django_list_view.ListView):
     def get_filterform_class(self):
         return self.filterform_class
 
-    def create_filterform(self):
-        filterform = self.get_filterform_class()(data=self.request.GET,request=self.request)
-        return filterform
-
-    def get_filterform(self):
-        if not hasattr(self,"_filterform"):
-            self._filterform = self.create_filterform()
-        return self._filterform
-
-    def get_queryset(self):
-        filterform = self.get_filterform()
-        if filterform.is_valid():
-            data_filter = self.get_filter_class()(filterform,request=self.request)
-            qs = data_filter.qs
-            ordering = self.get_ordering()
-            if ordering:
-                qs = qs.order_by(ordering)
-            return qs
+    def get_queryset(self,queryset=None):
+        filterformclass = self.get_filterform_class()
+        if not filterformclass:
+            queryset = queryset or self.model.objects.all()
         else:
-            return filterform._meta.objects.none()
+            self.filterform = filterformclass(data=self.request.GET,request=self.request)
+            if self.filterform.is_valid():
+                data_filter = self.get_filter_class()(self.filterform,request=self.request,queryset=queryset)
+                queryset = data_filter.qs
+                ordering = self.get_ordering()
+                if ordering:
+                    queryset = qs.order_by(ordering)
+            else:
+                queryset = self.filterform._meta.objects.none()
 
-    def get_queryset_4_selected(self,request):
+        allow_empty = self.get_allow_empty()
+
+        if not allow_empty:
+            # When pagination is enabled and object_list is a queryset,
+            # it's better to do a cheap query than to load the unpaginated
+            # queryset in memory.
+            if self.get_paginate_by(queryset) is not None and hasattr(queryset, 'exists'):
+                is_empty = not queryset.exists()
+            else:
+                is_empty = not queryset
+            if is_empty:
+                raise Http404(_("Empty list and '%(class_name)s.allow_empty' is False.") % {
+                    'class_name': self.__class__.__name__,
+                })
+        page_size = self.get_paginate_by(queryset)
+        if page_size:
+            paginator, page, queryset, is_paginated = self.paginate_queryset(queryset, page_size)
+            self.paging_context = {
+                'paginator': paginator,
+                'page_obj': page,
+                'is_paginated': is_paginated,
+                'object_list': queryset
+            }
+        else:
+            self.paging_context = {
+                'paginator': None,
+                'page_obj': None,
+                'is_paginated': False,
+                'object_list': queryset
+            }
+
+        return queryset
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        """Get the context for this view."""
+        queryset = object_list if object_list is not None else self.object_list
+        context_object_name = self.get_context_object_name(queryset)
+
+        context = self.paging_context or {'object_list':queryset}
+        if context_object_name is not None:
+            context[context_object_name] = queryset
+        context.update(kwargs)
+        return super().get_context_data(**context)
+
+
+    def get_queryset_4_selected(self,request,queryset=None):
         if request.POST.get("select_all") == "true" :
-            filterform = self.get_filterform_class()(data=self.request.POST,request=self.request)
-            if not filterform.is_valid():
-                raise http.HttpResponseServerError()
+            filterformclass = self.get_filterform_class()
+            if not filterformclass:
+                return queryset or self.model.objects.all()
+            else:
+                self.filterform = filterformclass(data=self.request.POST,request=self.request)
+                if not self.filterform.is_valid():
+                    raise http.HttpResponseServerError()
 
-            data_filter = self.get_filter_class()(filterform,request=self.request)
-            queryset = data_filter.qs
-            #print("All {} records are selected.".format(len(queryset)))
+                data_filter = self.get_filter_class()(self.filterform,request=self.request,queryset=queryset)
+                queryset = data_filter.qs
+                #print("All {} records are selected.".format(len(queryset)))
         else:
             pks = [int(pk) for pk in request.POST.getlist("selectedpks")]
             if pks:
-                queryset = Prescription.objects.filter(pk__in=pks)
+                queryset = (queryset or Prescription.objects).filter(pk__in=pks)
             else:
                 raise Exception("No Prescribed Fire Plan is selected.")
 
@@ -411,7 +502,20 @@ class ListView(RequestActionMixin,UrlpatternsMixin,django_list_view.ListView):
 
     def dispatch(self,request, *args, **kwargs):
         self.requesturl = RequestUrl(request)
-        return super(ListView,self).dispatch(request,*args,**kwargs)
+        return super(ListBaseView,self).dispatch(request,*args,**kwargs)
+
+
+class ListView(ListBaseView):
+    listform_class = None
+
+    def get_listform_class(self):
+        return self.listform_class
+
+    def get(self, request, *args, **kwargs):
+        self.object_list = self.get_queryset()
+        self.listform = self.get_listform_class()(instance_list=self.object_list,request=self.request,requesturl = self.requesturl)
+        context = self.get_context_data()
+        return self.render_to_response(context)
 
     def post(self,request,*args,**kwargs):
         raise Http404("Post method is not supported.")
@@ -419,9 +523,53 @@ class ListView(RequestActionMixin,UrlpatternsMixin,django_list_view.ListView):
     def get_context_data(self,**kwargs):
         context_data = super(ListView,self).get_context_data(**kwargs)
         context_data["title"] = self.title or "{} List".format(self.model._meta.verbose_name)
-        context_data["listform"] = self.get_listform_class()(initial_list=context_data.get("object_list"),request=self.request,requesturl = self.requesturl)
+        context_data["listform"] = self.listform
         context_data["requesturl"] = self.requesturl
-        context_data["filterform"] = self.get_filterform()
+        if self.get_filter_class():
+            context_data["filterform"] = self.filterform
 
         return context_data
+
+class OneToManyListView(OneToOneModelMixin,ListView):
+    pass
+
+class ListUpdateView(ListBaseView):
+    formset_class = None
+    formset_prefix = None
+
+    def get_formset_class(self):
+        return self.listform_class
+
+    @property
+    def list_prefix(self):
+        prefix = self.__class__.formset_prefix
+        if not prefix:
+            prefix = self.model.__name__.lower()
+            self.__class__.formset_prefix = prefix
+
+        return prefix
+
+
+    def get(self, request, *args, **kwargs):
+        self.object_list = self.get_queryset()
+        self.formset = self.get_formset_class()(instances=self.object_list,prefix=self.list_prefix)
+        context = self.get_context_data()
+        return self.render_to_response(context)
+
+    def post(self,request,*args,**kwargs):
+        raise Http404("Post method is not supported.")
+
+    def get_context_data(self,**kwargs):
+        context_data = super(ListUpdateView,self).get_context_data(**kwargs)
+        context_data["title"] = self.title or "{} List".format(self.model._meta.verbose_name)
+        context_data["formset"] = self.formset
+        context_data["requesturl"] = self.requesturl
+        if self.get_filter_class():
+            context_data["filterform"] = self.filterform
+
+
+        return context_data
+
+class OneToManyListUpdateView(OneToOneModelMixin,ListUpdateView):
+    pass
 

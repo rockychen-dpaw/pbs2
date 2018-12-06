@@ -476,7 +476,7 @@ class PrescriptionCreateForm(PrescriptionBaseForm):
                   'perimeter', 'remote_sensing_priority','rationale')
         other_fields = ('loc_locality','loc_distance','loc_direction','loc_town')
 
-class PrescriptionBaseListForm(PrescriptionConfigMixin,forms.ListForm):
+class PrescriptionBaseListForm(PrescriptionCleanMixin,PrescriptionConfigMixin,forms.ListForm):
     class Meta:
         purpose = ('list','view')
 
