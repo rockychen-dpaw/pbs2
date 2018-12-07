@@ -4,7 +4,7 @@ from django.utils import timezone
 from dpaw_utils import forms
 
 from pbs.prescription.models import (Prescription,Region,District)
-from pbs.forms import (FORM_ACTIONS,LIST_ACTIONS)
+from pbs.forms import (BUTTON_ACTIONS,OPTION_ACTIONS)
 from pbs.utils import FinancialYear
 from pbs.report.forms import (SummaryCompletionStateViewForm,BurnImplementationStateViewForm,BurnClosureStateViewForm)
 from .fundingallocation import FundingAllocationUpdateFormSet
@@ -379,8 +379,8 @@ class PrescriptionConfigMixin(object):
         }
 
 class PrescriptionFilterForm(PrescriptionConfigMixin,forms.FilterForm):
-    all_actions = [
-        FORM_ACTIONS["update_selection"],
+    all_buttons = [
+        BUTTON_ACTIONS["update_selection"],
     ]
 
     class Meta:
@@ -397,7 +397,7 @@ class PrescriptionBaseForm(PrescriptionCleanMixin,PrescriptionConfigMixin,forms.
         pass
 
 class PrescriptionViewForm(PrescriptionBaseForm):
-    all_actions = [
+    all_buttons = [
     ]
     def __init__(self, *args, **kwargs):
         super(PrescriptionViewForm, self).__init__(*args, **kwargs)
@@ -417,8 +417,8 @@ class PrescriptionViewForm(PrescriptionBaseForm):
                 ,'ignition_commenced_date','ignition_commence_status','ignition_complete_status')
 
 class PrescriptionUpdateForm(PrescriptionBaseForm):
-    all_actions = [
-        FORM_ACTIONS["save"],
+    all_buttons = [
+        BUTTON_ACTIONS["save"],
     ]
 
     def get_update_success_message(self) :
@@ -456,9 +456,9 @@ class DraftPrescriptionUpdateForm(PrescriptionUpdateForm):
         extra_update_fields = ('location','modifier_id','modified')
 
 class PrescriptionCreateForm(PrescriptionBaseForm):
-    all_actions = [
-        FORM_ACTIONS["save"],
-        FORM_ACTIONS["back"]
+    all_buttons = [
+        BUTTON_ACTIONS["save"],
+        BUTTON_ACTIONS["back"]
     ]
     def __init__(self, *args, **kwargs):
         super(PrescriptionCreateForm, self).__init__(*args, **kwargs)
@@ -476,18 +476,18 @@ class PrescriptionCreateForm(PrescriptionBaseForm):
                   'perimeter', 'remote_sensing_priority','rationale')
         other_fields = ('loc_locality','loc_distance','loc_direction','loc_town')
 
-class PrescriptionBaseListForm(PrescriptionCleanMixin,PrescriptionConfigMixin,forms.ListForm):
+class PrescriptionBaseListForm(PrescriptionConfigMixin,forms.ListForm):
     class Meta:
         purpose = ('list','view')
 
 class PrescriptionListForm(PrescriptionBaseListForm):
     all_actions = [
-        LIST_ACTIONS["delete_selected_epfp"],
-        LIST_ACTIONS["export_to_csv"],
-        LIST_ACTIONS["burn_summary_to_csv"],
-        LIST_ACTIONS["delete_approval_endorsement"],
-        LIST_ACTIONS["carry_over_burns"],
-        LIST_ACTIONS["bulk_corporate_approve"],
+        OPTION_ACTIONS["delete_selected_epfp"],
+        OPTION_ACTIONS["export_to_csv"],
+        OPTION_ACTIONS["burn_summary_to_csv"],
+        OPTION_ACTIONS["delete_approval_endorsement"],
+        OPTION_ACTIONS["carry_over_burns"],
+        OPTION_ACTIONS["bulk_corporate_approve"],
     ]
     def __init__(self, *args, **kwargs):
         super(PrescriptionListForm, self).__init__(*args, **kwargs)

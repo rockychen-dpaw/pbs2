@@ -3,7 +3,6 @@ from django.utils import timezone
 from dpaw_utils import forms
 
 from pbs.report.models import (SummaryCompletionState,)
-from pbs.forms import (FORM_ACTIONS,LIST_ACTIONS)
 from pbs.utils import FinancialYear
 import pbs.widgets
 
@@ -44,8 +43,6 @@ class SummaryCompletionStateBaseForm(SummaryCompletionStateCleanMixin,SummaryCom
         pass
 
 class SummaryCompletionStateViewForm(SummaryCompletionStateBaseForm):
-    all_actions = [
-    ]
 
     class Meta:
         model = SummaryCompletionState
@@ -55,8 +52,6 @@ class SummaryCompletionStateViewForm(SummaryCompletionStateBaseForm):
 
 
 class SummaryCompletionStateUpdateForm(forms.EditableFieldsMixin,SummaryCompletionStateBaseForm):
-    all_actions = [
-    ]
 
     class Meta:
         model = SummaryCompletionState

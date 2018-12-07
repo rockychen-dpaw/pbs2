@@ -354,7 +354,7 @@ class PrescribedBurn(AuditMixin):
         """
 
         tomorrow = dt + timedelta(days=1) # relative to dt
-        #objects = [obj for obj in PrescribedBurn.objects.filter(date=dt, status=PrescribedBurn.BURN_ACTIVE)]
+        #objects = [obj for obj in PrescribedBur.objects.filter(date=dt, status=PrescribedBurn.BURN_ACTIVE)]
         objects = [self]
         now = timezone.now()
         admin = User.objects.get(username='admin')

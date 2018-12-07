@@ -1,0 +1,42 @@
+{% extends "../list.html" %}
+{% load i18n %}
+{% load pbs_utils %}
+
+{% block list_content%}
+<table id="{{listform.model_name_lower}}_result_list" class="table table-striped table-condensed table-hober table-fixed-header">
+    <thead>
+        <tr>
+            {% if listform.has_actions_or_buttons %}
+            <th><input type="checkbox" id="{{listform.model_name_lower}}_selector_header" onclick="{{listform.model_name_lower}}_selector.toggle_page_selection()"></th>
+            {% endif %}
+            {% for field in listform.boundfields %}
+            {% call_method field "html_header" "<th{attrs}><div class=\"text\"> {label}</div></th>"%}
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for dataform in listform %}
+        <tr> 
+            {% if listform.has_actions_or_buttons %}
+            <td><input type="checkbox" onclick="{{listform.model_name_lower}}_selector.select(this.checked)" name="selectedpks" value="{{dataform.pk}}" checked ></td>
+            {% endif %}
+            {% for field in dataform %}
+                {% call_method field "html" "<td{attrs}>{widget}</td>"%}
+            {% endfor %}
+        </tr>
+        {% endfor %}
+
+        {% for dataform in unselectedlistform %}
+        <tr> 
+            {% if listform.has_actions_or_buttons %}
+            <td><input type="checkbox" onclick="{{listform.model_name_lower}}_selector.select(this.checked)" name="selectedpks" value="{{dataform.pk}}" ></td>
+            {% endif %}
+            {% for field in dataform %}
+                {% call_method field "html" "<td{attrs}>{widget}</td>"%}
+            {% endfor %}
+        </tr>
+        {% endfor %}
+
+    </tbody>
+</table>
+{% endblock %}

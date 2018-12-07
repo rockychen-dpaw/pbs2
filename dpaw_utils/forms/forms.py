@@ -111,19 +111,21 @@ class ActionMixin(object):
     All actions must be a list of Action instance
     """
     all_actions = []
+    all_buttons = []
 
     class ActionIterator(object):
-        def __init__(self,form):
+        def __init__(self,form,actions):
             self._form = form
+            self._actions = actions
         
         def __iter__(self):
             self.index = -1
             return self
 
         def __next__(self):
-            while self.index < len(self._form.all_actions) - 1:
+            while self.index < len(self._actions) - 1:
                 self.index += 1
-                action = self._form.all_actions[self.index]
+                action = self._actions[self.index]
                 if action.has_permission(self._form.request.user if self._form.request else None):
                     return action
 
@@ -136,10 +138,18 @@ class ActionMixin(object):
         elif not self.request:
             return self.all_actions
         else:
-            return self.ActionIterator(self)
+            return self.ActionIterator(self,self.all_actions)
 
     @property
-    def has_action(self):
+    def has_actions_or_buttons(self):
+        if hasattr(self,"_has_action_or_buttons"): 
+            return self._has_action_or_buttons
+        else:
+            self._has_action_or_buttons = self.has_actions or self.has_buttons
+            return self._has_action_or_buttons
+
+    @property
+    def has_actions(self):
         if not self.all_actions:
             return False
         elif not self.request:
@@ -147,10 +157,34 @@ class ActionMixin(object):
         elif hasattr(self,"_has_action"): 
             return self._has_action
         else:
-            for a in self.ActionIterator(self):
+            for a in self.ActionIterator(self,self.all_actions):
                 self._has_action = True
                 return True
             self._has_action = False
+            return False
+
+    @property
+    def buttons(self):
+        if not self.all_buttons:
+            return self.all_buttons
+        elif not self.request:
+            return self.all_buttons
+        else:
+            return self.ActionIterator(self,self.all_buttons)
+
+    @property
+    def has_buttons(self):
+        if not self.all_buttons:
+            return False
+        elif not self.request:
+            return True
+        elif hasattr(self,"_has_button"): 
+            return self._has_button
+        else:
+            for a in self.ActionIterator(self,self.all_buttons):
+                self._has_button = True
+                return True
+            self._has_button = False
             return False
 
 

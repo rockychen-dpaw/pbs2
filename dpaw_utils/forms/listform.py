@@ -212,7 +212,10 @@ class ListForm(forms.ActionMixin,forms.RequestUrlMixin,django_forms.models.BaseM
 
     @property
     def toggleablefields(self):
-        return ToggleableFieldIterator(self)
+        if hasattr(self._meta,"toggleable_fields") and self._meta.toggleable_fields:
+            return ToggleableFieldIterator(self)
+        else:
+            return None
 
     @property
     def model_name_lower(self):

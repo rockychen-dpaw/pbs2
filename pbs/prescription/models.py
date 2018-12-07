@@ -199,7 +199,7 @@ class EndorsingRole(models.Model):
     class Meta:
         ordering = ['index']
 
-class RegionalObjective(AuditMixin):
+class RegionalObjective(ModelDictMixin,AuditMixin):
     """
     """
     IMPACT_REGION = 1
@@ -212,12 +212,12 @@ class RegionalObjective(AuditMixin):
     impact = models.PositiveSmallIntegerField(
         choices=IMPACT_CHOICES, default=IMPACT_REGION,
         help_text="Area of application for objective",
-        verbose_name="scale of application")
+        verbose_name="Scale of Application")
     fma_names = models.TextField(
         help_text="If the impact of this objective is Fire Management Area, "
                   "enter the names of the areas of application here",
         verbose_name="Fire Management Areas", blank=True)
-    objectives = models.TextField()
+    objectives = models.TextField(verbose_name="Burn objectives")
 
     def __str__(self):
         return self.objectives[:64]

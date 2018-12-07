@@ -1,5 +1,5 @@
 
-from pbs.forms import (FORM_ACTIONS,LIST_ACTIONS)
+from pbs.forms import (BUTTON_ACTIONS,OPTION_ACTIONS)
 from ..models import (Context,)
 from dpaw_utils import forms
 
@@ -23,8 +23,8 @@ class ContextBaseForm(ContextCleanMixin,ContextConfigMixin,forms.ModelForm):
         pass
 
 class ContextUpdateForm(ContextBaseForm):
-    all_actions = [
-        FORM_ACTIONS["save"],
+    all_buttons = [
+        BUTTON_ACTIONS["save"],
     ]
     class Meta:
         model = Context

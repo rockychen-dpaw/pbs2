@@ -25,8 +25,8 @@
       <div class="navbar-inner">
         <div class="container">
           <p class="pull-right">
-            {% for action in form.actions %}
-                {{ action.widget.html }}
+            {% for button in form.buttons %}
+                {{ button.widget.html }}
             {% endfor %}
           </p>
         </div>

@@ -16,7 +16,6 @@ from django.template import RequestContext
 from dpaw_utils.views import (RequestActionMixin,CreateView,ListView,UpdateView,ReadonlyView)
 
 from pbs.report.models import Evaluation
-from pbs.views import (ListActionMixin,FormActionMixin)
 from pbs import mutex, SemaphoreException
 import pbs.forms
 
@@ -253,7 +252,7 @@ class PrescriptionUpdateView(UpdateView):
         return pbs.forms.FORM_ACTIONS.get(action_name)
 
 
-class PrescriptionListView(ListActionMixin,ListView):
+class PrescriptionListView(ListView):
     title = "Regional Overview"
     listform_class = PrescriptionListForm
     filterform_class = PrescriptionFilterForm

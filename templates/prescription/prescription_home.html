@@ -179,7 +179,7 @@
     </li>
     <li>
     {% if object.can_endorse and object.is_draft %}
-        {% include "admin/prescription/prescription/modals/submit_for_endorsement_btn.html" %}
+        {% include "prescription/modals/submit_for_endorsement_btn.html" %}
     {% else %}
         <a id="endorse"
         class="{% if not object.can_endorse %}

@@ -3,15 +3,16 @@ from django.contrib.auth.models import User
 
 from dpaw_utils import forms
 
-FORM_ACTIONS = {
+BUTTON_ACTIONS = {
     "save":forms.Action("save","button","Save",{"class":"btn btn-primary btn-success","type":"submit",}),
+    "select":forms.Action("select","button","Select",{"class":"btn btn-primary btn-success","type":"submit",}),
     "back":forms.Action("back","button","Cancel",{"class":"btn btn-danger","onclick":"history.go(-1)"}),
     "update_selection":forms.Action("search","button","Update Selection",{"class":"btn btn-success btn-block","type":"submit","style":"width:260px"}),
     "download":forms.Action("download","button","Download",{"class":"btn btn-success btn-block","type":"submit","style":"width:260px"})
 
 }
 
-LIST_ACTIONS = {
+OPTION_ACTIONS = {
     "delete_selected_epfp":forms.Action("delete_selected","option","Delete selected Prescribed Fire Plans"),
     "export_to_csv":forms.Action("export_to_csv","option","Export to CSV"),
     "burn_summary_to_csv":forms.Action("burn_summary_to_csv","option","Export Burn Summary to CSV"),

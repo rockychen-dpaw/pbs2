@@ -1,9 +1,9 @@
 {% load pbs_utils %}
 
 <div style="display:inline-block;float:right">
-<span class="action-counter" id="total_{{listform.model_name_lower}}_selected"><span id="total_{{listform.model_name_lower}}_selected_count">0</span> of {{object_list|length}} selected</span>
+<span class="action-counter" id="total_{{listform.model_name_lower}}_selected"><span id="total_{{listform.model_name_lower}}_selected_count">0</span> of {{object_list_length}} selected</span>
 
-{% if object_list|length < paginator.count %}
+{% if paginator and object_list_length < paginator.count %}
 <span class="all" style="display: none;" id="all_{{listform.model_name_lower}}_selected">All {{paginator.count}} selected</span>
 <span class="question" style="display: none;" id="select_all_{{listform.model_name_lower}}">
     <a href="javascript:{{listform.model_name_lower}}_selector.select_all();" title="Click here to select the objects across all pages">Select all {{paginator.count}} {{listform.model_verbose_name}}</a>
@@ -20,6 +20,11 @@
 <script type="text/javascript">
     var {{listform.model_name_lower}}_selector = null;
     $(document).ready(function() {
-        {{listform.model_name_lower}}_selector = new ListSelector("{{listform.model_name_lower}}",{{object_list|length}},{{paginator.count}})
+
+        {% if paginator %}
+        {{listform.model_name_lower}}_selector = new ListSelector("{{listform.model_name_lower}}",{{object_list_length}},{{paginator.count}})
+        {% else %}
+        {{listform.model_name_lower}}_selector = new ListSelector("{{listform.model_name_lower}}",{{object_list_length}},{{object_list_length}})
+        {% endif %}
     })
 </script>

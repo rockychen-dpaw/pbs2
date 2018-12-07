@@ -1,4 +1,5 @@
 import re
+import traceback
 
 from django.urls import path 
 from django.http import (Http404,HttpResponse,HttpResponseForbidden,JsonResponse)
@@ -70,11 +71,11 @@ class RequestActionMixin(AjaxRequestMixin):
                         return getattr(self,handler)(request,*args,**kwargs)
                 else:
                     raise Http404("Action '{}' is not supported.".format(self.action))
-
             return super(RequestActionMixin,self).dispatch(request,*args,**kwargs)
         except Http404:
             raise
         except Exception as ex:
+            traceback.print_exc()
             return HttpResponse(status=500,reason=str(ex),content=str(ex))
 
 class RequestUrl(object):
@@ -372,10 +373,10 @@ class OneToManyModelMixin(object):
         except self.model.DoesNotExist:
             raise Http404("The {0} (id={1}) does not exist".format(self.pmodel._meta.verbose_name,ppk))
 
-        queryset = queryset or self.get_queryset()
+        queryset = queryset or self.model.objects
         queryset = queryset.filter(**{self.one_to_many_field_name:self.pobject})
 
-        return super(OneToManyModelMixin,self).get_queryset(self,queryset)
+        return super(OneToManyModelMixin,self).get_queryset(queryset)
 
     def get_queryset_4_selected(self,request,queryset=None):
         ppk = self.kwargs.get(self.ppk_url_kwarg)
@@ -387,13 +388,57 @@ class OneToManyModelMixin(object):
         except self.model.DoesNotExist:
             raise Http404("The {0} (id={1}) does not exist".format(self.pmodel._meta.verbose_name,ppk))
 
-        queryset = queryset or self.get_queryset()
-        queryset = queryset.filter(**{self.one_to_many_field_name:self.pobject})
-
-        return super(OneToManyModelMixin,self).get_queryset_4_selected(self,request,queryset)
+        return super(OneToManyModelMixin,self).get_queryset_4_selected(request,queryset)
 
     def get_context_data(self, **kwargs):
         context = super(OneToManyModelMixin,self).get_context_data(**kwargs)
+        context["pobject"] = self.pobject
+        if self.context_pobject_name:
+            context[self.context_pobject_name] = self.pobject
+
+        return context
+
+class ManyToManyModelMixin(object):
+    """
+    used for many to many table relationship
+    a special way to get sub table's object list through parent table's object
+    """
+    """
+    parent model
+    """
+    pmodel = None
+    ppk_url_kwarg = "ppk"
+    context_pobject_name = None
+    many_to_many_field_name = None
+
+    def get_queryset(self,queryset=None):
+        ppk = self.kwargs.get(self.ppk_url_kwarg)
+        if ppk is None:
+            raise AttributeError("parent primary key ({}) is missing".format(self.ppk_url_kwarg))
+
+        try:
+            self.pobject = self.pmodel.objects.get(id=ppk)
+        except self.model.DoesNotExist:
+            raise Http404("The {0} (id={1}) does not exist".format(self.pmodel._meta.verbose_name,ppk))
+
+        queryset = queryset or self.model.objects
+        queryset = queryset.filter(**{self.many_to_many_field_name:self.pobject})
+        return super(ManyToManyModelMixin,self).get_queryset(queryset)
+
+    def get_queryset_4_selected(self,request,queryset=None):
+        ppk = self.kwargs.get(self.ppk_url_kwarg)
+        if ppk is None:
+            raise AttributeError("parent primary key ({}) is missing".format(self.ppk_url_kwarg))
+
+        try:
+            self.pobject = self.pmodel.objects.get(id=ppk)
+        except self.model.DoesNotExist:
+            raise Http404("The {0} (id={1}) does not exist".format(self.pmodel._meta.verbose_name,ppk))
+        
+        return super(ManyToManyModelMixin,self).get_queryset_4_selected(request,queryset)
+
+    def get_context_data(self, **kwargs):
+        context = super(ManyToManyModelMixin,self).get_context_data(**kwargs)
         context["pobject"] = self.pobject
         if self.context_pobject_name:
             context[self.context_pobject_name] = self.pobject
@@ -405,7 +450,7 @@ class ListBaseView(RequestActionMixin,UrlpatternsMixin,django_list_view.ListView
     default_action = "search"
     title = None
     order_by_re = re.compile('[?&]order_by=([-+]?)([a-zA-Z0-9_\-]+)')
-    fiter_class = None
+    filter_class = None
     filterform_class = None
 
     def get_filter_class(self):
@@ -417,7 +462,7 @@ class ListBaseView(RequestActionMixin,UrlpatternsMixin,django_list_view.ListView
     def get_queryset(self,queryset=None):
         filterformclass = self.get_filterform_class()
         if not filterformclass:
-            queryset = queryset or self.model.objects.all()
+            queryset = self.model.objects.all() if queryset is None else queryset
         else:
             self.filterform = filterformclass(data=self.request.GET,request=self.request)
             if self.filterform.is_valid():
@@ -471,6 +516,7 @@ class ListBaseView(RequestActionMixin,UrlpatternsMixin,django_list_view.ListView
         if context_object_name is not None:
             context[context_object_name] = queryset
         context.update(kwargs)
+        context["object_list_length"] = len(queryset)
         return super().get_context_data(**context)
 
 
@@ -478,7 +524,7 @@ class ListBaseView(RequestActionMixin,UrlpatternsMixin,django_list_view.ListView
         if request.POST.get("select_all") == "true" :
             filterformclass = self.get_filterform_class()
             if not filterformclass:
-                return queryset or self.model.objects.all()
+                return self.model.objects.all() if queryset is None else queryset
             else:
                 self.filterform = filterformclass(data=self.request.POST,request=self.request)
                 if not self.filterform.is_valid():
@@ -530,7 +576,10 @@ class ListView(ListBaseView):
 
         return context_data
 
-class OneToManyListView(OneToOneModelMixin,ListView):
+class OneToManyListView(OneToManyModelMixin,ListView):
+    pass
+
+class ManyToManyListView(ManyToManyModelMixin,ListView):
     pass
 
 class ListUpdateView(ListBaseView):
