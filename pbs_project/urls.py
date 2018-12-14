@@ -22,7 +22,6 @@ urlpatterns = [
     path('docs/', include('django.contrib.admindocs.urls')),
     path('', include('django.contrib.auth.urls'))
 ]
-
 import pbs.views
 import pbs.prescription.urls
 import pbs.report.urls
@@ -39,6 +38,5 @@ urlpatterns = urlpatterns + [
     path("prescription/",include(pbs.report.urls,namespace="report")),
     path("risk/",include(pbs.risk.urls,namespace="risk"))
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-
 for p in urlpatterns:
     print(p)

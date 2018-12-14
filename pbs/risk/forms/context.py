@@ -28,5 +28,5 @@ class ContextUpdateForm(ContextBaseForm):
     ]
     class Meta:
         model = Context
-        fields = ("statement",)
+        all_fields = ("statement",)
         editable_fields = ("statement",)

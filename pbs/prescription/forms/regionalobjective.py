@@ -25,6 +25,7 @@ class RegionalObjectiveBaseListForm(RegionalObjectiveConfigMixin,forms.ListForm)
 
 class RegionalObjectiveListForm(RegionalObjectiveBaseListForm):
     all_buttons = [
+        BUTTON_ACTIONS["back"],
         BUTTON_ACTIONS["select"],
     ]
     def __init__(self, *args, **kwargs):
@@ -32,8 +33,7 @@ class RegionalObjectiveListForm(RegionalObjectiveBaseListForm):
 
     class Meta:
         model = RegionalObjective
-        fields = ("region","impact","fma_names","objectives")
-        other_fields = []
+        all_fields = ("region","impact","fma_names","objectives")
         
         editable_fields = []
         ordered_fields = ("region","impact","fma_names","objectives")

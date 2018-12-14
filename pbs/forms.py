@@ -4,11 +4,13 @@ from django.contrib.auth.models import User
 from dpaw_utils import forms
 
 BUTTON_ACTIONS = {
-    "save":forms.Action("save","button","Save",{"class":"btn btn-primary btn-success","type":"submit",}),
+    "save":forms.Action("save","button","Save",{"class":"btn btn-primary btn-success","type":"submit"}),
     "select":forms.Action("select","button","Select",{"class":"btn btn-primary btn-success","type":"submit",}),
-    "back":forms.Action("back","button","Cancel",{"class":"btn btn-danger","onclick":"history.go(-1)"}),
+    "back":forms.Action("back","a","Cancel",{"class":"btn btn-danger","onclick":"history.go(-1);"}),
     "update_selection":forms.Action("search","button","Update Selection",{"class":"btn btn-success btn-block","type":"submit","style":"width:260px"}),
-    "download":forms.Action("download","button","Download",{"class":"btn btn-success btn-block","type":"submit","style":"width:260px"})
+    "download":forms.Action("download","button","Download",{"class":"btn btn-success btn-block","type":"submit","style":"width:260px"}),
+    "deleteconfirm":forms.Action("delete","button","Delete",{"class":"btn btn-success btn-block","type":"submit","style":"width:260px"}),
+    "deleteconfirmed":forms.Action("delete","button","Delete",{"class":"btn btn-success btn-block","type":"submit","style":"width:260px"})
 
 }
 
@@ -20,6 +22,9 @@ OPTION_ACTIONS = {
     "carry_over_burns":forms.Action("carry_over_burns","option","Carry over burns"),
     "bulk_corporate_approve":forms.Action("bulk_corporate_approve","option","Apply corporate approval")
 }
+
+def get_action(action_name):
+    return BUTTON_ACTIONS.get(action_name) or OPTION_ACTIONS.get(action_name)
 
 class UserForm(forms.ModelForm):
 

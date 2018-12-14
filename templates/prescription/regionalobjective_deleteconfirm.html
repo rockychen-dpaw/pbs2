@@ -1,0 +1,13 @@
+{% extends "deleteconfirm.html" %}
+{% load i18n %}
+{% load admin_urls %}
+
+{% block breadcrumbs %}
+<ul class="breadcrumb">
+  <li><a href="{% url 'prescription:prescription_list' %}">{% trans 'Regional Overview' %}</a> <span class="divider">/</span></li>
+  <li><a href="{% url 'prescription:prescription_home' prescription.id %}">{{ prescription.burn_id }}</a> <span class="divider">/</span></li>
+  <li><a href="{% url 'prescription:prescription_objectives_update' prescription.id %}">Regional Objectives</a> <span class="divider">/</span></li>
+  <li>{% trans 'Delete regional objective' %}</li>
+</ul>
+{% endblock %}
+

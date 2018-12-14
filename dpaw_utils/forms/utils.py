@@ -35,8 +35,8 @@ class FieldClassConfigDict(dict):
             else:
                 return ("{}.{}".format(name,purpose),name,"{}.{}".format(self._default_key_name,purpose),self._default_key_name)
         else:
-            if self._meta_class.is_dbfield(name):
-                keys = ["{}.{}".format(name,p) for p in purpose] + [name]
+            if self._meta_class.is_editable_dbfield(name):
+                keys = ["{}.{}".format(name,p) for p in purpose]
                 keys.append(name)
                 return keys
             else:

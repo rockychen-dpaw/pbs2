@@ -2,7 +2,7 @@
 
 sourcehost="127.0.0.1"
 sourceport=5432
-sourcedatabase="pbs_prod"
+sourcedatabase="pbs3"
 sourceschema="public"
 sourceuser=""
 sourcepassword=""
@@ -15,6 +15,6 @@ targetuser=""
 targetpassword=""
 
 
-step1_excluded_tables=(django_  celery_ djcelery_ djkombu_ guardian_ restless_ reversion_ south_ tastypie_ spatial_ref_sys)
-#step1_included_tables=(django_admin_log)
-step1_include_schema_tables=(review_annualindicativeburnprogram)
+#step1_excluded_tables=(django_  celery_ djcelery_ djkombu_ guardian_ restless_ reversion_ south_ tastypie_ spatial_ref_sys)
+step1_included_tables=(auth_permission)
+#step1_include_schema_tables=(review_annualindicativeburnprogram)

@@ -47,8 +47,7 @@ class FundingAllocationUpdateForm(FundingAllocationBaseForm):
 
     class Meta:
         model = FundingAllocation
-        fields = ('allocation','proportion')
-        other_fields = ('id',)
+        all_fields = ('allocation','proportion',"id")
         editable_fields = ('id','allocation','proportion')
 
 

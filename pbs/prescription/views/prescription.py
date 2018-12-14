@@ -37,7 +37,7 @@ class PrescriptionHomeView(RequestActionMixin,ReadonlyView):
     context_object_name = "prescription"
 
     def get_action(self,action_name):
-        return pbs.forms.FORM_ACTIONS.get(action_name)
+        return pbs.forms.get_action(action_name)
 
     @classmethod
     def _get_extra_urlpatterns(cls):
@@ -249,7 +249,7 @@ class PrescriptionUpdateView(UpdateView):
             return PrescriptionUpdateForm
 
     def get_action(self,action_name):
-        return pbs.forms.FORM_ACTIONS.get(action_name)
+        return pbs.forms.get_action(action_name)
 
 
 class PrescriptionListView(ListView):

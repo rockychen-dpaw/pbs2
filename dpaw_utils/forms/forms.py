@@ -234,14 +234,16 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
     7. new property 'ordered_fields' to support sort fields
     8. new property 'extra_update_fields' to add extra update fields to 'update_fields' whensaving a model instance
     9. new property 'purpose' to indicate the purpose of this form
+    10. new property 'all_fields' to list all the fields including the fields and other_fields.
 
     Add the following properties into _meta property of model instance
     1. subproperty_enabled: True if some form field is created for subproperty of a model field or model property
     2. update_db_fields: possible db fields which can be updated through the form instance
     3. update_model_properties: possible model properties or subproperties which can be updated through the form instance
-    4. _editable_fields: the editable fields
-    5. _editable_formfields: the editable form fields
-    6. _editable_formsetfields: the editable formset fields
+    4. other_fields:populated from all_fields
+    5. _editable_fields: the editable fields
+    6. _editable_formfields: the editable form fields
+    7. _editable_formsetfields: the editable formset fields
     """
  
     @staticmethod
@@ -267,7 +269,7 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
                 if config:
                     setattr(attrs["Meta"],"fields",config)
 
-            for item in ("other_fields","extra_update_fields","ordered_fields",'purpose'):
+            for item in ("all_fields","extra_update_fields","ordered_fields",'purpose'):
                 if not hasattr(attrs['Meta'],item):
                     config = BaseModelFormMetaclass.meta_item_from_base(bases,item)
                     if config:
@@ -321,6 +323,17 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
                     else:
                         setattr(attrs['Meta'],item,config)
 
+            fields = []
+            other_fields = []
+            print("initialize class {}".format(name))
+            if hasattr(attrs["Meta"],"all_fields") and hasattr(attrs["Meta"],"model"):
+                for field in getattr(attrs['Meta'],'all_fields'):
+                    if getattr(attrs['Meta'],'is_editable_dbfield')(field):
+                        fields.append(field)
+                    else:
+                        other_fields.append(field)
+            setattr(attrs['Meta'],"fields",fields)
+            setattr(attrs['Meta'],"other_fields",other_fields)
 
             setattr(attrs['Meta'],"field_classes",FieldClassConfigDict(attrs['Meta'],attrs['Meta'].field_classes_config))
             setattr(attrs['Meta'],"widgets",FieldWidgetConfigDict(attrs['Meta'],attrs['Meta'].widgets_config))
@@ -414,6 +427,7 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
             if not db_field:
                 kwargs['required'] = False
 
+            print("==============={}".format(field_name))
             try:
                 kwargs['form_class'] = opts.field_classes[field_name]
             except KeyError as ex:
@@ -504,8 +518,54 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
         setattr(opts,'update_model_properties',update_model_properties)
         
         return new_class
+class ModelFormMetaMixin(object):
+    class Meta:
+        @staticmethod
+        def formfield_callback(field,**kwargs):
+            print("===={}".format(field))
+            if isinstance(field,models.Field) and field.editable and not field.primary_key:
+                form_class = kwargs.get("form_class")
+                if form_class:
+                    if isinstance(form_class,forms.fields.Field):
+                        return form_class
+                    elif issubclass(form_class,fields.ChoiceFieldMixin):
+                        return kwargs.pop("form_class")(**kwargs)
+                    else:
+                        kwargs["choices_form_class"] = form_class
+                result = field.formfield(**kwargs)
+                if form_class and not isinstance(result,form_class):
+                    raise Exception("'{}' don't use the form class '{}' declared in field_classes".format(field.__class__.__name__,form_class.__name__))
+                return result
+            else:
+                return kwargs.pop("form_class")(**kwargs)
 
-class ModelForm(ActionMixin,RequestMixin,forms.models.BaseModelForm,metaclass=BaseModelFormMetaclass):
+        @classmethod
+        def is_dbfield(cls,field_name):
+            if "__" in field_name:
+                return False
+
+            try:
+                model_field = cls.model._meta.get_field(field_name)
+                return True
+            except:
+                return False
+
+
+        @classmethod
+        def is_editable_dbfield(cls,field_name):
+            if "__" in field_name:
+                return False
+
+            try:
+                model_field = cls.model._meta.get_field(field_name)
+                return True if model_field.editable and not model_field.primary_key else False
+            except:
+                return False
+
+            
+
+
+class ModelForm(ActionMixin,RequestMixin,ModelFormMetaMixin,forms.models.BaseModelForm,metaclass=BaseModelFormMetaclass):
     """
     This class only support model class which extends DictMixin
 
@@ -763,47 +823,5 @@ class ModelForm(ActionMixin,RequestMixin,forms.models.BaseModelForm,metaclass=Ba
                 self._bound_fields_cache[name] = BoundField(self,field,name)
         return self._bound_fields_cache[name]
     
-    class Meta:
-        @staticmethod
-        def formfield_callback(field,**kwargs):
-            if isinstance(field,models.Field) and field.editable and not field.primary_key:
-                form_class = kwargs.get("form_class")
-                if form_class:
-                    if isinstance(form_class,forms.fields.Field):
-                        return form_class
-                    elif issubclass(form_class,fields.ChoiceFieldMixin):
-                        return kwargs.pop("form_class")(**kwargs)
-                    else:
-                        kwargs["choices_form_class"] = form_class
-                result = field.formfield(**kwargs)
-                if form_class and not isinstance(result,form_class):
-                    raise Exception("'{}' don't use the form class '{}' declared in field_classes".format(field.__class__.__name__,form_class.__name__))
-                return result
-            else:
-                return kwargs.pop("form_class")(**kwargs)
-
-        @classmethod
-        def is_dbfield(cls,field_name):
-            if "__" in field_name:
-                return False
-
-            try:
-                model_field = cls.model._meta.get_field(field_name)
-                return True
-            except:
-                return False
-
-
-        @classmethod
-        def is_editable_dbfield(cls,field_name):
-            if "__" in field_name:
-                return False
-
-            try:
-                model_field = cls.model._meta.get_field(field_name)
-                return True if model_field.editable and not model_field.primary_key else False
-            except:
-                return False
-
             
 

@@ -62,15 +62,14 @@ class BurnImplementationStateViewForm(BurnImplementationStateBaseForm):
     class Meta:
         model = BurnImplementationState
         purpose = "view"
-        fields = ["overview","pre_actions","actions","roads","traffic","tracks","burning_prescription","fuel_assessment","edging_plan","contingency_plan","lighting_sequence",
-                "exclusion_areas","organisational_structure","briefing","operation_maps","aerial_maps"]
-        other_fields = ('progress',)
+        all_fields = ["overview","pre_actions","actions","roads","traffic","tracks","burning_prescription","fuel_assessment","edging_plan","contingency_plan","lighting_sequence",
+                "exclusion_areas","organisational_structure","briefing","operation_maps","aerial_maps",'progress']
 
 
 class BurnImplementationStateUpdateForm(forms.EditableFieldsMixin,BurnImplementationStateBaseForm):
 
     class Meta:
         model = BurnImplementationState
-        fields = ["overview","pre_actions","actions","roads","traffic","tracks","burning_prescription","fuel_assessment","edging_plan","contingency_plan","lighting_sequence",
+        all_fields = ["overview","pre_actions","actions","roads","traffic","tracks","burning_prescription","fuel_assessment","edging_plan","contingency_plan","lighting_sequence",
                 "exclusion_areas","organisational_structure","briefing","operation_maps","aerial_maps"]
-        editable_fields = fields
+        editable_fields = all_fields

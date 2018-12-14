@@ -51,12 +51,11 @@ class BurnClosureStateViewForm(BurnClosureStateBaseForm):
     class Meta:
         model = BurnClosureState
         purpose = "view"
-        fields = ["post_actions","evaluation_summary","evaluation","post_ignitions","aerial_intensity","satellite_intensity","other","post_burn_checklist","closure_declaration","signage"]
-        other_fields = ('progress',)
+        all_fields = ["post_actions","evaluation_summary","evaluation","post_ignitions","aerial_intensity","satellite_intensity","other","post_burn_checklist","closure_declaration","signage",'progress']
 
 class BurnClosureStateUpdateForm(forms.EditableFieldsMixin,BurnClosureStateBaseForm):
 
     class Meta:
         model = BurnClosureState
-        fields = ["post_actions","evaluation_summary","evaluation","post_ignitions","aerial_intensity","satellite_intensity","other","post_burn_checklist","closure_declaration","signage"]
-        editable_fields = fields
+        all_fields = ["post_actions","evaluation_summary","evaluation","post_ignitions","aerial_intensity","satellite_intensity","other","post_burn_checklist","closure_declaration","signage"]
+        editable_fields = all_fields

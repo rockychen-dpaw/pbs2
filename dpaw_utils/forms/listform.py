@@ -189,7 +189,7 @@ class ToggleableFieldIterator(collections.Iterable):
             raise StopIteration()
 
 
-class ListForm(forms.ActionMixin,forms.RequestUrlMixin,django_forms.models.BaseModelForm,collections.Iterable,metaclass=ListModelFormMetaclass):
+class ListForm(forms.ActionMixin,forms.RequestUrlMixin,forms.ModelFormMetaMixin,django_forms.models.BaseModelForm,collections.Iterable,metaclass=ListModelFormMetaclass):
     """
     Use a form to display list data 
     """
@@ -333,32 +333,6 @@ class ListForm(forms.ActionMixin,forms.RequestUrlMixin,django_forms.models.BaseM
 
     def as_table(self):
         raise NotImplementedError()
-
-    class Meta:
-        @staticmethod
-        def formfield_callback(field,**kwargs):
-            if isinstance(field,models.Field):
-                form_class = kwargs.get("form_class")
-                if form_class:
-                    kwargs["choices_form_class"] = form_class
-                result = field.formfield(**kwargs)
-                if form_class and not isinstance(result,form_class):
-                    raise Exception("'{}' don't use the form class '{}' declared in field_classes".format(field.__class__.__name__,form_class.__name__))
-            else:
-                result = kwargs.pop("form_class")(**kwargs)
-
-            return result
-
-        @classmethod
-        def is_dbfield(cls,field_name):
-            if "." in field_name:
-                return False
-
-            try:
-                model_field = cls.model._meta.get_field(field_name)
-                return True
-            except:
-                return False
 
 
             

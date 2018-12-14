@@ -386,10 +386,9 @@ class PrescriptionFilterForm(PrescriptionConfigMixin,forms.FilterForm):
     class Meta:
         model = Prescription
         purpose = 'filter'
-        fields = ('region','district','financial_year','contentious','aircraft_burn','priority',
-                  'planning_status','endorsement_status','approval_status','ignition_status','status'
-                  )
-        other_fields = ('contingencies_migrated',)
+        all_fields = ('region','district','financial_year','contentious','aircraft_burn','priority',
+                  'planning_status','endorsement_status','approval_status','ignition_status','status',
+                  'contingencies_migrated')
 
 
 class PrescriptionBaseForm(PrescriptionCleanMixin,PrescriptionConfigMixin,forms.ModelForm):
@@ -405,16 +404,18 @@ class PrescriptionViewForm(PrescriptionBaseForm):
     class Meta:
         model = Prescription
         purpose = "view"
-        fields = ('burn_id','planned_season', 'financial_year', 'name', 'description', 'region',
+        all_fields = ('burn_id','planned_season', 'financial_year', 'name', 'description', 'region',
                   'district','last_year_unknown', 'last_year',
                   'last_season_unknown','last_season', 'forest_blocks', 
                   'contentious','contentious_rationale', 'purposes',
                   'aircraft_burn', 'priority', 'area', 'treatment_percentage',
-                  'perimeter', 'remote_sensing_priority','rationale','planning_status','endorsement_status','approval_status',
-                  'ignition_status','ignition_completed_date','status')
-        other_fields = ('loc_locality','loc_distance','loc_direction','loc_town',"maximum_risk","maximum_complexity","pre_state","day_state","post_state"
-                ,'planning_status_modified','endorsement_status_modified','approval_status_modified','current_approval_valid_period','current_approval_approver'
-                ,'ignition_commenced_date','ignition_commence_status','ignition_complete_status')
+                  'perimeter', 'remote_sensing_priority','rationale',
+                  'planning_status','planning_status_modified','endorsement_status','endorsement_status_modified',
+                  'approval_status','approval_status_modified','status',
+                  'loc_locality','loc_distance','loc_direction','loc_town',"maximum_risk","maximum_complexity",
+                  "pre_state","day_state","post_state",
+                  'current_approval_valid_period','current_approval_approver',
+                  'ignition_status','ignition_completed_date','ignition_commenced_date','ignition_commence_status','ignition_complete_status')
 
 class PrescriptionUpdateForm(PrescriptionBaseForm):
     all_buttons = [
@@ -426,21 +427,21 @@ class PrescriptionUpdateForm(PrescriptionBaseForm):
 
     class Meta:
         model = Prescription
-        fields = ('burn_id','name','description','financial_year','last_season_unknown','last_season','last_year_unknown','last_year',
+        all_fields = ('burn_id','name','description','financial_year','last_season_unknown','last_season','last_year_unknown','last_year',
             'region','district','forest_blocks','priority','rationale','contentious','contentious_rationale','aircraft_burn',
             'remote_sensing_priority','purposes','area','perimeter','tenures','fuel_types','shires','forecast_areas','bushfire_act_zone',
             "non_calm_tenure","non_calm_tenure_included","non_calm_tenure_value","non_calm_tenure_complete","non_calm_tenure_risks",
             'treatment_percentage','prohibited_period','prescribing_officer','short_code','endorsement_status',
             'approval_status',
-            'planning_status','ignition_status','status'
+            'planning_status','ignition_status','status',
+            'loc_locality','loc_distance','loc_direction','loc_town','created','modified','maximum_risk','maximum_complexity','all_allocations',
+            "planning_status_modified","endorsement_status_modified","approval_status_modified","current_approval_approver","current_approval_valid_period"
         )
         editable_fields = ('forest_blocks','aircraft_burn','remote_sensing_priority','purposes','area','perimeter','tenures',
             "non_calm_tenure","non_calm_tenure_included","non_calm_tenure_value","non_calm_tenure_complete","non_calm_tenure_risks",
             'fuel_types','shires','forecast_areas','bushfire_act_zone','treatment_percentage','prohibited_period','prescribing_officer',
             'short_code','all_allocations'
         )
-        other_fields = ('loc_locality','loc_distance','loc_direction','loc_town','created','modified','maximum_risk','maximum_complexity','all_allocations',
-                "planning_status_modified","endorsement_status_modified","approval_status_modified","current_approval_approver","current_approval_valid_period")
         extra_update_fields = ('modifier_id','modified')
 
 class DraftPrescriptionUpdateForm(PrescriptionUpdateForm):
@@ -468,13 +469,14 @@ class PrescriptionCreateForm(PrescriptionBaseForm):
 
     class Meta:
         model = Prescription
-        fields = ('planned_season', 'financial_year', 'name', 'description', 'region',
+        all_fields = ('planned_season', 'financial_year', 'name', 'description', 'region',
                   'district','last_year_unknown', 'last_year',
                   'last_season_unknown','last_season', 'forest_blocks', 
                   'contentious','contentious_rationale', 'purposes',
                   'aircraft_burn', 'priority', 'area', 'treatment_percentage',
-                  'perimeter', 'remote_sensing_priority','rationale')
-        other_fields = ('loc_locality','loc_distance','loc_direction','loc_town')
+                  'perimeter', 'remote_sensing_priority','rationale',
+                  'loc_locality','loc_distance','loc_direction','loc_town'
+        )
 
 class PrescriptionBaseListForm(PrescriptionConfigMixin,forms.ListForm):
     class Meta:
@@ -494,9 +496,10 @@ class PrescriptionListForm(PrescriptionBaseListForm):
 
     class Meta:
         model = Prescription
-        fields = ('burn_id','name','region','district','financial_year','contentious','aircraft_burn','priority','remote_sensing_priority',
-                'planning_status','endorsement_status','approval_status','ignition_status','status','prescribing_officer')
-        other_fields = ('modified','contingencies_migrated',"approval_expiry")
+        all_fields = ('burn_id','name','region','district','financial_year','contentious','aircraft_burn','priority','remote_sensing_priority',
+                'planning_status','endorsement_status','approval_status','ignition_status','status','prescribing_officer',
+                'modified','contingencies_migrated',"approval_expiry"
+        )
         
         field_classes_config = {
             "contentious":None

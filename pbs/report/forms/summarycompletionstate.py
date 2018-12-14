@@ -47,13 +47,12 @@ class SummaryCompletionStateViewForm(SummaryCompletionStateBaseForm):
     class Meta:
         model = SummaryCompletionState
         purpose = "view"
-        fields = ["summary","context_statement","context_map","objectives","success_criteria","priority_justification","complexity_analysis","risk_register"]
-        other_fields = ('progress',)
+        all_fields = ["summary","context_statement","context_map","objectives","success_criteria","priority_justification","complexity_analysis","risk_register",'progress']
 
 
 class SummaryCompletionStateUpdateForm(forms.EditableFieldsMixin,SummaryCompletionStateBaseForm):
 
     class Meta:
         model = SummaryCompletionState
-        fields = ["summary","context_statement","context_map","objectives","success_criteria","priority_justification","complexity_analysis","risk_register"]
-        editable_fields = fields
+        all_fields = ["summary","context_statement","context_map","objectives","success_criteria","priority_justification","complexity_analysis","risk_register"]
+        editable_fields = all_fields

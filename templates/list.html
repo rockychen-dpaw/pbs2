@@ -112,6 +112,9 @@
 
 {% if listform.has_actions_or_buttons %}
 <form action="{{requesturl.path}}" method="post" class="form-inline" autocomplete="off">{% csrf_token %}
+{% if nexturl %}
+    <input type="hidden" name="nexturl" value="{{nexturl}}">
+{% endif %}
 {% endif %}
 {% if listform.has_actions %}
     <div class="actions">
