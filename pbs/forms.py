@@ -8,6 +8,7 @@ BUTTON_ACTIONS = {
     "select":forms.Action("select","button","Select",{"class":"btn btn-primary btn-success","type":"submit",}),
     "back":forms.Action("back","a","Cancel",{"class":"btn btn-danger","onclick":"history.go(-1);"}),
     "update_selection":forms.Action("search","button","Update Selection",{"class":"btn btn-success btn-block","type":"submit","style":"width:260px"}),
+    "upload_document":forms.Action("upload","button","Upload",{"class":"btn btn-success","type":"submit"}),
     "download":forms.Action("download","button","Download",{"class":"btn btn-success btn-block","type":"submit","style":"width:260px"}),
     "deleteconfirm":forms.Action("delete","button","Delete",{"class":"btn btn-success btn-block","type":"submit","style":"width:260px"}),
     "deleteconfirmed":forms.Action("delete","button","Delete",{"class":"btn btn-success btn-block","type":"submit","style":"width:260px"})

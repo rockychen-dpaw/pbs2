@@ -26,6 +26,38 @@ class NextUrlMixin(object):
         else:
             return self.request.POST.get('nexturl')
 
+class FormMixin(object):
+    def get_form(self, form_class=None):
+        if not hasattr(self,"form"):
+            self.form = super(FormMixin,self).get_form(form_class)
+            if self.request.method == "GET" and self.form.is_bound:
+                self.form.is_valid()
+        return self.form
+
+class SendDataThroughGetMixin(object):
+    def get_form_kwargs(self):
+        """Return the keyword arguments for instantiating the form."""
+        kwargs = {
+            'initial': self.get_initial(),
+            'prefix': self.get_prefix(),
+        }
+
+        if self.request.method in ('POST', 'PUT'):
+            kwargs.update({
+                'data': self.request.POST,
+                'files': self.request.FILES,
+            })
+        elif self.request.method in ('GET'):
+            form_cls = self.get_form_class()
+            editable_fields = [f for f in form_cls._meta.editable_fields if f in self.request.GET]
+            if editable_fields:
+                kwargs.update({
+                    'data': self.request.GET,
+                    'editable_fields':editable_fields
+                })
+
+        return kwargs
+
 class ModelMixin(object):
     @property
     def model_verbose_name(self):
@@ -284,15 +316,27 @@ class ParentObjectMixin(object):
     ppk_url_kwarg = "ppk"
     context_pobject_name = None
 
-    def get_pobject(self):
+    @property
+    def pobject(self):
+        if hasattr(self,"_pobject"):
+            return self._pobject
         ppk = self.kwargs.get(self.ppk_url_kwarg)
         if ppk is None:
             raise AttributeError("parent primary key ({}) is missing".format(self.ppk_url_kwarg))
 
         try:
-            return self.pmodel.objects.get(id=ppk)
+            self._pobject = self.pmodel.objects.get(id=ppk)
+            return self._pobject
         except self.model.DoesNotExist:
             raise Http404("The {0} (id={1}) does not exist".format(self.pmodel._meta.verbose_name,ppk))
+
+    def get_context_data(self, **kwargs):
+        context = super(ParentObjectMixin,self).get_context_data(**kwargs)
+        context["pobject"] = self.pobject
+        if self.context_pobject_name:
+            context[self.context_pobject_name] = self.pobject
+
+        return context
 
 class OneToOneModelMixin(ParentObjectMixin):
     """
@@ -305,7 +349,6 @@ class OneToOneModelMixin(ParentObjectMixin):
     one_to_one_field_name = None
 
     def get_object(self,queryset=None):
-        self.pobject = self.get_pobject()
         queryset = queryset or self.get_queryset()
         queryset = queryset.filter(**{self.one_to_one_field_name:self.pobject})
 
@@ -317,16 +360,7 @@ class OneToOneModelMixin(ParentObjectMixin):
         return obj
             
         
-    def get_context_data(self, **kwargs):
-        context = super(OneToOneModelMixin,self).get_context_data(**kwargs)
-        context["pobject"] = self.pobject
-        if self.context_pobject_name:
-            context[self.context_pobject_name] = self.pobject
-
-        return context
-
-
-class CreateView(UrlpatternsMixin,django_edit_view.CreateView):
+class CreateView(UrlpatternsMixin,FormMixin,django_edit_view.CreateView):
     title = None
     def get_form_kwargs(self):
         kwargs = super(CreateView,self).get_form_kwargs()
@@ -338,7 +372,7 @@ class CreateView(UrlpatternsMixin,django_edit_view.CreateView):
         context_data["title"] = self.title or "Add {}".format(self.model._meta.verbose_name)
         return context_data
 
-class ReadonlyView(UrlpatternsMixin,ModelMixin,django_edit_view.UpdateView):
+class ReadonlyView(UrlpatternsMixin,FormMixin,ModelMixin,django_edit_view.UpdateView):
     title = None
 
     def get_form_kwargs(self):
@@ -360,7 +394,7 @@ class ReadonlyView(UrlpatternsMixin,ModelMixin,django_edit_view.UpdateView):
     def put(self,request,*args,**kwargs):
         return HttpResponseForbidden()
 
-class UpdateView(UrlpatternsMixin,ModelMixin,django_edit_view.UpdateView):
+class UpdateView(UrlpatternsMixin,FormMixin,ModelMixin,django_edit_view.UpdateView):
     title = None
 
     def get_form_kwargs(self):
@@ -401,26 +435,45 @@ class OneToManyModelMixin(ParentObjectMixin):
     """
     one_to_many_field_name = None
 
-    def get_queryset(self,queryset=None):
-        self.pobject = self.get_pobject()
+    def get_queryset(self):
+        self.queryset = self.queryset if hasattr(self,"queryset") and self.queryset else self.model.objects
+        self.queryset = self.queryset.filter(**{self.one_to_many_field_name:self.pobject})
 
-        queryset = queryset or self.model.objects
-        queryset = queryset.filter(**{self.one_to_many_field_name:self.pobject})
+        return super(OneToManyModelMixin,self).get_queryset()
 
-        return super(OneToManyModelMixin,self).get_queryset(queryset)
-
-    def get_queryset_4_selected(self,queryset=None):
-        self.pobject = self.get_pobject()
-
-        return super(OneToManyModelMixin,self).get_queryset_4_selected(queryset)
-
-    def get_context_data(self, **kwargs):
-        context = super(OneToManyModelMixin,self).get_context_data(**kwargs)
-        context["pobject"] = self.pobject
+    def deleteconfirm_get(self):
+        object_list = self.get_queryset_4_selected()
+        context = {
+            'title':"Delete {}".format(self.model._meta.verbose_name if len(object_list) < 2 else self.model._meta.verbose_name_plural),
+            'confirm_message':"Are you sure you wish to delete the {}?".format(self.model._meta.verbose_name if len(object_list) < 2 else self.model._meta.verbose_name_plural),
+            'confirm_url':self.deleteconfirm_url if hasattr(self,"deleteconfirm_url") else "",
+            'object_title':'{} details'.format(self.model._meta.verbose_name),
+            'pobject':self.pobject,
+            'object_list':object_list,
+            'listform':self.get_listform_class()(instance_list=object_list,request=self.request,requesturl = self.requesturl)
+        }
         if self.context_pobject_name:
             context[self.context_pobject_name] = self.pobject
+        return self.render_to_response(context)
 
-        return context
+    def deleteconfirmed_post(self):
+        selected_ids = self.get_selected_ids()
+        #remove selected rows.
+        for o in getattr(self.pobject,self.many_to_many_field_name).all().filter(pk__in=selected_ids):
+            getattr(self.pobject,self.many_to_many_field_name).remove(o)
+
+        return HttpResponseRedirect(self.get_success_url())
+        
+
+
+class OneToManyUpdateView(OneToManyModelMixin,UpdateView):
+    pass
+
+class OneToManyCreateView(OneToManyModelMixin,CreateView):
+    def get_form(self, form_class=None):
+        form = super(OneToManyCreateView,self).get_form(form_class)
+        setattr(form.instance,self.one_to_many_field_name,self.pobject)
+        return form
 
 class ManyToManyModelMixin(ParentObjectMixin):
     """
@@ -432,14 +485,11 @@ class ManyToManyModelMixin(ParentObjectMixin):
     """
     many_to_many_field_name = None
 
-    def get_queryset(self,queryset=None):
-        self.pobject = self.get_pobject()
-
-        queryset = queryset or getattr(self.pobject,self.many_to_many_field_name).all()
-        return super(ManyToManyModelMixin,self).get_queryset(queryset)
+    def get_queryset(self):
+        self.queryset = getattr(self.pobject,self.many_to_many_field_name).all()
+        return super(ManyToManyModelMixin,self).get_queryset()
 
     def get_object(self,queryset=None):
-        self.pobject = self.get_pobject()
         queryset = queryset or self.get_queryset()
         queryset = queryset.filter(pk=self.kwargs["pk"])
 
@@ -450,24 +500,9 @@ class ManyToManyModelMixin(ParentObjectMixin):
 
         return obj
             
-    def get_queryset_4_selected(self,queryset=None):
-        self.pobject = self.get_pobject()
-        
-        return super(ManyToManyModelMixin,self).get_queryset_4_selected(queryset)
-
-    def get_context_data(self, **kwargs):
-        context = super(ManyToManyModelMixin,self).get_context_data(**kwargs)
-        context["pobject"] = self.pobject
-        if self.context_pobject_name:
-            context[self.context_pobject_name] = self.pobject
-
-        return context
-
     def select_post(self):
         selected_ids = self.get_selected_ids()
 
-        self.pobject = self.get_pobject()
-        
         #remove previous selected but not selected rows.
         for o in getattr(self.pobject,self.many_to_many_field_name).all().exclude(pk__in=selected_ids):
             getattr(self.pobject,self.many_to_many_field_name).remove(o)
@@ -480,15 +515,12 @@ class ManyToManyModelMixin(ParentObjectMixin):
         return HttpResponseRedirect(self.get_success_url())
 
     def deleteconfirm_get(self):
-        self.pobject = self.get_pobject()
-        self.object = self.get_object()
         object_list = self.get_queryset_4_selected()
         context = {
             'title':"Delete {}".format(self.model._meta.verbose_name if len(object_list) < 2 else self.model._meta.verbose_name_plural),
             'confirm_message':"Are you sure you wish to delete the {}?".format(self.model._meta.verbose_name if len(object_list) < 2 else self.model._meta.verbose_name_plural),
             'confirm_url':self.deleteconfirm_url if hasattr(self,"deleteconfirm_url") else "",
             'object_title':'{} details'.format(self.model._meta.verbose_name),
-            'object':self.object,
             'pobject':self.pobject,
             'object_list':object_list,
             'listform':self.get_listform_class()(instance_list=object_list,request=self.request,requesturl = self.requesturl)
@@ -498,7 +530,6 @@ class ManyToManyModelMixin(ParentObjectMixin):
         return self.render_to_response(context)
 
     def deleteconfirmed_post(self):
-        self.pobject = self.get_pobject()
         selected_ids = self.get_selected_ids()
         #remove selected rows.
         for o in getattr(self.pobject,self.many_to_many_field_name).all().filter(pk__in=selected_ids):
@@ -521,14 +552,14 @@ class ListBaseView(RequestActionMixin,UrlpatternsMixin,ModelMixin,django_list_vi
     def get_filterform_class(self):
         return self.filterform_class
 
-    def get_queryset(self,queryset=None):
+    def get_queryset(self):
         filterformclass = self.get_filterform_class()
         if not filterformclass:
-            queryset = self.model.objects.all() if queryset is None else queryset
+            queryset = self.model.objects.all() if self.queryset is None else self.queryset
         else:
             self.filterform = filterformclass(data=self.request.GET,request=self.request)
             if self.filterform.is_valid():
-                data_filter = self.get_filter_class()(self.filterform,request=self.request,queryset=queryset)
+                data_filter = self.get_filter_class()(self.filterform,request=self.request)
                 queryset = data_filter.qs
                 ordering = self.get_ordering()
                 if ordering:
@@ -637,6 +668,16 @@ class ListBaseView(RequestActionMixin,UrlpatternsMixin,ModelMixin,django_list_vi
 
     def get_success_url(self):
         return self.request.path
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        """Get the context for this view."""
+        
+        context_object_name = self.get_context_object_name(self.paging_context["object_list"])
+        if context_object_name is not None:
+            self.paging_context[context_object_name] = self.paging_context["object_list"]
+        self.paging_context.update(kwargs)
+        return self.paging_context
+
 
 class ListView(NextUrlMixin,ListBaseView):
     listform_class = None

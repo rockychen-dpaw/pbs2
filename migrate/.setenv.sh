@@ -16,5 +16,5 @@ targetpassword=""
 
 
 #step1_excluded_tables=(django_  celery_ djcelery_ djkombu_ guardian_ restless_ reversion_ south_ tastypie_ spatial_ref_sys)
-step1_included_tables=(auth_permission)
+step1_included_tables=(auth_permission django_content_type)
 #step1_include_schema_tables=(review_annualindicativeburnprogram)

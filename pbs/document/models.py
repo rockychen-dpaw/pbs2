@@ -7,7 +7,7 @@ from django.contrib.gis.db import models
 from django.utils import timezone
 from django.db.models import Q,Max
 
-from dpaw_utils.models import AuditMixin
+from dpaw_utils.models import (AuditMixin,ModelDictMixin)
 
 from pbs.document.fields import ContentTypeRestrictedFileField
 from pbs.document.utils import get_dimensions
@@ -98,7 +98,7 @@ class TagManager(models.Manager):
         return filter(lambda x: x.filename.endswith('.pdf'), qs)
 
 
-class Document(AuditMixin):
+class Document(ModelDictMixin,AuditMixin):
     prescription = models.ForeignKey(
         Prescription, null=True,
         help_text="Prescription that this document belongs to", on_delete=models.PROTECT)
@@ -152,6 +152,10 @@ class Document(AuditMixin):
     @property
     def is_zipped(self):
         return self.filename.endswith('.zip')
+
+    def clean(self):
+        if not self.pk:
+            self.category = self.tag.category
 
     def save(self, *args, **kwargs):
         super(Document, self).save(*args, **kwargs)

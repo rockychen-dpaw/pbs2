@@ -105,7 +105,7 @@ There are no relevant actions for this context statement.
 {% block extra_content %}
 <h1>Context Maps</h1>
 {% if prescription.endorsement_status == prescription.ENDORSEMENT_DRAFT %}
-<a href="" class="pull-right btn btn-info btn-small"><b><i class="icon-plus"></i> Upload Context Map</b></a>
+<a href="{% url 'document:prescription_document_update' prescription.id %}?tag=148&next={% url 'risk:context_update' prescription.id %}" class="pull-right btn btn-info btn-small"><b><i class="icon-plus"></i> Upload Context Map</b></a>
 {% endif %}
 {% include "document/includes/document_list.html" with document_type="Context Maps" %}
 

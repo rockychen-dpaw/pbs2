@@ -1,0 +1,14 @@
+{% extends "deleteconfirm.html" %}
+{% load i18n %}
+{% load admin_urls %}
+
+{% block breadcrumbs %}
+<ul class="breadcrumb">
+  <li><a href="{% url 'prescription:prescription_list' %}">{% trans 'Regional Overview' %}</a> <span class="divider">/</span></li>
+  <li><a href="">Document</a> <span class="divider">/</span></li>
+  <li><a href="">Documents</a> <span class="divider">/</span></li>
+  <li><a href="">{{object_list.0.document.name}}</a> <span class="divider">/</span></li>
+  <li>Delete</li>
+</ul>
+{% endblock %}
+

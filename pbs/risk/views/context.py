@@ -29,6 +29,6 @@ class ContextUpdateView(OneToOneUpdateView):
     def get_context_data(self, **kwargs):
         context = super(ContextUpdateView,self).get_context_data(**kwargs)
         context['relevant_actions'] = ContextRelevantAction.objects.filter(action__risk__prescription__id=self.pobject.id).select_related('action', 'action__risk')
-        context["document_set"] = self.pobject.document_set.filter(tag__name="Context Map")
+        context["documents"] = self.pobject.document_set.filter(tag__name="Context Map")
         return context
 

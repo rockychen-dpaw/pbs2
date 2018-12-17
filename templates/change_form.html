@@ -18,8 +18,9 @@
     {% endif %}
 </span></div>
 
-<form action="" method="post" autocomplete="off">{% csrf_token %}
+<form action="" method="post" autocomplete="off" enctype="multipart/form-data">{% csrf_token %}
     {% block form_content%}
+    
     {% endblock %}
     <div class="navbar navbar-fixed-bottom">
       <div class="navbar-inner">

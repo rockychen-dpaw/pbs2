@@ -104,7 +104,7 @@ class FieldWidgetConfigDict(FieldClassConfigDict):
             else:
                 return ("{}.{}".format(name,purpose),"{}.{}".format(self._default_key_name,purpose),self._default_key_name)
         else:
-            if purpose == 'edit' and self._meta_class.is_dbfield(name):
+            if "edit" in purpose and self._meta_class.is_dbfield(name):
                 keys = ["{}.{}".format(name,p) for p in purpose]
                 keys.append(name)
                 return keys
