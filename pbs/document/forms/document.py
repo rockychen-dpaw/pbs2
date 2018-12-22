@@ -27,7 +27,7 @@ class DocumentBaseForm(DocumentCleanMixin,DocumentConfigMixin,forms.ModelForm):
 class TaggedDocumentCreateForm(forms.EditableFieldsMixin,DocumentBaseForm):
     all_buttons = [
         BUTTON_ACTIONS["back"],
-        BUTTON_ACTIONS["upload_document"],
+        BUTTON_ACTIONS["upload"],
     ]
     class Meta:
         model = Document
@@ -38,7 +38,7 @@ class TaggedDocumentCreateForm(forms.EditableFieldsMixin,DocumentBaseForm):
 class DocumentUpdateForm(forms.EditableFieldsMixin,DocumentBaseForm):
     all_buttons = [
         BUTTON_ACTIONS["back"],
-        BUTTON_ACTIONS["upload_document"],
+        BUTTON_ACTIONS["upload"],
     ]
     class Meta:
         model = Document

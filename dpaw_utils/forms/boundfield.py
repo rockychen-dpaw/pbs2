@@ -35,7 +35,6 @@ class BoundField(forms.boundfield.BoundField):
     def initial(self):
         if self.is_display and hasattr(self.field.widget,"prepare_initial_data"):
             return self.field.widget.prepare_initial_data(self.form.initial,self.name)
-
         data = super(BoundField,self).initial
 
         #print("{}: {} = {}".format("view" if self.is_display else "edit",self.name ,data))
@@ -312,12 +311,7 @@ class BoundFormField(BoundField):
 class BoundFormSetField(BoundField):
     def __init__(self,*args,**kwargs):
         super(BoundFormSetField,self).__init__(*args,**kwargs)
-        self.formset = self.field.formset_class(data=self.form.data if self.form.is_bound else None,instances=self.initial,prefix=self.name)
-
-        if "parent_form" in inspect.getargspec(self.field.formset_class.form._clean_form)[0]:
-            self.clean = self._clean_with_form_parameter
-        else:
-            self.clean = self._clean
+        self.formset = self.field.formset_class(data=self.form.data if self.form.is_bound else None,instance_list=self.initial,prefix=self.name,parent_instance=self.form.instance)
 
     @property
     def initial(self):
@@ -340,15 +334,9 @@ class BoundFormSetField(BoundField):
         for form in self.formset:
             form._post_clean()
 
-    def _clean(self):
+    def clean(self):
         for form in self.formset:
             form._clean_form()
-
-        self.formset.clean()
-
-    def _clean_with_form_parameter(self):
-        for form in self.formset:
-            form._clean_form(self.form)
 
         self.formset.clean()
 

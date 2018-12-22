@@ -134,7 +134,6 @@
 {% url 'admin:report_evaluation_changelist' prescription.id as evaluation %}
 {% url 'admin:report_proposedaction_changelist' prescription.id as proposed_action %}
 {% url 'admin:report_postburnchecklist_changelist' prescription.id as post_burn_checklist %}
-{% url 'admin:stakeholder_criticalstakeholder_changelist' prescription.id as critical_stakeholders %}
 {% url 'admin:stakeholder_publiccontact_changelist' prescription.id as public_contacts %}
 {% url 'admin:stakeholder_notification_changelist' prescription.id as notifications %}
 {% endif %}
@@ -147,6 +146,7 @@
 {% url 'prescription:prescription_update' prescription.id as sectiona1 %}
 {% url 'risk:context_update' prescription.id as sectiona2 %}
 {% url 'prescription:prescription_home' prescription.id as overview %}
+{% url 'stakeholder:criticalstakeholder_changelist' prescription.id as critical_stakeholders %}
 {% block body %}
 <body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}" style={% page_background %}>
 {% if not is_popup %}

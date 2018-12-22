@@ -6,6 +6,8 @@ from functools import reduce
 from django.contrib.gis.db import models
 from django.utils import timezone
 from django.db.models import Q,Max
+from django.dispatch import receiver
+from django.db.models.signals import post_delete
 
 from dpaw_utils.models import (AuditMixin,ModelDictMixin)
 
@@ -175,3 +177,10 @@ class Document(ModelDictMixin,AuditMixin):
         permissions = (
             ("archive_document", "Can archive documents")
         ,)
+
+class DocumentListener(object):
+    @staticmethod
+    @receiver(post_delete, sender=Document)
+    def delete_document(sender, instance, **kwargs):
+        if instance.document:
+            instance.document.delete(False)

@@ -19,6 +19,7 @@ class PrescriptionDocumentCreateView(views.RequestActionMixin,views.SendDataThro
     urlpattern = "document/add/prescription/<int:ppk>/"
     urlname = "prescription_document_update"
     template_name_suffix = "_create"
+    default_action = "upload"
 
     @classmethod
     def _get_extra_urlpatterns(cls):

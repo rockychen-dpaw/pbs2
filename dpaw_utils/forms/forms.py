@@ -427,7 +427,6 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
             if not db_field:
                 kwargs['required'] = False
 
-            print("==============={}".format(field_name))
             try:
                 kwargs['form_class'] = opts.field_classes[field_name]
             except KeyError as ex:
@@ -452,13 +451,8 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
             field_list = OrderedDict(field_list)
             new_class.base_fields.update(field_list)
 
-        if opts.ordered_fields:
-            ordered_base_fields = OrderedDict()
-            for field in opts.ordered_fields:
-                if field in new_class.base_fields:
-                    ordered_base_fields[field] = new_class.base_fields[field]
-
-            new_class.base_fields = ordered_base_fields
+        if not opts.ordered_fields:
+            opts.ordered_fields = [f for f in new_class.base_fields.keys()]
 
         media = forms.widgets.Media()
 

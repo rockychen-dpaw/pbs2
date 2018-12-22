@@ -459,8 +459,8 @@ class OneToManyModelMixin(ParentObjectMixin):
     def deleteconfirmed_post(self):
         selected_ids = self.get_selected_ids()
         #remove selected rows.
-        for o in getattr(self.pobject,self.many_to_many_field_name).all().filter(pk__in=selected_ids):
-            getattr(self.pobject,self.many_to_many_field_name).remove(o)
+        for o in self.get_queryset().filter(pk__in=selected_ids):
+            o.delete()
 
         return HttpResponseRedirect(self.get_success_url())
         
@@ -603,14 +603,14 @@ class ListBaseView(RequestActionMixin,UrlpatternsMixin,ModelMixin,django_list_vi
     def get_context_data(self, *, object_list=None, **kwargs):
         """Get the context for this view."""
         queryset = object_list if object_list is not None else self.object_list
-        context_object_name = self.get_context_object_name(queryset)
 
         context = self.paging_context or {'object_list':queryset}
+        context_object_name = self.get_context_object_name(queryset)
         if context_object_name is not None:
             context[context_object_name] = queryset
         context.update(kwargs)
         context["object_list_length"] = len(queryset)
-        return super().get_context_data(**context)
+        return context
 
     def get_selected_ids(self,queryset=None):
         """
@@ -669,16 +669,6 @@ class ListBaseView(RequestActionMixin,UrlpatternsMixin,ModelMixin,django_list_vi
     def get_success_url(self):
         return self.request.path
 
-    def get_context_data(self, *, object_list=None, **kwargs):
-        """Get the context for this view."""
-        
-        context_object_name = self.get_context_object_name(self.paging_context["object_list"])
-        if context_object_name is not None:
-            self.paging_context[context_object_name] = self.paging_context["object_list"]
-        self.paging_context.update(kwargs)
-        return self.paging_context
-
-
 class ListView(NextUrlMixin,ListBaseView):
     listform_class = None
 
@@ -712,43 +702,12 @@ class OneToManyListView(OneToManyModelMixin,ListView):
 class ManyToManyListView(ManyToManyModelMixin,ListView):
     pass
 
-class ListUpdateView(ListBaseView):
-    formset_class = None
-    formset_prefix = None
-
-    def get_formset_class(self):
-        return self.listform_class
-
-    @property
-    def list_prefix(self):
-        prefix = self.__class__.formset_prefix
-        if not prefix:
-            prefix = self.model.__name__.lower()
-            self.__class__.formset_prefix = prefix
-
-        return prefix
-
-
-    def get(self, request, *args, **kwargs):
-        self.object_list = self.get_queryset()
-        self.formset = self.get_formset_class()(instances=self.object_list,prefix=self.list_prefix)
-        context = self.get_context_data()
-        return self.render_to_response(context)
+class ListUpdateView(ListView):
+    template_name_suffix = "_changelist"
 
     def post(self,request,*args,**kwargs):
         raise Http404("Post method is not supported.")
 
-    def get_context_data(self,**kwargs):
-        context_data = super(ListUpdateView,self).get_context_data(**kwargs)
-        context_data["title"] = self.title or "{} List".format(self.model._meta.verbose_name)
-        context_data["formset"] = self.formset
-        context_data["requesturl"] = self.requesturl
-        if self.get_filter_class():
-            context_data["filterform"] = self.filterform
-
-
-        return context_data
-
-class OneToManyListUpdateView(OneToOneModelMixin,ListUpdateView):
+class OneToManyListUpdateView(OneToManyModelMixin,ListUpdateView):
     pass
 

@@ -4,7 +4,7 @@ from django.contrib.gis.db import models
 from django.utils import timezone
 
 
-from dpaw_utils.models import AuditMixin
+from dpaw_utils.models import AuditMixin,ModelDictMixin
 
 from pbs.prescription.models import Prescription
 
@@ -12,7 +12,7 @@ from pbs.prescription.models import Prescription
 logger = logging.getLogger("log." + __name__)
 # Create your models here.
 
-class CriticalStakeholder(AuditMixin):
+class CriticalStakeholder(ModelDictMixin,AuditMixin):
     prescription = models.ForeignKey(Prescription, on_delete=models.PROTECT)
     name = models.CharField(max_length=320)
     organisation = models.CharField(max_length=320)

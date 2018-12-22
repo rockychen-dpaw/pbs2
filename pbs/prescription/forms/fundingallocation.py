@@ -37,9 +37,10 @@ class FundingAllocationBaseForm(FundingAllocationCleanMixin,FundingAllocationCon
 
 class FundingAllocationUpdateForm(FundingAllocationBaseForm):
 
-    def _clean_form(self,parent_form=None):
-        if parent_form:
-            self.instance.prescription = parent_form.instance
+    def __init__(self,parent_instance=None,*args,**kwargs):
+        super(FundingAllocationUpdateForm,self).__init__(*args,**kwargs)
+        if parent_instance:
+            self.instance.prescription = parent_instance
 
     @property
     def can_delete(self):

@@ -91,11 +91,15 @@ class ListDataForm(django_forms.BaseForm,collections.Iterable):
         pass
 
     def __iter__(self):
-        self._iterator = self.listform.fields.keys().__iter__()
+        self._index = -1
         return self
 
     def __next__(self):
-        return self.listform[self._iterator.__next__()]
+        self._index += 1
+        if self._index >= len(self.listform._meta.ordered_fields):
+            raise StopIteration()
+        else:
+            return self.listform[self.listform._meta.ordered_fields[self._index]]
 
     def as_table(self):
         "Return this form rendered as HTML <tr>s -- excluding the <table></table>."
@@ -162,14 +166,19 @@ class ListModelFormMetaclass(forms.BaseModelFormMetaclass,collections.Iterable._
 class BoundFieldIterator(collections.Iterable):
     def __init__(self,form):
         self.form = form
-        self._iterator = None
+        self._index = None
+        self._length = len(self.form._meta.ordered_fields)
 
     def __iter__(self):
-        self._iterator = self.form.fields.keys().__iter__()
+        self._index = -1
         return self
 
     def __next__(self):
-        return self.form[self._iterator.__next__()]
+        self._index += 1
+        if self._index >= self._length:
+            raise StopIteration()
+        else:
+            return self.form[self.form._meta.ordered_fields[self._index]]
 
 class ToggleableFieldIterator(collections.Iterable):
     def __init__(self,form):
