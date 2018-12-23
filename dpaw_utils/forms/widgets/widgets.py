@@ -85,6 +85,7 @@ class DatetimeDisplay(DisplayWidget):
             return ""
 
 class Hyperlink(DisplayWidget):
+    template = None
     def __init__(self,**kwargs):
         super(Hyperlink,self).__init__(**kwargs)
         self.widget = self.widget_class(**kwargs)
@@ -114,8 +115,10 @@ class Hyperlink(DisplayWidget):
 
     def render(self,name,value,attrs=None,renderer=None):
         if value :
-            if value[1]:
-                return "<a href='{}'>{}</a>".format(value[1],self.widget.render(name,value[0],attrs,renderer)) if value else ""
+            if self.template:
+                return self.template.format(url=value[1],widget=self.widget.render(name,value[0],attrs,renderer))
+            elif value[1]:
+                return "<a href='{}'>{}</a>".format(value[1],self.widget.render(name,value[0],attrs,renderer))
             else:
                 return self.widget.render(name,value[0],attrs,renderer)
         else:
@@ -123,14 +126,14 @@ class Hyperlink(DisplayWidget):
 
 widget_classes = {}
 widget_class_id = 0
-def HyperlinkFactory(field_name,url_name,widget_class=TextDisplay,ids=[("id","pk")],baseclass=Hyperlink):
+def HyperlinkFactory(field_name,url_name,widget_class=TextDisplay,ids=[("id","pk")],baseclass=Hyperlink,template=None):
     global widget_class_id
-    key = hashvalue("{}{}{}".format(baseclass.__name__,url_name,field_name))
+    key = hashvalue("{}{}{}{}".format(baseclass.__name__,url_name,field_name,template))
     cls = widget_classes.get(key)
     if not cls:
         widget_class_id += 1
         class_name = "{}_{}".format(baseclass.__name__,widget_class_id)
-        cls = type(class_name,(baseclass,),{"url_name":url_name,"widget_class":widget_class,"ids":ids})
+        cls = type(class_name,(baseclass,),{"url_name":url_name,"widget_class":widget_class,"ids":ids,"template":template})
         widget_classes[key] = cls
     return cls
 

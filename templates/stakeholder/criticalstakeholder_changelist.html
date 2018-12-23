@@ -1,2 +1,21 @@
 {% extends "../changelist.html" %}
 {% load i18n %}
+
+{% block breadcrumbs %}
+<ul class="breadcrumb">
+  <li><a href="{% url 'prescription:prescription_list' %}">{% trans 'Regional Overview' %}</a> <span class="divider">/</span></li>
+  <li><a href="{% url 'prescription:prescription_home' prescription.id %}">{{ prescription.burn_id }}</a> <span class="divider">/</span></li>
+  <li><a href="% url 'report:prescription_pre_state_update' object.id %}">Part A</a> <span class="divider">/</span></li>
+  <li>Section A2 &#x2010; Critical Stakeholders</li>
+</ul>
+{% endblock %}
+
+{% block pretitle %}
+<ul class="nav nav-tabs">
+    <li><a href="{% url 'risk:context_update' prescription.id %}"><i class="icon-legal"></i> Risk management context statement</a></li>
+    <li class="active"><a href="{% url 'stakeholder:criticalstakeholder_changelist' prescription.id  %}"><i class="icon-user"></i> Critical stakeholders</a></li>
+    <li><a href=""><i class="icon-legal"></i> Actions</a></li>
+    <li><a href=""><i class="icon-warning-sign"></i> Risk Register</a></li>
+</ul>
+{% endblock %}
+

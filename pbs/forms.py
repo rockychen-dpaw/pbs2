@@ -11,7 +11,7 @@ BUTTON_ACTIONS = {
     "upload":forms.Action("upload","button","Upload",{"class":"btn btn-success","type":"submit"}),
     "download":forms.Action("download","button","Download",{"class":"btn btn-success btn-block","type":"submit","style":"width:260px"}),
     "deleteconfirm":forms.Action("delete","button","Delete",{"class":"btn btn-success btn-block","type":"submit","style":"width:260px"}),
-    "deleteconfirmed":forms.Action("delete","button","Delete",{"class":"btn btn-success btn-block","type":"submit","style":"width:260px"})
+    "deleteconfirmed":forms.Action("delete","button","Delete",{"class":"btn btn-success btn-block","type":"submit","style":"width:260px"}),
 
 }
 
@@ -24,8 +24,10 @@ OPTION_ACTIONS = {
     "bulk_corporate_approve":forms.Action("bulk_corporate_approve","option","Apply corporate approval")
 }
 
-def get_action(action_name):
-    return BUTTON_ACTIONS.get(action_name) or OPTION_ACTIONS.get(action_name)
+class GetActionMixin(object):
+    def get_action(self,action_name):
+        return BUTTON_ACTIONS.get(action_name) or OPTION_ACTIONS.get(action_name)
+
 
 class UserForm(forms.ModelForm):
 

@@ -28,16 +28,13 @@ class PrescriptionCreateView(CreateView):
     form_class = PrescriptionCreateForm
     template_name_suffix = "_create"
 
-class PrescriptionHomeView(RequestActionMixin,ReadonlyView):
+class PrescriptionHomeView(pbs.forms.GetActionMixin,RequestActionMixin,ReadonlyView):
     urlname = "{}_home"
     model = Prescription
     form_class = PrescriptionViewForm
     template_name_suffix = "_home"
     title = "ePFP Overview"
     context_object_name = "prescription"
-
-    def get_action(self,action_name):
-        return pbs.forms.get_action(action_name)
 
     @classmethod
     def _get_extra_urlpatterns(cls):
@@ -230,7 +227,7 @@ class PrescriptionHomeView(RequestActionMixin,ReadonlyView):
             send_mail(subject, message, email_from, email_to)
 
         
-class PrescriptionUpdateView(UpdateView):
+class PrescriptionUpdateView(pbs.forms.GetActionMixin,UpdateView):
     urlpattern = "prescription/<int:pk>/summary/pre/"
     urlname = "{}_update"
     model = Prescription
@@ -247,10 +244,6 @@ class PrescriptionUpdateView(UpdateView):
             return DraftPrescriptionUpdateForm
         else:
             return PrescriptionUpdateForm
-
-    def get_action(self,action_name):
-        return pbs.forms.get_action(action_name)
-
 
 class PrescriptionListView(ListView):
     title = "Regional Overview"

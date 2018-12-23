@@ -93,7 +93,8 @@ class AjaxRequestMixin(object):
 
 class RequestActionMixin(AjaxRequestMixin):
     action = None
-    default_action = None
+    default_get_action = None
+    default_post_action = None
     def get_action(self,action_name):
         raise Exception('Not Implemented')
 
@@ -114,11 +115,11 @@ class RequestActionMixin(AjaxRequestMixin):
             elif request.method == "GET":
                 if "action" in request.GET:
                     self.action = request.GET["action"]
+                    self.action = self.action if self.action and self.action != self.default_get_action else None
             else:
                 if "action" in request.POST:
                     self.action = request.POST["action"]
-
-            self.action = self.action if self.action and self.action != self.default_action else None
+                    self.action = self.action if self.action and self.action != self.default_post_action else None
 
             if self.action :
                 if not self.has_permission(request,self.action):
@@ -671,6 +672,8 @@ class ListBaseView(RequestActionMixin,UrlpatternsMixin,ModelMixin,django_list_vi
 
 class ListView(NextUrlMixin,ListBaseView):
     listform_class = None
+    default_post_action = 'save'
+    default_get_action = 'search'
 
     def get_listform_class(self):
         return self.listform_class
@@ -703,6 +706,8 @@ class ManyToManyListView(ManyToManyModelMixin,ListView):
     pass
 
 class ListUpdateView(ListView):
+    default_post_action = 'save'
+    default_get_action = 'search'
     template_name_suffix = "_changelist"
 
     def post(self,request,*args,**kwargs):

@@ -7,7 +7,7 @@ from ..forms import (RegionalObjectiveListForm,)
 from dpaw_utils import views
 import pbs.forms
 
-class PrescriptionObjectiveUpdateView(views.ManyToManyListView):
+class PrescriptionObjectiveUpdateView(pbs.forms.GetActionMixin,views.ManyToManyListView):
     title = "Select Regional Fire Management Plan Objectives"
     pmodel = Prescription
     model = RegionalObjective
@@ -33,10 +33,6 @@ class PrescriptionObjectiveUpdateView(views.ManyToManyListView):
 
     def get_success_url(self):
         return urls.reverse("risk:context_update",args=(self.pobject.id,))
-
-    def get_action(self,action_name):
-        return pbs.forms.get_action(action_name)
-
 
     def get_context_data(self,**kwargs):
         context_data = super().get_context_data(**kwargs)

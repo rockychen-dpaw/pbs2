@@ -14,7 +14,7 @@ from django.core.exceptions import ValidationError
 from . import widgets
 from . import fields
 from .boundfield import (BoundField,CompoundBoundField,BoundFormField,BoundFormSetField)
-from .fields import (CompoundField,FormField,FormSetField)
+from .fields import (CompoundField,FormField,FormSetField,AliasFieldMixin)
 
 from .utils import FieldClassConfigDict,FieldWidgetConfigDict,SubpropertyEnabledDict,ChainDict
 from ..models import DictMixin
@@ -389,7 +389,7 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
                         #a sub property of a model property
                         model_field = None
                 else:
-                    if hasattr(opts,"field_classes")  and opts.field_classes and field_name in opts.field_classes and (isinstance(opts.field_classes[field_name],CompoundField) or issubclass(opts.field_classes[field_name],CompoundField)):
+                    if hasattr(opts,"field_classes")  and opts.field_classes and field_name in opts.field_classes and (isinstance(opts.field_classes[field_name],AliasFieldMixin) or issubclass(opts.field_classes[field_name],AliasFieldMixin)):
                         #it is a compound field, field itself doesn't need to be a real property or field in model class
                         pass
                     else:

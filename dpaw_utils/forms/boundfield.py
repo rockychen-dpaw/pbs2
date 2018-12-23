@@ -11,6 +11,8 @@ from . import widgets
 from . import fields
 
 class BoundField(forms.boundfield.BoundField):
+    def __init__(self, form, field, name):
+        super(BoundField,self).__init__(form,field,field.field_name if isinstance(field,fields.AliasFieldMixin) else name)
     """ 
     Extend django's BoundField to support the following features
     1. Get extra css_classes from field's attribute 'css_classes'
@@ -30,6 +32,11 @@ class BoundField(forms.boundfield.BoundField):
     @property
     def is_display(self):
         return isinstance(self.field.widget,widgets.DisplayMixin)
+
+    @property
+    def is_hidden(self):
+        return isinstance(self.field.widget,widgets.Hidden) and not self.field.widget.display_widget
+
 
     @property
     def initial(self):
@@ -87,6 +94,9 @@ class BoundField(forms.boundfield.BoundField):
         attributes passed as attrs.  If no widget is specified, then the
         field's default widget will be used.
         """
+        if self.is_hidden:
+            attrs = {'style':'display:none'}
+
         html = super(BoundField,self).as_widget(widget,attrs,only_initial)
         if not self.is_display and self.name in self.form.errors:
             html =  "<div class=\"error\">{}<p class=\"text-error\"><i class=\"icon-warning-sign\"></i> {}</p></div>".format(html,"<br>".join(self.form.errors[self.name]))
@@ -99,7 +109,7 @@ class CompoundBoundField(BoundField):
     The boundfield for compound field
     """
     def __init__(self, form, field, name):
-        super(CompoundBoundField,self).__init__(form,field,field.field_name)
+        super(CompoundBoundField,self).__init__(form,field,name)
         self.related_fields = [self.form[name] for name in field.related_field_names]
 
     def __str__(self):
@@ -225,7 +235,9 @@ class ListBoundFieldMixin(object):
     def html_header(self,template):
         label = (conditional_escape(self.label) or '') if self.label else ''
 
-        if not self.sortable:
+        if self.is_hidden:
+            attrs = " style='display:none'"
+        elif not self.sortable:
             if hasattr(self.field,"css_classes"):
                 attrs = " class=\"{}\"".format(" ".join(self.field.css_classes))
             else:
@@ -241,7 +253,9 @@ class ListBoundFieldMixin(object):
         return mark_safe(template.format(label=label,attrs=attrs))
 
     def html(self,template):
-        if hasattr(self.field,"css_classes"):
+        if self.is_hidden:
+            attrs = " style='display:none'"
+        elif hasattr(self.field,"css_classes"):
             attrs = " class=\"{}\"".format(" ".join(self.field.css_classes))
         else:
             attrs = ""

@@ -88,11 +88,30 @@ def OverrideFieldFactory(model,field_name,field_class=None,**kwargs):
         #print("{}.{}={}".format(field_name,field_classes[class_key],field_classes[class_key].get_layout))
     return field_classes[class_key]
 
-class CompoundField(FieldParametersMixin):
+class AliasFieldMixin(object):
+    field_name = None
+
+def AliasFieldFactory(model,field_name,field_class=None,field_params=None):
+    global class_id
+    field_class = field_class or model._meta.get_field(field_name).formfield().__class__
+    if field_params:
+        class_key = hashvalue("AliasField<{}.{}{}{}{}>".format(model.__module__,model.__name__,field_name,field_class,json.dumps(field_params,cls=_JSONEncoder)))
+    else:
+        class_key = hashvalue("AliasField<{}.{}{}{}>".format(model.__module__,model.__name__,field_name,field_class))
+
+    if class_key not in field_classes:
+        class_id += 1
+        class_name = "{}_{}".format(field_class.__name__,class_id)
+        if field_params:
+            field_classes[class_key] = type(class_name,(FieldParametersMixin,AliasFieldMixin,field_class),{"field_name":field_name,"field_params":field_params})
+        else:
+            field_classes[class_key] = type(class_name,(AliasFieldMixin,field_class),{"field_name":field_name})
+    return field_classes[class_key]
+
+class CompoundField(AliasFieldMixin,FieldParametersMixin):
     """
     A base class of compund field which consists of multiple form fields
     """
-    field_name = None
     related_field_names = []
     field_mixin = None
     hidden_layout = None
