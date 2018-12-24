@@ -691,6 +691,7 @@ class ListView(NextUrlMixin,ListBaseView):
         context_data = super(ListView,self).get_context_data(**kwargs)
         context_data["title"] = self.title or "{} List".format(self.model._meta.verbose_name)
         context_data["listform"] = self.listform
+        context_data["modelname"] = self.model_verbose_name
         context_data["requesturl"] = self.requesturl
         if self.nexturl:
             context_data["nexturl"] = self.nexturl

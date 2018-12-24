@@ -11,6 +11,7 @@ class BaseFormSet(formsets.BaseFormSet):
     def __init__(self,parent_instance=None,instance_list=None,*args,**kwargs):
         if "prefix" not in kwargs:
             kwargs["prefix"] = self.__class__.default_prefix
+        kwargs['initial']=instance_list
         super(BaseFormSet,self).__init__(*args,**kwargs)
         self.instance_list = instance_list
         self.parent_instance = parent_instance
@@ -67,12 +68,13 @@ def formset_factory(form, formset=BaseFormSet, extra=1, can_order=False,
 
 
 class ListUpdateForm(forms.ActionMixin,forms.RequestUrlMixin,forms.RequestMixin,BaseFormSet):
-
+    model_name_lower=None
+    model_primary_key = "id"
     @property
     def form_instance(self):
         if len(self) > 0:
             return self[0]
-        elif not self._form_instance:
+        elif not hasattr(self,"_form_instance"):
             self._form_instance = self.form()
         return self._form_instance
 
@@ -119,6 +121,7 @@ def listupdateform_factory(form, formset=ListUpdateForm, extra=1, can_order=Fals
     cls = formsets.formset_factory(form,formset=formset,extra=extra,can_order=can_order,can_delete=can_delete,max_num=max_num,validate_max=validate_max,min_num=min_num,validate_min=validate_min)
     cls.primary_field = primary_field
     cls.default_prefix = form._meta.model.__name__.lower()
+    cls.model_name_lower = form._meta.model.__name__.lower()
     if all_actions:
         cls.all_actions = all_actions
     if all_buttons:

@@ -23,8 +23,8 @@ class CriticalStakeholderConfigMixin(object):
             "id.edit":forms.widgets.Hidden(),
             'name.edit':forms.widgets.TextInput(attrs={"class":"vTextField"}),
             'organization.edit':forms.widgets.TextInput(attrs={"class":"vTextField"}),
-            'interest.edit':forms.widgets.Textarea(attrs={"class":"vTextField"}),
-            "delete.view":forms.widgets.HyperlinkFactory("id","stakeholder:prescription_criticalstakeholders_delete_confirm",ids=[("id","pk"),("prescription","ppk")],template="<a class='inline-deletelink' title='Delete' href='{url}'><img src='/static/img/delete.png' style='width:32px;height:32px'> </a>")
+            'interest.edit':forms.widgets.Textarea(attrs={"class":"vTextField","rows":3}),
+            "delete.view":forms.widgets.HyperlinkFactory("id","stakeholder:prescription_criticalstakeholders_delete_confirm",ids=[("id","pk"),("prescription","ppk")],template="<button id='delete' title='Delete' onclick='window.location=\"{url}\"' type='button' style='display:none' >Delete</button>")
         }
         labels = {
             "delete":""
@@ -53,7 +53,7 @@ class CriticalStakeholderUpdateForm(CriticalStakeholderBaseForm):
         ordered_fields = ("id",'name','organization','interest',"delete")
 
 
-CriticalStakeholderListUpdateForm = forms.listupdateform_factory(CriticalStakeholderUpdateForm,min_num=1,max_num=100,extra=0,all_buttons=[BUTTON_ACTIONS.get('back'),BUTTON_ACTIONS.get('save')])
+CriticalStakeholderListUpdateForm = forms.listupdateform_factory(CriticalStakeholderUpdateForm,min_num=0,max_num=100,extra=1,all_buttons=[BUTTON_ACTIONS.get('back'),BUTTON_ACTIONS.get('save')])
         
 class CriticalStakeholderBaseListForm(CriticalStakeholderConfigMixin,forms.ListForm):
     class Meta:

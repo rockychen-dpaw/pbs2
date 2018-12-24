@@ -459,9 +459,14 @@ class Hidden(forms.Widget):
         self.display_widget = display_widget
 
     def render(self,name,value,attrs=None,renderer=None):
-        if self.display_widget:
-            return "<input type='hidden' name='{}' value='{}' >{}".format(name,"" if value is None else value,self.display_widget.render(name,value,attrs,renderer))
+        if attrs and "id" in attrs:
+            htmlid = "id='{}'".format(attrs["id"])
+            del attrs["id"]
         else:
-            return "<input type='hidden' name='{}' value='{}' >".format(name,"" if value is None else value)
+            htmlid = ""
+        if self.display_widget:
+            return "<input type='hidden' name='{}' value='{}' {} >{}".format(name,"" if value is None else value,htmlid,self.display_widget.render(name,value,attrs,renderer))
+        else:
+            return "<input type='hidden' name='{}' value='{}' {} >".format(name,"" if value is None else value,htmlid)
         return to_str(value)
 
