@@ -712,8 +712,29 @@ class ListUpdateView(ListView):
     template_name_suffix = "_changelist"
 
     def post(self,request,*args,**kwargs):
-        raise Http404("Post method is not supported.")
+        self.object_list = self.get_queryset()
+        self.listform = self.get_listform_class()(instance_list=self.object_list,data=request.POST,request=self.request,requesturl = self.requesturl)
+        if self.listform.is_valid():
+            return self.valid_form()
+        else:
+            return self.invalid_form()
 
+    def invalid_form(self):
+        context = self.get_context_data()
+        return self.render_to_response(context)
+
+    def valid_form(self):
+        self.listform.save()
+        return HttpResponseRedirect(self.get_success_url())
+
+        
 class OneToManyListUpdateView(OneToManyModelMixin,ListUpdateView):
-    pass
+    def post(self,request,*args,**kwargs):
+        self.object_list = self.get_queryset()
+        self.listform = self.get_listform_class()(instance_list=self.object_list,data=request.POST,request=self.request,requesturl = self.requesturl,parent_instance=self.pobject)
+        if self.listform.is_valid():
+            return self.valid_form()
+        else:
+            return self.invalid_form()
+
 

@@ -171,12 +171,20 @@
                 ev.stopPropagation()
             }
         }
+        var formTemplate = `<tr > 
+                {% for field in listform.template_form.boundfields %}
+                    {% call_method field "html" "<td{attrs}>{widget}</td>"%}
+                {% endfor %}
+            </tr>`;
+
+
         $('#{{listform.model_name_lower}}_result_list tbody tr').formset({
             prefix: '{{ listform.prefix }}',
             formCssClass: '{{listform.model_name_lower}}_fs',
             addText: '<i class="icon-plus"></i> Add Another {{ modelname  }}',
             deleteText: '<img onclick="deleteForm(event)" src="/static/img/delete.png" style="width:32px;height:32px;"></img>',
             deleteCssClass: 'delete-row' + '-' + '{{ listform.prefix  }}',
+            formTemplate:$(formTemplate)
         });
  
     </script>

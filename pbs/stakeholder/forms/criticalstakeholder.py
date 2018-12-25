@@ -22,7 +22,7 @@ class CriticalStakeholderConfigMixin(object):
             "__default__.edit":forms.widgets.TextInput(),
             "id.edit":forms.widgets.Hidden(),
             'name.edit':forms.widgets.TextInput(attrs={"class":"vTextField"}),
-            'organization.edit':forms.widgets.TextInput(attrs={"class":"vTextField"}),
+            'organisation.edit':forms.widgets.TextInput(attrs={"class":"vTextField"}),
             'interest.edit':forms.widgets.Textarea(attrs={"class":"vTextField","rows":3}),
             "delete.view":forms.widgets.HyperlinkFactory("id","stakeholder:prescription_criticalstakeholders_delete_confirm",ids=[("id","pk"),("prescription","ppk")],template="<button id='delete' title='Delete' onclick='window.location=\"{url}\"' type='button' style='display:none' >Delete</button>")
         }
@@ -44,16 +44,18 @@ class CriticalStakeholderUpdateForm(CriticalStakeholderBaseForm):
 
     @property
     def can_delete(self):
-        return False
+        if not self.cleaned_data.get("id") and not self.cleaned_data.get("name") and not self.cleaned_data.get("interest"):
+            print("{}={}".format(self.data,self.cleaned_data))
+        return not self.cleaned_data.get("id") and not self.cleaned_data.get("name") and not self.cleaned_data.get("interest")
 
     class Meta:
         model = CriticalStakeholder
-        all_fields = ('name','organization',"interest","id","delete")
-        editable_fields = ('id','name','organization',"interest")
-        ordered_fields = ("id",'name','organization','interest',"delete")
+        all_fields = ('name','organisation',"interest","id","delete")
+        editable_fields = ('id','name','organisation',"interest")
+        ordered_fields = ("id",'name','organisation','interest',"delete")
 
 
-CriticalStakeholderListUpdateForm = forms.listupdateform_factory(CriticalStakeholderUpdateForm,min_num=0,max_num=100,extra=1,all_buttons=[BUTTON_ACTIONS.get('back'),BUTTON_ACTIONS.get('save')])
+CriticalStakeholderListUpdateForm = forms.listupdateform_factory(CriticalStakeholderUpdateForm,min_num=0,max_num=100,extra=1,all_buttons=[BUTTON_ACTIONS.get('back'),BUTTON_ACTIONS.get('save')],can_delete=True)
         
 class CriticalStakeholderBaseListForm(CriticalStakeholderConfigMixin,forms.ListForm):
     class Meta:

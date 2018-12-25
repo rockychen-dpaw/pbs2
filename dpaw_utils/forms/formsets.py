@@ -1,6 +1,7 @@
 from django.forms import formsets
 from django.core.exceptions import ObjectDoesNotExist
 from django.forms.formsets import DELETION_FIELD_NAME
+from django.db import transaction
 
 from . import forms
 from .listform import (ToggleableFieldIterator,BoundFieldIterator,ListModelFormMetaclass)
@@ -50,10 +51,9 @@ class BaseFormSet(formsets.BaseFormSet):
 
     def _should_delete_form(self,form):
         """Return whether or not the form was marked for deletion."""
-        if hasattr(form,"can_delete"):
+        should_delete = super(BaseFormSet,self)._should_delete_form(form)
+        if not should_delete and hasattr(form,"can_delete"):
             should_delete = form.can_delete
-        else:
-            should_delete = super(BaseFormSet,self)._should_delete_form(form)
         form.cleaned_data[DELETION_FIELD_NAME] = should_delete
         return should_delete
 
@@ -89,6 +89,31 @@ class ListUpdateForm(forms.ActionMixin,forms.RequestUrlMixin,forms.RequestMixin,
     @property
     def boundfields(self):
         return BoundFieldIterator(self.form_instance)
+
+    def full_clean(self):
+        super().full_clean()
+        if not self.is_bound:  # Stop further processing.
+            return
+        for i in range(0, self.total_form_count()):
+            form = self.forms[i]
+            if self.can_delete and self._should_delete_form(form):
+                if form._errors:
+                    form._errors.clear()
+ 
+    def save(self):
+        if not self.is_bound:  # Stop further processing.
+            return
+        with transaction.atomic():
+            for i in range(0, self.total_form_count()):
+                form = self.forms[i]
+                if self.can_delete and self._should_delete_form(form):
+                    if form.instance.pk:
+                        form.instance.delete()
+                    continue
+                form.save()
+
+ 
+
 
 class ListMemberForm(forms.ModelForm,metaclass=ListModelFormMetaclass):
     def __getitem__(self, name):
@@ -126,6 +151,10 @@ def listupdateform_factory(form, formset=ListUpdateForm, extra=1, can_order=Fals
         cls.all_actions = all_actions
     if all_buttons:
         cls.all_buttons = all_buttons
+
+    cls.template_form = form()
+    for field in cls.template_form.fields.values():
+        field.required=False
 
     return cls
 

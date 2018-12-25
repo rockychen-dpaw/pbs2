@@ -301,6 +301,11 @@ class ListForm(forms.ActionMixin,forms.RequestUrlMixin,forms.ModelFormMetaMixin,
         else:
             return 0
 
+    @property
+    def first(self):
+        self.index = 0
+        return self.dataform
+
     def __iter__(self):
         self.index = -1
         return self

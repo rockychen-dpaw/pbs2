@@ -25,7 +25,13 @@ class FieldClassConfigDict(dict):
         self._purpose = self._meta_class.purpose if self._meta_class and hasattr(self._meta_class,"purpose") else None
 
     def purpose(self,name):
-        return self._purpose or ("edit" if (self._editable_fields is None or name in self._editable_fields) else "view")
+        if self._purpose:
+            if "edit" in self._purpose:
+                return self._purpose if (self._editable_fields is None or name in self._editable_fields) else "view"
+            else:
+                return self._purpose
+        else:
+            return "edit" if (self._editable_fields is None or name in self._editable_fields) else "view"
 
     def search_keys(self,name,purpose=None):
         purpose = purpose or self.purpose(name)
