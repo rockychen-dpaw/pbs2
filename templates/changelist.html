@@ -171,11 +171,11 @@
                 ev.stopPropagation()
             }
         }
-        var formTemplate = `<tr > 
-                {% for field in listform.template_form.boundfields %}
+        var formTemplate = `{% for form in listform.template_forms %}<tr> 
+                {% for field in form.boundfields %}
                     {% call_method field "html" "<td{attrs}>{widget}</td>"%}
                 {% endfor %}
-            </tr>`;
+            </tr>{% endfor %}`;
 
 
         $('#{{listform.model_name_lower}}_result_list tbody tr').formset({

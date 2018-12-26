@@ -24,28 +24,21 @@ class CriticalStakeholderConfigMixin(object):
             'name.edit':forms.widgets.TextInput(attrs={"class":"vTextField"}),
             'organisation.edit':forms.widgets.TextInput(attrs={"class":"vTextField"}),
             'interest.edit':forms.widgets.Textarea(attrs={"class":"vTextField","rows":3}),
-            "delete.view":forms.widgets.HyperlinkFactory("id","stakeholder:prescription_criticalstakeholders_delete_confirm",ids=[("id","pk"),("prescription","ppk")],template="<button id='delete' title='Delete' onclick='window.location=\"{url}\"' type='button' style='display:none' >Delete</button>")
+            "delete.view":forms.widgets.HyperlinkFactory("id","stakeholder:prescription_criticalstakeholder_delete_confirm",ids=[("id","pk"),("prescription","ppk")],template="<button id='delete' title='Delete' onclick='window.location=\"{url}\"' type='button' style='display:none' >Delete</button>")
         }
         labels = {
             "delete":""
         }
 
 
-class CriticalStakeholderBaseForm(CriticalStakeholderCleanMixin,CriticalStakeholderConfigMixin,forms.ListMemberForm):
-    class Meta:
-        pass
-
-class CriticalStakeholderUpdateForm(CriticalStakeholderBaseForm):
-
+class CriticalStakeholderMemberUpdateForm(CriticalStakeholderCleanMixin,CriticalStakeholderConfigMixin,forms.ListMemberForm):
     def __init__(self,parent_instance=None,*args,**kwargs):
-        super(CriticalStakeholderUpdateForm,self).__init__(*args,**kwargs)
+        super(CriticalStakeholderMemberUpdateForm,self).__init__(*args,**kwargs)
         if parent_instance:
             self.instance.prescription = parent_instance
 
     @property
     def can_delete(self):
-        if not self.cleaned_data.get("id") and not self.cleaned_data.get("name") and not self.cleaned_data.get("interest"):
-            print("{}={}".format(self.data,self.cleaned_data))
         return not self.cleaned_data.get("id") and not self.cleaned_data.get("name") and not self.cleaned_data.get("interest")
 
     class Meta:
@@ -55,7 +48,7 @@ class CriticalStakeholderUpdateForm(CriticalStakeholderBaseForm):
         ordered_fields = ("id",'name','organisation','interest',"delete")
 
 
-CriticalStakeholderListUpdateForm = forms.listupdateform_factory(CriticalStakeholderUpdateForm,min_num=0,max_num=100,extra=1,all_buttons=[BUTTON_ACTIONS.get('back'),BUTTON_ACTIONS.get('save')],can_delete=True)
+CriticalStakeholderListUpdateForm = forms.listupdateform_factory(CriticalStakeholderMemberUpdateForm,min_num=0,max_num=100,extra=1,all_buttons=[BUTTON_ACTIONS.get('back'),BUTTON_ACTIONS.get('save')],can_delete=True)
         
 class CriticalStakeholderBaseListForm(CriticalStakeholderConfigMixin,forms.ListForm):
     class Meta:

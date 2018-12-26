@@ -22,8 +22,8 @@ class CriticalStakeholderListUpdateView(pbs.forms.GetActionMixin,OneToManyListUp
     def _get_extra_urlpatterns(cls):
         model_name = cls.model.__name__.lower()
         return [
-            path('prescription/<int:ppk>/criticalstakeholder/<int:pk>/deleteconfirm', cls.as_view(),{"action":"deleteconfirm"},name='prescription_criticalstakeholders_delete_confirm'),
-            path('prescription/<int:ppk>/criticalstakeholder/delete', cls.as_view(),{"action":"deleteconfirmed"},name='prescription_criticalstakeholders_delete'),
+            path('prescription/<int:ppk>/criticalstakeholder/<int:pk>/deleteconfirm', cls.as_view(),{"action":"deleteconfirm"},name='prescription_criticalstakeholder_delete_confirm'),
+            path('prescription/<int:ppk>/criticalstakeholders/delete', cls.as_view(),{"action":"deleteconfirmed"},name='prescription_criticalstakeholders_delete'),
         ]
 
     @property

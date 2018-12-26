@@ -152,8 +152,8 @@ def listupdateform_factory(form, formset=ListUpdateForm, extra=1, can_order=Fals
     if all_buttons:
         cls.all_buttons = all_buttons
 
-    cls.template_form = form()
-    for field in cls.template_form.fields.values():
+    cls.template_forms = formsets.formset_factory(form,formset=formset,extra=1,min_num=1,max_num=1)(prefix=cls.default_prefix)
+    for field in cls.template_forms[0].fields.values():
         field.required=False
 
     return cls

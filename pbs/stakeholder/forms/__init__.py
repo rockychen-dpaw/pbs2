@@ -1,1 +1,1 @@
-from .criticalstakeholder import (CriticalStakeholderUpdateForm,CriticalStakeholderListUpdateForm,CriticalStakeholderListForm)
+from .criticalstakeholder import (CriticalStakeholderListUpdateForm,CriticalStakeholderListForm)

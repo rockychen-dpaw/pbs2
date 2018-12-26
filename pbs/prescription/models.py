@@ -1393,7 +1393,7 @@ class FundingAllocation(ModelDictMixin,models.Model):
     class Meta:
         unique_together = ('prescription', 'allocation')
 
-class Objective(AuditMixin):
+class Objective(ModelDictMixin,AuditMixin):
     """
     """
     prescription = models.ForeignKey(

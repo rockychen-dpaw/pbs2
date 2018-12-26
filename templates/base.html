@@ -147,6 +147,7 @@
 {% url 'risk:context_update' prescription.id as sectiona2 %}
 {% url 'prescription:prescription_home' prescription.id as overview %}
 {% url 'stakeholder:criticalstakeholder_changelist' prescription.id as critical_stakeholders %}
+{% url 'prescription:prescription_objective_changelist' prescription.id as objectives_url %}
 {% block body %}
 <body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}" style={% page_background %}>
 {% if not is_popup %}
