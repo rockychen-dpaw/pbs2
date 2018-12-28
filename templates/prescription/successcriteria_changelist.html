@@ -6,7 +6,7 @@
   <li><a href="{% url 'prescription:prescription_list' %}">{% trans 'Regional Overview' %}</a> <span class="divider">/</span></li>
   <li><a href="{% url 'prescription:prescription_home' prescription.id %}">{{ prescription.burn_id }}</a> <span class="divider">/</span></li>
   <li><a href="% url 'report:prescription_pre_state_update' object.id %}">Part A</a> <span class="divider">/</span></li>
-  <li>Section A3 &#x2010; Burn Objectives</li>
+  <li>Section A3 &#x2010; Success Criteria</li>
 </ul>
 
 
@@ -17,7 +17,7 @@
       <th scope="col">Region</th>
       <th scope="col">Scale of Application</th>
       <th scope="col">Fire Management Areas</th>
-      <th scope="col" colspan=2>Objectives</th>
+      <th scope="col">Objectives</th>
     </tr>
   </thead>
   <tbody>
@@ -27,11 +27,6 @@
       <td>{{ objective.get_impact_display }}</td>
       <td>{% if objective.fma_names %}{{ objective.fma_names }}{% else %}None{% endif %}</td>
       <td>{{ objective.objectives }}</td>
-      <td>
-        {% if 'prescription.delete_regionalobjective' in request.user.get_all_permissions %}
-        <a href="{% url 'prescription:prescription_regionalobjective_delete_confirm' prescription.id objective.id %}" class="btn btn-mini alert-error" title="Delete regional objective"><i class="icon-trash"></i></a>
-        {% endif %}
-      </td>
     </tr>
     {% empty %}
     <tr>
@@ -41,5 +36,23 @@
   </tbody>
 </table>
 
+<div class="row">
+<div class="span5">
+<h1>Burn Objectives</h1>
+<ul>
+    {% for objective in prescription.objective_set.all %}
+    <li>{{objective.objectives}}</li>
+    {% endfor %}
+</ul>
+</div>
+<div class="span5 offset1">
+<h1>Burn Purposes</h1>
+<ul>
+    {% for purpose in prescription.purposes.all %}
+    <li>{{purpose.name}}</li>
+    {% endfor %}
+</ul>
+</div>
+</div>
 {% endblock %}
 

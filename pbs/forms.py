@@ -11,7 +11,7 @@ BUTTON_ACTIONS = {
     "upload":forms.Action("upload","button","Upload",{"class":"btn btn-success","type":"submit"}),
     "download":forms.Action("download","button","Download",{"class":"btn btn-success btn-block","type":"submit","style":"width:260px"}),
     "deleteconfirm":forms.Action("delete","button","Delete",{"class":"btn btn-success btn-block","type":"submit","style":"width:260px"}),
-    "deleteconfirmed":forms.Action("delete","button","Delete",{"class":"btn btn-success btn-block","type":"submit","style":"width:260px"}),
+    "deleteconfirmed":forms.Action("delete","button","Yes,I'm sure",{"class":"btn btn-success btn-block","type":"submit","style":"width:260px"}),
 
 }
 

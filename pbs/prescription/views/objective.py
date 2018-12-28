@@ -13,7 +13,7 @@ class PrescriptionObjectivesUpdateView(pbs.forms.GetActionMixin,views.OneToManyL
     listform_class = ObjectiveListUpdateForm
     context_pobject_name = "prescription"
     one_to_many_field_name = "prescription"
-    urlpattern = "/prescription/<int:ppk>/objective/"
+    urlpattern = "prescription/<int:ppk>/objective/"
     urlname = "prescription_objective_changelist"
 
     @property

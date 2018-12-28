@@ -1408,7 +1408,7 @@ class Objective(ModelDictMixin,AuditMixin):
         verbose_name_plural = "Burn Objectives"
         ordering = ["created"]
 
-class SuccessCriteria(AuditMixin):
+class SuccessCriteria(ModelDictMixin,AuditMixin):
     """
     """
     prescription = models.ForeignKey(
@@ -1507,7 +1507,7 @@ class Approval(AuditMixin):
         ordering = ["-id"]
         get_latest_by = "valid_to"
 
-class PriorityJustification(AuditMixin):
+class PriorityJustification(ModelDictMixin,AuditMixin):
     PRIORITY_UNRATED = 0
     PRIORITY_LOW = 1
     PRIORITY_MEDIUM = 2
