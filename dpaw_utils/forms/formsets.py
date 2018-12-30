@@ -140,7 +140,7 @@ class ListMemberForm(forms.ModelForm,metaclass=ListModelFormMetaclass):
         return BoundFieldIterator(self)
 
 def listupdateform_factory(form, formset=ListUpdateForm, extra=1, can_order=False,
-                    can_delete=False, max_num=None, validate_max=False,
+                    can_delete=False, max_num=None, validate_max=False,can_add=True,
                     min_num=None, validate_min=False,primary_field=None,all_actions=None,all_buttons=None):
 
     cls = formsets.formset_factory(form,formset=formset,extra=extra,can_order=can_order,can_delete=can_delete,max_num=max_num,validate_max=validate_max,min_num=min_num,validate_min=validate_min)
@@ -152,9 +152,11 @@ def listupdateform_factory(form, formset=ListUpdateForm, extra=1, can_order=Fals
     if all_buttons:
         cls.all_buttons = all_buttons
 
-    cls.template_forms = formsets.formset_factory(form,formset=formset,extra=1,min_num=1,max_num=1)(prefix=cls.default_prefix)
-    for field in cls.template_forms[0].fields.values():
-        field.required=False
+    cls.can_add = can_add
+    if cls.can_add:
+        cls.template_forms = formsets.formset_factory(form,formset=formset,extra=1,min_num=1,max_num=1)(prefix=cls.default_prefix)
+        for field in cls.template_forms[0].fields.values():
+            field.required=False
 
     return cls
 

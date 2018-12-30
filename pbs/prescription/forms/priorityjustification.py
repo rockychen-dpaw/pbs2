@@ -14,12 +14,14 @@ class PriorityJustificationConfigMixin(object):
             "delete":forms.fields.AliasFieldFactory(PriorityJustification,"id",field_class=forms.fields.IntegerField)
         }
         labels = {
-            "delete":""
+            "delete":"",
+            "criteria":"Criteria"
         }
         widgets_config = {
             "__default__.view":forms.widgets.TextDisplay(),
             "__default__.edit":forms.widgets.TextInput(),
             "id.edit":forms.widgets.Hidden(),
+            "criteria.view":forms.widgets.Markdownify(),
             'rationale.edit':forms.widgets.Textarea(attrs={"class":"vTextField","rows":3}),
             "delete.view":forms.widgets.HyperlinkFactory("id","prescription:prescription_successcriteria_delete_confirm",ids=[("id","pk"),("prescription","ppk")],template="<button id='delete' title='Delete' onclick='window.location=\"{url}\"' type='button' style='display:none' >Delete</button>")
         }
@@ -36,11 +38,14 @@ class PriorityJustificationMemberUpdateForm(PriorityJustificationCleanMixin,Prio
 
     class Meta:
         model = PriorityJustification
-        all_fields = ("rationale","priority","purpose","criteria","id","delete")
+        widths = {
+            "criteria":"30%",
+        }
+        all_fields = ("rationale","priority","purpose","criteria","id")
         editable_fields = ('id',"rationale","priority")
-        ordered_fields = ("id","purpose","criteria",'rationale',"priority","delete")
+        ordered_fields = ("id","purpose","criteria",'rationale',"priority")
 
-PriorityJustificationListUpdateForm = forms.listupdateform_factory(PriorityJustificationMemberUpdateForm,min_num=0,max_num=100,extra=1,all_buttons=[BUTTON_ACTIONS.get('back'),BUTTON_ACTIONS.get('save')],can_delete=True)
+PriorityJustificationListUpdateForm = forms.listupdateform_factory(PriorityJustificationMemberUpdateForm,min_num=0,max_num=100,extra=0,all_buttons=[BUTTON_ACTIONS.get('back'),BUTTON_ACTIONS.get('save')],can_delete=False,can_add=False)
 
 class PriorityJustificationBaseListForm(PriorityJustificationConfigMixin,forms.ListForm):
     class Meta:
@@ -57,7 +62,9 @@ class PriorityJustificationListForm(PriorityJustificationBaseListForm):
     class Meta:
         model = PriorityJustification
         all_fields = ("criteria","id")
-        
+        widths = {
+            "criteria":"30%",
+        }
         editable_fields = []
         ordered_fields = ("criteria",)
 

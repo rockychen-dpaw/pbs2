@@ -235,6 +235,7 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
     8. new property 'extra_update_fields' to add extra update fields to 'update_fields' whensaving a model instance
     9. new property 'purpose' to indicate the purpose of this form
     10. new property 'all_fields' to list all the fields including the fields and other_fields.
+    11. new property 'widths' to list the width of the field. mostly used in the list table.
 
     Add the following properties into _meta property of model instance
     1. subproperty_enabled: True if some form field is created for subproperty of a model field or model property
@@ -275,7 +276,7 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
                     if config:
                         setattr(attrs["Meta"],item,config)
 
-            for item in ("editable_fields",):
+            for item in ("editable_fields","widths"):
                 if not hasattr(attrs['Meta'],item):
                     config = BaseModelFormMetaclass.meta_item_from_base(bases,item)
                     if config:
@@ -345,7 +346,7 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
             return new_class
 
 
-        for item in ("other_fields","ordered_fields","field_classes_config","widgets_config","editable_fields","purpose"):
+        for item in ("other_fields","ordered_fields","field_classes_config","widgets_config","widths","editable_fields","purpose"):
             if hasattr(meta,item) :
                 setattr(opts,item,getattr(meta,item))
             else:

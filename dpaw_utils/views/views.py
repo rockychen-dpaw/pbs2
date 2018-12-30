@@ -5,6 +5,7 @@ from django.urls import path
 from django.http import (Http404,HttpResponse,HttpResponseForbidden,JsonResponse,HttpResponseRedirect)
 import django.views.generic.edit as django_edit_view
 import django.views.generic.list as django_list_view
+from django.db import transaction
 
 class NextUrlMixin(object):
     def get_success_url(self):
@@ -314,7 +315,9 @@ class UrlpatternsMixin(object):
 
 class ParentObjectMixin(object):
     pmodel = None
+    pform_class = None
     ppk_url_kwarg = "ppk"
+    context_pform_name = None
     context_pobject_name = None
 
     @property
@@ -334,10 +337,19 @@ class ParentObjectMixin(object):
     def get_context_data(self, **kwargs):
         context = super(ParentObjectMixin,self).get_context_data(**kwargs)
         context["pobject"] = self.pobject
+        pform_class = self.get_pform_class()
+        if pform_class:
+            context["pform"] = self.pform
+            if self.context_pform_name:
+                context[self.context_pform_name] = self.pform
+
         if self.context_pobject_name:
             context[self.context_pobject_name] = self.pobject
 
         return context
+
+    def get_pform_class(self):
+        return self.pform_class
 
 class OneToOneModelMixin(ParentObjectMixin):
     """
@@ -562,11 +574,12 @@ class ListBaseView(RequestActionMixin,UrlpatternsMixin,ModelMixin,django_list_vi
             if self.filterform.is_valid():
                 data_filter = self.get_filter_class()(self.filterform,request=self.request)
                 queryset = data_filter.qs
-                ordering = self.get_ordering()
-                if ordering:
-                    queryset = qs.order_by(ordering)
             else:
                 queryset = self.filterform._meta.objects.none()
+ 
+        ordering = self.get_ordering()
+        if ordering:
+            queryset = queryset.order_by(ordering)
 
         allow_empty = self.get_allow_empty()
 
@@ -680,6 +693,9 @@ class ListView(NextUrlMixin,ListBaseView):
 
     def get(self, request, *args, **kwargs):
         self.object_list = self.get_queryset()
+        pform_class = self.get_pform_class()
+        if pform_class:
+            self.pform = pform_class(instance=self.pobject,request=self.request)
         self.listform = self.get_listform_class()(instance_list=self.object_list,request=self.request,requesturl = self.requesturl)
         context = self.get_context_data()
         return self.render_to_response(context)
@@ -724,7 +740,11 @@ class ListUpdateView(ListView):
         return self.render_to_response(context)
 
     def valid_form(self):
-        self.listform.save()
+        with transaction.atomic():
+            pform_class = self.get_pform_class()
+            if pform_class:
+                self.pform.save()
+            self.listform.save()
         return HttpResponseRedirect(self.get_success_url())
 
         
@@ -732,9 +752,15 @@ class OneToManyListUpdateView(OneToManyModelMixin,ListUpdateView):
     def post(self,request,*args,**kwargs):
         self.object_list = self.get_queryset()
         self.listform = self.get_listform_class()(instance_list=self.object_list,data=request.POST,request=self.request,requesturl = self.requesturl,parent_instance=self.pobject)
-        if self.listform.is_valid():
+        pform_class = self.get_pform_class()
+        if pform_class:
+            self.pform = pform_class(instance=self.pobject,data=request.POST,request=self.request)
+            pform_valid = self.pform.is_valid()
+        else:
+            pform_valid = True
+
+        if self.listform.is_valid()  and pform_valid:
             return self.valid_form()
         else:
             return self.invalid_form()
-
 

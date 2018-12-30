@@ -2,7 +2,7 @@ from django.urls import path
 from django import urls
 
 from ..models import (Prescription,PriorityJustification)
-from ..forms import (PriorityJustificationListUpdateForm,PriorityJustificationListForm)
+from ..forms import (PriorityJustificationListUpdateForm,PriorityJustificationListForm,PrescriptionPriorityUpdateForm)
 from dpaw_utils import views
 import pbs.forms
 
@@ -10,11 +10,22 @@ class PrescriptionPriorityJustificationsUpdateView(pbs.forms.GetActionMixin,view
     title = "Burn Priority Justification"
     pmodel = Prescription
     model = PriorityJustification
+    pform_class = PrescriptionPriorityUpdateForm
+    context_pform_name = "prescriptionform"
     listform_class = PriorityJustificationListUpdateForm
     context_pobject_name = "prescription"
     one_to_many_field_name = "prescription"
     urlpattern = "prescription/<int:ppk>/priorityjustification/"
     urlname = "prescription_priorityjustification_changelist"
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.filter(relevant=True)
+        return qs
+
+
+    def get_ordering(self):
+        return "order"
 
     @property
     def deleteconfirm_url(self):
@@ -36,5 +47,4 @@ class PrescriptionPriorityJustificationsUpdateView(pbs.forms.GetActionMixin,view
             return PriorityJustificationListForm
         else:
             return super().get_listform_class()
-
 

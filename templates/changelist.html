@@ -155,6 +155,7 @@
         </tbody>
     </table>
 
+    {% if listform.can_add %}
     <script type="text/javascript">
         function deleteForm(ev){
             var row = $(ev.srcElement).parents('.{{listform.model_name_lower}}_fs')
@@ -188,6 +189,7 @@
         });
  
     </script>
+    {% endif %}
 
     {% endblock %}
     {% if listform.has_buttons %}

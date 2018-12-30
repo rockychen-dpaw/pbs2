@@ -250,6 +250,9 @@ class ListBoundFieldMixin(object):
             else:
                 attrs = " onclick=\"document.location='{}'\" class=\"{}\"".format(self.form.querystring(ordering="{}{}".format("-" if sorting_status == 'asc' else '',self.name)),sorting_class)
 
+        if self.form._meta.widths and self.name in self.form._meta.widths:
+            attrs = "{} style='width:{};'".format(attrs,self.form._meta.widths[self.name])
+
         return mark_safe(template.format(label=label,attrs=attrs))
 
     def html(self,template):

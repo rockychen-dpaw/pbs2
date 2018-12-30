@@ -102,6 +102,16 @@ class PrescriptionCleanMixin(object):
                 raise forms.ValidationError("This field is required.")
         return town if town else None
 
+    def clean_rationale(self):
+        priority = self.cleaned_data.get("priority")
+        rationale = self.cleaned_data.get("rationale")
+        if priority or rationale:
+            if not priority:
+                self.add_error("priority",forms.ValidationError('Priority must be set for this purpose as it has been given a rationale.'))
+            if not rationale:
+                raise forms.ValidationError('Rationale must be set for this purpose as it has been given a priority.')
+        return rationale if rationale else None
+
     def clean_contentious(self):
         data = self.cleaned_data.get("contentious")
         if data is None:
@@ -477,6 +487,19 @@ class PrescriptionCreateForm(PrescriptionBaseForm):
                   'perimeter', 'remote_sensing_priority','rationale',
                   'loc_locality','loc_distance','loc_direction','loc_town'
         )
+
+class PrescriptionPriorityUpdateForm(PrescriptionBaseForm):
+    all_buttons = [
+        BUTTON_ACTIONS["save"],
+        BUTTON_ACTIONS["back"]
+    ]
+    def __init__(self, *args, **kwargs):
+        super(PrescriptionPriorityUpdateForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = Prescription
+        all_fields = ('priority','rationale')
+        editable_fields = ('priority','rationale')
 
 class PrescriptionBaseListForm(PrescriptionConfigMixin,forms.ListForm):
     class Meta:

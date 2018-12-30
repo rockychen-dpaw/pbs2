@@ -121,7 +121,6 @@ class FieldWidgetConfigDict(FieldClassConfigDict):
                 keys.append(self._default_key_name)
                 return keys
 
-
 class SubpropertyEnabledDict(dict):
     """
     Support recursive dict structure; that means, the value of dict key can be a dict object.

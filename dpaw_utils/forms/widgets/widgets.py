@@ -1,10 +1,12 @@
 import traceback
+import markdown
 
 from django import forms
 from django.core.cache import caches
 from django.urls import reverse
 from django.db import models
 from django.utils.html import mark_safe
+from django.utils.encoding import force_text
 
 from ..utils import hashvalue
 
@@ -41,6 +43,11 @@ class HtmlTag(DisplayWidget):
     @property
     def html(self):
         return mark_safe(self.render())
+
+class Markdownify(DisplayWidget):
+    def render(self,name,value,attrs=None,renderer=None):
+        extensions = ["nl2br"]
+        return mark_safe(markdown.markdown(force_text(value), extensions=extensions,output_format='html'))
 
 
 class TextDisplay(DisplayWidget):

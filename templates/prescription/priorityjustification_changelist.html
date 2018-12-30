@@ -12,3 +12,20 @@
 
 {% endblock %}
 
+
+
+{% block list_content%}
+<table class="table table-bordered table-striped">
+  <tbody>
+    <tr>
+      <th>Overall priority</th>
+      <td>{{prescriptionform.priority}}</td>
+    </tr>
+    <tr>
+      <th>Overall rationale</th>
+      <td>{{prescriptionform.rationale}}</td>
+    </tr>
+  </tbody>
+</table>
+{{ block.super }}
+{% endblock %}
