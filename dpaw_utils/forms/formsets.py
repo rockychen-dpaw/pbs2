@@ -73,9 +73,11 @@ class ListUpdateForm(forms.ActionMixin,forms.RequestUrlMixin,forms.RequestMixin,
     @property
     def form_instance(self):
         if len(self) > 0:
+            self[0].requesturl = self.requesturl
             return self[0]
         elif not hasattr(self,"_form_instance"):
             self._form_instance = self.form()
+            self._form_instance.requesturl = self.requesturl
         return self._form_instance
 
     @property

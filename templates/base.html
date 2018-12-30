@@ -103,7 +103,6 @@
 {% url 'admin:prescription_prescription_pre_summary' prescription.id as sectiona1 %}
 {% url 'admin:prescription_prescription_pdf_summary' prescription.id as pdf_view %}
 {% url 'admin:risk_context_changelist' prescription.id as sectiona2 %}
-{% url 'admin:risk_complexity_changelist' prescription.id as sectiona5 %}
 {% url 'admin:risk_register_changelist' prescription.id as sectiona6 %}
 {% url 'admin:prescription_prescription_day_summary' prescription.id as partb %}
 {% url 'admin:implementation_roadsegment_changelist' prescription.id as sectionb3_roads %}
@@ -150,6 +149,7 @@
 {% url 'prescription:prescription_objective_changelist' prescription.id as objectives_url %}
 {% url 'prescription:prescription_successcriteria_changelist' prescription.id as success_criteria %}
 {% url 'prescription:prescription_priorityjustification_changelist' prescription.id as priority_justification %}
+{% url 'risk:prescription_complexity_changelist' prescription.id as complexity %}
 {% block body %}
 <body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}" style={% page_background %}>
 {% if not is_popup %}
@@ -292,7 +292,7 @@
                   <li{% if request.path == objectives_url %} class="active"{% endif %}><a href="{{ objectives_url }}">A3 - Burn Objectives</a></li>
                   <li{% if request.path == success_criteria %} class="active"{% endif %}><a href="{{ success_criteria }}">A3 - Success Criteria</a></li>
                   <li{% if request.path == priority_justification %} class="active"{% endif %}><a href="{{ priority_justification }}">A4 - Priority Justification</a></li>
-                  <li{% if request.path == sectiona5 %} class="active"{% endif %}><a href="{{ sectiona5 }}">A5 - Complexity Analysis</a></li>
+                  <li{% if request.path == complexity %} class="active"{% endif %}><a href="{{ complexity }}">A5 - Complexity Analysis</a></li>
                   <li{% if request.path == sectiona6 %} class="active"{% endif %}><a href="{{ sectiona6 }}">A6 - Risk Register</a></li>
                 </ul>
               </li>

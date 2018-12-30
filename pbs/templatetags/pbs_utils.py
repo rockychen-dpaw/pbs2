@@ -33,6 +33,10 @@ def call_method(obj,method_name,*args,**kwargs):
     return getattr(obj,method_name)(*args,**kwargs)
 
 @register.simple_tag
+def setvar(obj):
+    return obj
+
+@register.simple_tag
 def debug(obj,*args):
     import ipdb;ipdb.set_trace()
     return ""

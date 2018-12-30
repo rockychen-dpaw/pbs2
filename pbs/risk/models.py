@@ -553,7 +553,7 @@ class ContingencyNotification(AuditMixin):
     class Meta:
         ordering = ['name']
 
-class Complexity(AuditMixin):
+class Complexity(ModelDictMixin,AuditMixin):
     RATING_UNRATED = 0
     RATING_LOW = 2
     RATING_MEDIUM = 3

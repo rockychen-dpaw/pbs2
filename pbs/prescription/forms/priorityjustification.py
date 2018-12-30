@@ -61,10 +61,10 @@ class PriorityJustificationListForm(PriorityJustificationBaseListForm):
 
     class Meta:
         model = PriorityJustification
-        all_fields = ("criteria","id")
+        all_fields = ("rationale","priority","purpose","criteria","id")
         widths = {
             "criteria":"30%",
         }
         editable_fields = []
-        ordered_fields = ("criteria",)
+        ordered_fields = ("id","purpose","criteria",'rationale',"priority")
 

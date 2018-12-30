@@ -1,0 +1,50 @@
+{% extends "../changelist.html" %}
+{% load i18n %}
+{% load pbs_utils %}
+
+{% block breadcrumbs %}
+<ul class="breadcrumb">
+  <li><a href="{% url 'prescription:prescription_list' %}">{% trans 'Regional Overview' %}</a> <span class="divider">/</span></li>
+  <li><a href="{% url 'prescription:prescription_home' prescription.id %}">{{ prescription.burn_id }}</a> <span class="divider">/</span></li>
+  <li><a href="% url 'report:prescription_pre_state_update' object.id %}">Part A</a> <span class="divider">/</span></li>
+  <li>Section A5 &#x2010; Prescribed Burn Complexity Analysis Summary</li>
+</ul>
+
+{% endblock %}
+
+
+
+{% block list_content %}
+    <table id="{{listform.model_name_lower}}_result_list" class="table table-striped table-condensed table-hober table-fixed-header">
+        <thead>
+            <tr>
+                {% for field in listform.boundfields %}
+                {% if field.name != 'factor' %}
+                {% call_method field "html_header" "<th{attrs}><div class=\"text\"> {label}</div></th>"%}
+                {% endif %}
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for form in listform %}
+            {% if factor != form.factor.value %}
+            <tr>
+                <td colspan="{{4}}">{{factor}} -- {{form.factor}}</td>
+            </tr>
+            {% setvar form.factor.value as factor %}
+            {% endif %}
+            <tr> 
+                {% for field in form.boundfields %}
+                    {% if field.name == 'sub_factor' %}
+                    {% call_method field "html" "<td{attrs}><span style='padding-left:20px'>{widget}</span></td>"%}
+                    {% elif field.name != 'factor'%}
+                    {% call_method field "html" "<td{attrs}>{widget}</td>"%}
+                    {% endif %}
+                {% endfor %}
+            </tr>
+            {% endfor %}
+
+        </tbody>
+    </table>
+
+{% endblock %}
