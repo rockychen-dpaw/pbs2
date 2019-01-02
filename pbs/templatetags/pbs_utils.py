@@ -33,8 +33,8 @@ def call_method(obj,method_name,*args,**kwargs):
     return getattr(obj,method_name)(*args,**kwargs)
 
 @register.simple_tag
-def setvar(obj):
-    return obj
+def setvar(*args):
+    return "".join(args)
 
 @register.simple_tag
 def debug(obj,*args):

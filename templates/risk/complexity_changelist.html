@@ -1,8 +1,15 @@
-{% extends "../changelist.html" %}
+{% extends "../changelist_2panels.html" %}
 {% load i18n %}
 {% load pbs_utils %}
 
+{% block content_title %}
+{{block.super}}
+<div class="span9">
+<p id="max_complexity">Maximum rating: <strong>{{prescriptionform.maximum_complexity}}</strong></p>
+</div>
+{% endblock %}
 {% block breadcrumbs %}
+
 <ul class="breadcrumb">
   <li><a href="{% url 'prescription:prescription_list' %}">{% trans 'Regional Overview' %}</a> <span class="divider">/</span></li>
   <li><a href="{% url 'prescription:prescription_home' prescription.id %}">{{ prescription.burn_id }}</a> <span class="divider">/</span></li>
@@ -46,5 +53,20 @@
 
         </tbody>
     </table>
+
+{% endblock %}
+{% block rightpanel %}
+<div class="span3">
+  <h5>Filter</h5>
+  <ul class="nav nav-list">
+    <li class="nav-header">By factor</li>
+    {% url 'risk:prescription_complexity_changelist' prescription.id as complexityurl %}
+    <li {% if listform.fullpath == complexityurl %}class="active"{% endif %}><a href="{{complexityurl}}">All</a></li>
+    {% for factor in factorlist %}
+    {% setvar complexityurl '?factor=' factor|urlencode as filterurl %}
+    <li  {% if listform.fullpath == filterurl %}class="active"{% endif %}><a href="{{filterurl}}">{{factor}}</a></li>
+    {% endfor %}
+  </ul>
+</div>
 
 {% endblock %}

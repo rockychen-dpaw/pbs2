@@ -1,4 +1,5 @@
-from .prescription import (PrescriptionCreateForm,PrescriptionListForm,PrescriptionFilterForm,PrescriptionViewForm,PrescriptionUpdateForm,DraftPrescriptionUpdateForm,PrescriptionPriorityUpdateForm)
+from .prescription import (PrescriptionCreateForm,PrescriptionListForm,PrescriptionFilterForm,PrescriptionViewForm,PrescriptionUpdateForm,DraftPrescriptionUpdateForm,
+        PrescriptionPriorityUpdateForm,PrescriptionMaximumComplexityForm)
 from .fundingallocation import (FundingAllocationUpdateFormSet,)
 from .regionalobjective import (RegionalObjectiveListForm,)
 from .objective import (ObjectiveListUpdateForm,ObjectiveListForm)

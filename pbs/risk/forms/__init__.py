@@ -1,2 +1,2 @@
 from .context import (ContextUpdateForm,)
-from .complexity import (ComplexityListUpdateForm,ComplexityListForm)
+from .complexity import (ComplexityListUpdateForm,ComplexityListForm,ComplexityFilterForm)

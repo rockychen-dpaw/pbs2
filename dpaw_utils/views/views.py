@@ -166,6 +166,10 @@ class RequestUrl(object):
     def path(self):
         return self.request.path
 
+    @property
+    def fullpath(self):
+        return self.request.get_full_path()
+
     def _get_request_parameter(self,param_re,qs=None,repeat=False,remove=True):
         """
         remove: true, parameter will be removed in the returned querystring
@@ -347,6 +351,12 @@ class ParentObjectMixin(object):
             context[self.context_pobject_name] = self.pobject
 
         return context
+
+    def get(self, request, *args, **kwargs):
+        pform_class = self.get_pform_class()
+        if pform_class:
+            self.pform = pform_class(instance=self.pobject,request=self.request)
+        return super(ParentObjectMixin,self).get(request,*args,**kwargs)
 
     def get_pform_class(self):
         return self.pform_class
@@ -558,6 +568,7 @@ class ListBaseView(RequestActionMixin,UrlpatternsMixin,ModelMixin,django_list_vi
     order_by_re = re.compile('[?&]order_by=([-+]?)([a-zA-Z0-9_\-]+)')
     filter_class = None
     filterform_class = None
+    filtertool = True
 
     def get_filter_class(self):
         return self.filter_class
@@ -572,7 +583,7 @@ class ListBaseView(RequestActionMixin,UrlpatternsMixin,ModelMixin,django_list_vi
         else:
             self.filterform = filterformclass(data=self.request.GET,request=self.request)
             if self.filterform.is_valid():
-                data_filter = self.get_filter_class()(self.filterform,request=self.request)
+                data_filter = self.get_filter_class()(self.filterform,request=self.request,queryset=self.queryset)
                 queryset = data_filter.qs
             else:
                 queryset = self.filterform._meta.objects.none()
@@ -693,9 +704,6 @@ class ListView(NextUrlMixin,ListBaseView):
 
     def get(self, request, *args, **kwargs):
         self.object_list = self.get_queryset()
-        pform_class = self.get_pform_class()
-        if pform_class:
-            self.pform = pform_class(instance=self.pobject,request=self.request)
         self.listform = self.get_listform_class()(instance_list=self.object_list,request=self.request,requesturl = self.requesturl)
         context = self.get_context_data()
         return self.render_to_response(context)
@@ -711,7 +719,7 @@ class ListView(NextUrlMixin,ListBaseView):
         context_data["requesturl"] = self.requesturl
         if self.nexturl:
             context_data["nexturl"] = self.nexturl
-        if self.get_filter_class():
+        if self.filtertool and self.get_filter_class():
             context_data["filterform"] = self.filterform
 
         return context_data

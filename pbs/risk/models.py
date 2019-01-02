@@ -3,6 +3,7 @@ from unidecode import unidecode
 
 from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
+from django.db import connection
 from django.db.models import F
 from django.db.models.signals import post_save, post_delete
 from django.db.models.query import QuerySet
@@ -598,6 +599,9 @@ class Complexity(ModelDictMixin,AuditMixin):
         verbose_name = "Complexity Analysis Item"
         verbose_name_plural = "Complexity Analysis Items"
 
+cursor = connection.cursor()
+cursor.execute("SELECT distinct factor from (SELECT factor,\"order\" FROM risk_complexity order by \"order\") a")
+factorlist = [row[0] for row in cursor.fetchall()]
 
 class ActionListener(object):
     @staticmethod

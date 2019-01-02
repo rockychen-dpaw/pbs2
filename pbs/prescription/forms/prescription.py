@@ -427,6 +427,15 @@ class PrescriptionViewForm(PrescriptionBaseForm):
                   'current_approval_valid_period','current_approval_approver',
                   'ignition_status','ignition_completed_date','ignition_commenced_date','ignition_commence_status','ignition_complete_status')
 
+class PrescriptionMaximumComplexityForm(PrescriptionBaseForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        model = Prescription
+        purpose = "view"
+        all_fields = ("maximum_complexity",)
+
 class PrescriptionUpdateForm(PrescriptionBaseForm):
     all_buttons = [
         BUTTON_ACTIONS["save"],

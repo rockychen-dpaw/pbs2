@@ -34,6 +34,15 @@ class ComplexityConfigMixin(object):
             "delete.view":forms.widgets.HyperlinkFactory("id","prescription:prescription_successcriteria_delete_confirm",ids=[("id","pk"),("prescription","ppk")],template="<button id='delete' title='Delete' onclick='window.location=\"{url}\"' type='button' style='display:none' >Delete</button>")
         }
 
+class ComplexityFilterForm(ComplexityConfigMixin,forms.FilterForm):
+    all_buttons = [
+    ]
+
+    class Meta:
+        model = Complexity
+        purpose = 'filter'
+        all_fields = ('factor',)
+
 class ComplexityMemberUpdateForm(forms.RequestUrlMixin,ComplexityCleanMixin,ComplexityConfigMixin,forms.ListMemberForm):
     def __init__(self,parent_instance=None,*args,**kwargs):
         super(ComplexityMemberUpdateForm,self).__init__(*args,**kwargs)

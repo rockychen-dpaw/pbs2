@@ -2,8 +2,10 @@ from django.urls import path
 from django import urls
 
 from pbs.prescription.models import (Prescription,)
-from ..models import (Complexity,)
-from ..forms import (ComplexityListUpdateForm,ComplexityListForm,)
+from pbs.prescription.forms import (PrescriptionMaximumComplexityForm,)
+from ..models import (Complexity,factorlist)
+from ..forms import (ComplexityListUpdateForm,ComplexityListForm,ComplexityFilterForm)
+from ..filters import (ComplexityFilter,)
 from dpaw_utils import views
 import pbs.forms
 
@@ -11,11 +13,16 @@ class PrescriptionComplexitiesUpdateView(pbs.forms.GetActionMixin,views.OneToMan
     title = "Prescribed Burn Complexity Analysis Summary"
     pmodel = Prescription
     model = Complexity
+    filter_class = ComplexityFilter
+    filterform_class = ComplexityFilterForm
+    pform_class = PrescriptionMaximumComplexityForm
     listform_class = ComplexityListUpdateForm
+    context_pform_name = "prescriptionform"
     context_pobject_name = "prescription"
     one_to_many_field_name = "prescription"
     urlpattern = "prescription/<int:ppk>/complexity/"
     urlname = "prescription_complexity_changelist"
+    filtertool = False
 
 
     @property
@@ -39,3 +46,8 @@ class PrescriptionComplexitiesUpdateView(pbs.forms.GetActionMixin,views.OneToMan
         else:
             return super().get_listform_class()
 
+    def get_context_data(self,**kwargs):
+        context = super().get_context_data(**kwargs)
+        context["factorlist"] = factorlist
+
+        return context

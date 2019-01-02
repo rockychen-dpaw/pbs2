@@ -204,6 +204,10 @@ class RequestUrlMixin(RequestMixin):
         return self.requesturl.path
 
     @property
+    def fullpath(self):
+        return self.requesturl.fullpath
+
+    @property
     def sorting_status(self):
         return self.requesturl.sorting_status
 
