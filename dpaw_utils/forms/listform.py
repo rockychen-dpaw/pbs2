@@ -163,23 +163,6 @@ class ListModelFormMetaclass(forms.BaseModelFormMetaclass,collections.Iterable._
                 
         return new_class
 
-class BoundFieldIterator(collections.Iterable):
-    def __init__(self,form):
-        self.form = form
-        self._index = None
-        self._length = len(self.form._meta.ordered_fields)
-
-    def __iter__(self):
-        self._index = -1
-        return self
-
-    def __next__(self):
-        self._index += 1
-        if self._index >= self._length:
-            raise StopIteration()
-        else:
-            return self.form[self.form._meta.ordered_fields[self._index]]
-
 class ToggleableFieldIterator(collections.Iterable):
     def __init__(self,form):
         self.form = form
@@ -221,7 +204,7 @@ class ListForm(forms.ActionMixin,forms.RequestUrlMixin,forms.ModelFormMetaMixin,
 
     @property
     def boundfields(self):
-        return BoundFieldIterator(self)
+        return boundfield.BoundFieldIterator(self)
 
     @property
     def toggleablefields(self):

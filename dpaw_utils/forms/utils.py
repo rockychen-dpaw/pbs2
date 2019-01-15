@@ -40,10 +40,10 @@ class FieldClassConfigDict(dict):
         else:
             return (purpose[1] or "view",False)
 
-    def search_keys(self,name,purpose=None):
+    def search_keys(self,name,purpose=None,enable_default_key=True):
         keypurpose,editable = self.keypurpose(name,purpose)
         if isinstance(keypurpose,str):
-            if self._meta_class.is_editable_dbfield(name):
+            if self._meta_class.is_editable_dbfield(name) or not enable_default_key:
                 return ("{}.{}".format(name,keypurpose),name)
             else:
                 return ("{}.{}".format(name,keypurpose),name,"{}.{}".format(self._default_key_name,keypurpose),self._default_key_name)
@@ -55,9 +55,10 @@ class FieldClassConfigDict(dict):
             else:
                 keys =["{}.{}".format(name,p) for p in keypurpose]
                 keys.append(name)
-                for p in keypurpose:
-                    keys.append("{}.{}".format(self._default_key_name,p))
-                keys.append(self._default_key_name)
+                if enable_default_key:
+                    for p in keypurpose:
+                        keys.append("{}.{}".format(self._default_key_name,p))
+                    keys.append(self._default_key_name)
                 return keys
 
     def __contains__(self,name):
@@ -86,8 +87,8 @@ class FieldClassConfigDict(dict):
             return default
 
 
-    def get_config(self,name,purpose=None):
-        for key in self.search_keys(name,purpose):
+    def get_config(self,name,purpose=None,enable_default_key=True):
+        for key in self.search_keys(name,purpose,enable_default_key):
             try:
                 value = self.data[key]
                 if value is None:
@@ -107,10 +108,10 @@ class FieldWidgetConfigDict(FieldClassConfigDict):
     5. key doesn't exist,
     """
 
-    def search_keys(self,name,purpose=None):
+    def search_keys(self,name,purpose=None,enable_default_key=True):
         keypurpose,editable = self.keypurpose(name,purpose)
         if isinstance(keypurpose,str):
-            if editable and self._meta_class.is_dbfield(name):
+            if editable and self._meta_class.is_dbfield(name) or not enable_default_key:
                 return ("{}.{}".format(name,keypurpose),name)
             else:
                 return ("{}.{}".format(name,keypurpose),"{}.{}".format(self._default_key_name,keypurpose),self._default_key_name)
@@ -121,9 +122,10 @@ class FieldWidgetConfigDict(FieldClassConfigDict):
                 return keys
             else:
                 keys = ["{}.{}".format(name,p) for p in keypurpose]
-                for p in keypurpose:
-                    keys.append("{}.{}".format(self._default_key_name,p))
-                keys.append(self._default_key_name)
+                if enable_default_key:
+                    for p in keypurpose:
+                        keys.append("{}.{}".format(self._default_key_name,p))
+                    keys.append(self._default_key_name)
                 return keys
 
 class SubpropertyEnabledDict(dict):

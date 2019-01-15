@@ -4,7 +4,7 @@ from django.forms.formsets import DELETION_FIELD_NAME
 from django.db import transaction
 
 from . import forms
-from .listform import (ToggleableFieldIterator,BoundFieldIterator,ListModelFormMetaclass)
+from .listform import (ToggleableFieldIterator,ListModelFormMetaclass)
 from . import boundfield
 from . import fields
 
@@ -90,7 +90,7 @@ class ListUpdateForm(forms.ActionMixin,forms.RequestUrlMixin,forms.RequestMixin,
 
     @property
     def boundfields(self):
-        return BoundFieldIterator(self.form_instance)
+        return boundfield.BoundFieldIterator(self.form_instance)
 
     @property
     def boundfieldlength(self):
@@ -151,7 +151,7 @@ class ListMemberForm(forms.ModelForm,metaclass=ListModelFormMetaclass):
 
     @property
     def boundfields(self):
-        return BoundFieldIterator(self)
+        return boundfield.BoundFieldIterator(self)
 
 def listupdateform_factory(form, formset=ListUpdateForm, extra=1, can_order=False,
                     can_delete=False, max_num=None, validate_max=False,can_add=True,

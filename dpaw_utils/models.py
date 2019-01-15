@@ -71,6 +71,12 @@ class ModelDictMixin(DictMixin):
         except AttributeError as ex: 
             raise KeyError(name)
 
+    def __len__(self):
+        """
+        fake len, just make sure ModelDictMixin instane is always true
+        """
+        return 1
+
 class ActiveMixinManager(models.Manager):
     """Manager class for ActiveMixin.
     """

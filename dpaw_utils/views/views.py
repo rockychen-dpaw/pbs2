@@ -575,6 +575,7 @@ class ListBaseView(RequestActionMixin,UrlpatternsMixin,ModelMixin,django_list_vi
     filter_class = None
     filterform_class = None
     filtertool = True
+    default_order = "id"
 
     def get_filter_class(self):
         return self.filter_class
@@ -596,7 +597,10 @@ class ListBaseView(RequestActionMixin,UrlpatternsMixin,ModelMixin,django_list_vi
  
         ordering = self.get_ordering()
         if ordering:
-            queryset = queryset.order_by(ordering)
+            if isinstance(ordering,str):
+                queryset = queryset.order_by(ordering)
+            else:
+                queryset = queryset.order_by(*ordering)
 
         allow_empty = self.get_allow_empty()
 
@@ -691,7 +695,7 @@ class ListBaseView(RequestActionMixin,UrlpatternsMixin,ModelMixin,django_list_vi
         return queryset
 
     def get_ordering(self):
-        return self.requesturl.sorting_clause
+        return self.requesturl.sorting_clause or self.default_order
 
     def dispatch(self,request, *args, **kwargs):
         self.requesturl = RequestUrl(request)
@@ -772,7 +776,6 @@ class OneToManyListUpdateView(OneToManyModelMixin,ListUpdateView):
             pform_valid = self.pform.is_valid()
         else:
             pform_valid = True
-
         if self.listform.is_valid()  and pform_valid:
             return self.valid_form()
         else:

@@ -15,7 +15,7 @@ from django.conf import settings
 
 from . import widgets
 from . import fields
-from .boundfield import (BoundField,CompoundBoundField,BoundFormField,BoundFormSetField)
+from .boundfield import (BoundField,CompoundBoundField,BoundFormField,BoundFormSetField,BoundFieldIterator)
 from .fields import (CompoundField,FormField,FormSetField,AliasFieldMixin)
 
 from .utils import FieldClassConfigDict,FieldWidgetConfigDict,SubpropertyEnabledDict,ChainDict
@@ -374,8 +374,29 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
         property_name = None
         subproperty_enabled = False
         
-        get_field_class = lambda field_opts,name: field_opts.field_classes.get_config(name,(None,meta.purpose[1]) if hasattr(meta,"purpose") else (None if field_opts == opts else (None,"view")))
-        get_widget = lambda field_opts,name: field_opts.widgets.get_config(name,(None,meta.purpose[1]) if hasattr(meta,"purpose") else (None if field_opts == opts else (None,"view")))
+        def get_field_class(opts,field_opts,form_field_name,field_name):
+            try:
+                if field_opts == opts:
+                    return field_opts.field_classes.get_config(field_name,meta.purpose if hasattr(meta,"purpose") else None)
+                else:
+                    try:
+                        return opts.field_classes.get_config(form_field_name,(None,meta.purpose[1]) if hasattr(meta,"purpose") else (None,"view"),False)
+                    except:
+                        return field_opts.field_classes.get_config(field_name,(None,meta.purpose[1]) if hasattr(meta,"purpose") else (None,"view"))
+            except:
+                return None
+
+        def get_widget(opts,field_opts,form_field_name,field_name):
+            try:
+                if field_opts == opts:
+                    return field_opts.widgets.get_config(field_name,meta.purpose if hasattr(meta,"purpose") else None)
+                else:
+                    try:
+                        return opts.widgets.get_config(form_field_name,(None,meta.purpose[1]) if hasattr(meta,"purpose") else (None,"view"),False)
+                    except:
+                        return field_opts.widgets.get_config(field_name,(None,meta.purpose[1]) if hasattr(meta,"purpose") else (None,"view"))
+            except:
+                return None
 
         for field_name in opts.other_fields or []:
             form_field_name = field_name
@@ -419,7 +440,9 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
                     #field is a property
                     pass
                 else:
-                    if hasattr(field_opts,"field_classes")  and field_opts.field_classes and field_name in field_opts.field_classes and (isinstance(get_field_class(field_opts,field_name),AliasFieldMixin) or issubclass(get_field_class(field_opts,field_name),AliasFieldMixin)):
+                    field_class = get_field_class(opts,field_opts,form_field_name,field_name)
+
+                    if field_class and (isinstance(field_class,AliasFieldMixin) or issubclass(field_class,AliasFieldMixin)):
                         #it is a compound field, field itself doesn't need to be a real property or field in model class
                         pass
                     else:
@@ -429,16 +452,17 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
 
             kwargs.clear()
 
-            if hasattr(field_opts,"field_classes")  and field_opts.field_classes and field_name in field_opts.field_classes and isinstance(get_field_class(field_opts,field_name),forms.Field):
+            field_class = get_field_class(opts,field_opts,form_field_name,field_name)
+            if field_class and isinstance(field_class,forms.Field):
                 #already configure a form field instance, use it directly
                 form_field = field_opts.field_classes[field_name]
                 field_list.append((form_field_name, formfield))
                 continue
 
-            try:
-                kwargs['widget'] = get_widget(field_opts,field_name)
-            except KeyError as ex:
-                if not db_field:
+            field_widget = get_widget(opts,field_opts,form_field_name,field_name)
+            if field_widget:
+                kwargs['widget'] = field_widget
+            elif not db_field:
                     raise Exception("Please configure widget for property '{}' in 'widgets' option".format(field_name))
 
             if field_opts.localized_fields == forms.models.ALL_FIELDS or (field_opts.localized_fields and field_name in field_opts.localized_fields):
@@ -458,10 +482,9 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
             if not db_field:
                 kwargs['required'] = False
 
-            try:
-                kwargs['form_class'] = get_field_class(field_opts,field_name)
-            except KeyError as ex:
-                if not db_field :
+            if field_class:
+                kwargs['form_class'] = field_class
+            elif not db_field :
                     raise Exception("Please cofigure form field for property '{}' in 'field_classes' option".format(field_name))
 
             if formfield_callback is None:
@@ -689,6 +712,10 @@ class ModelForm(ActionMixin,RequestMixin,ModelFormMetaMixin,forms.models.BaseMod
         return self._meta._editable_formsetfields
 
     @property
+    def ordered_fields(self):
+        return self._meta.ordered_fields
+
+    @property
     def update_db_fields(self):
         return self._meta.update_db_fields
 
@@ -703,6 +730,10 @@ class ModelForm(ActionMixin,RequestMixin,ModelFormMetaMixin,forms.models.BaseMod
     @property
     def model_verbose_name_plural(self):
         return self._meta.model._meta.verbose_name_plural;
+
+    @property
+    def boundfields(self):
+        return BoundFieldIterator(self)
 
     def is_editable(self,name):
         return self.editable_fieldnames is None or name in self.editable_fieldnames

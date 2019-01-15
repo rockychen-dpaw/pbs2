@@ -53,6 +53,7 @@ class RiskCategory(ModelDictMixin,models.Model):
         verbose_name = 'Potential Source of Risk Category'
         verbose_name_plural = "Potential Source of Risk Categories"
 
+categorylist = list(RiskCategory.objects.all().order_by("name"))
 
 class Risk(ModelDictMixin,AuditMixin):
     """

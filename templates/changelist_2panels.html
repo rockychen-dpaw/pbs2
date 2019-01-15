@@ -205,9 +205,11 @@
         $('#{{listform.model_name_lower}}_result_list tbody tr').formset({
             prefix: '{{ listform.prefix }}',
             formCssClass: '{{listform.model_name_lower}}_fs',
+            addText: '',
             deleteText: '<img onclick="deleteForm(event)" src="/static/img/delete.png" style="width:16px;height:16px;"></img>',
             deleteCssClass: 'delete-row' + '-' + '{{ listform.prefix  }}',
         });
+        $(".{{listform.model_name_lower}}_fs-add").hide()
         {% endif %}
  
     </script>

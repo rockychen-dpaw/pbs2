@@ -20,6 +20,16 @@
 
 <form action="" method="post" autocomplete="off" enctype="multipart/form-data">{% csrf_token %}
     {% block form_content%}
+    <table class="table">
+        <tbody>
+        {% for field in form.boundfields%}
+            <tr>
+                <th>{{field.label}}</th>
+                <td>{{field}}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
     
     {% endblock %}
     <div class="navbar navbar-fixed-bottom">

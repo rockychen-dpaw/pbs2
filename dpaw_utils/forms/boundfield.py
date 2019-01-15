@@ -1,4 +1,5 @@
 import inspect
+import collections
 
 from django.utils.html import html_safe,conditional_escape,mark_safe
 from django.core.exceptions import ValidationError
@@ -9,6 +10,23 @@ from django.utils import safestring
 
 from . import widgets
 from . import fields
+
+class BoundFieldIterator(collections.Iterable):
+    def __init__(self,form):
+        self.form = form
+        self._index = None
+        self._length = len(self.form._meta.ordered_fields)
+
+    def __iter__(self):
+        self._index = -1
+        return self
+
+    def __next__(self):
+        self._index += 1
+        if self._index >= self._length:
+            raise StopIteration()
+        else:
+            return self.form[self.form._meta.ordered_fields[self._index]]
 
 class BoundField(forms.boundfield.BoundField):
     def __init__(self, form, field, name):

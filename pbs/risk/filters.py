@@ -4,5 +4,6 @@ class ComplexityFilter(filters.Filter):
     factor = filters.CharFilter(field_name='factor', lookup_expr='exact')
 
 class ActionFilter(filters.Filter):
-    pass
+    relevant = filters.CharFilter(field_name='relevant', lookup_expr='exact')
+    category = filters.NumberFilter(field_name='risk__category',lookup_expr='exact')
 
