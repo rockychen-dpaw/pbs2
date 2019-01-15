@@ -61,7 +61,7 @@ class BurnImplementationStateViewForm(BurnImplementationStateBaseForm):
 
     class Meta:
         model = BurnImplementationState
-        purpose = "view"
+        purpose = (None,"view")
         all_fields = ["overview","pre_actions","actions","roads","traffic","tracks","burning_prescription","fuel_assessment","edging_plan","contingency_plan","lighting_sequence",
                 "exclusion_areas","organisational_structure","briefing","operation_maps","aerial_maps",'progress']
 

@@ -1,8 +1,8 @@
 from django import urls
 from django.urls import path 
 
-from ..models import (CriticalStakeholder,)
-from ..forms import (CriticalStakeholderListUpdateForm,CriticalStakeholderListForm)
+from pbs.stakeholder.models import (CriticalStakeholder,)
+from pbs.stakeholder.forms import (CriticalStakeholderListUpdateForm,CriticalStakeholderListForm)
 from dpaw_utils.views import (OneToManyListUpdateView,)
 from pbs.prescription.models import (Prescription,)
 import pbs.forms

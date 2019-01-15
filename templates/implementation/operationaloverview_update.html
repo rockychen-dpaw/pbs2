@@ -1,0 +1,34 @@
+{% extends "../change_form.html" %}
+{% load i18n staticfiles admin_list %}
+
+
+{% block breadcrumbs %}
+<ul class="breadcrumb">
+  <li><a href="{% url 'prescription:prescription_list' %}">{% trans 'Regional Overview' %}</a> <span class="divider">/</span></li>
+  <li><a href="{% url 'prescription:prescription_home' prescription.id %}">{{ prescription.burn_id }}</a> <span class="divider">/</span></li>
+  <li><a href="% url 'report:prescription_day_state_update' prescription.id %}">Part B</a> <span class="divider">/</span></li>
+  <li>Section B1 &#x2010; Operational Overview</li>
+</ul>
+{% endblock %}
+
+
+{% block content_title %}
+{{ block.super }}
+<p>The Operations Overview screen allows the Prescribing Officer to provide strategic direction on how the burn should be implemented.
+This direction is complemented by the detailed tactical information provided in the Edging Plan and Lighting Sequence sections.</p>
+
+{% endblock %}
+
+{% block form_content %}
+<table class="table table-bordered table-striped table-condensed">
+    <tbody>
+        <tr>
+            <th>Operational Overview *</th>
+        </tr>
+        <tr>
+            <td>{{form.overview}}</td>
+        </tr>
+    </tbody>
+</table>
+{% endblock %}
+

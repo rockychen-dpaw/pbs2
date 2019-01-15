@@ -155,8 +155,10 @@
         </tbody>
     </table>
 
-    {% if listform.can_add %}
+    {% endblock %}
+    {% if listform.can_add or listform.can_delete %}
     <script type="text/javascript">
+        {% if listform.can_delete %}
         function deleteForm(ev){
             var row = $(ev.srcElement).parents('.{{listform.model_name_lower}}_fs')
             var index = null;
@@ -172,26 +174,45 @@
                 ev.stopPropagation()
             }
         }
+        {% endif %}
+
+        {% if listform.can_add %}
         var formTemplate = `{% for form in listform.template_forms %}<tr> 
                 {% for field in form.boundfields %}
                     {% call_method field "html" "<td{attrs}>{widget}</td>"%}
                 {% endfor %}
             </tr>{% endfor %}`;
+        {% endif %}
 
-
+        
+        {% if listform.can_add and listform.can_delete %}
         $('#{{listform.model_name_lower}}_result_list tbody tr').formset({
             prefix: '{{ listform.prefix }}',
             formCssClass: '{{listform.model_name_lower}}_fs',
             addText: '<i class="icon-plus"></i> Add Another {{ modelname  }}',
-            deleteText: '<img onclick="deleteForm(event)" src="/static/img/delete.png" style="width:32px;height:32px;"></img>',
+            deleteText: '<img onclick="deleteForm(event)" src="/static/img/delete.png" style="width:16px;height:16px;"></img>',
             deleteCssClass: 'delete-row' + '-' + '{{ listform.prefix  }}',
             formTemplate:$(formTemplate)
         });
+        {% elif listform.can_add %}
+        $('#{{listform.model_name_lower}}_result_list tbody tr').formset({
+            prefix: '{{ listform.prefix }}',
+            formCssClass: '{{listform.model_name_lower}}_fs',
+            addText: '<i class="icon-plus"></i> Add Another {{ modelname  }}',
+            formTemplate:$(formTemplate)
+        });
+        {% elif listform.can_delete %}
+        $('#{{listform.model_name_lower}}_result_list tbody tr').formset({
+            prefix: '{{ listform.prefix }}',
+            formCssClass: '{{listform.model_name_lower}}_fs',
+            deleteText: '<img onclick="deleteForm(event)" src="/static/img/delete.png" style="width:16px;height:16px;"></img>',
+            deleteCssClass: 'delete-row' + '-' + '{{ listform.prefix  }}',
+        });
+        {% endif %}
  
     </script>
     {% endif %}
 
-    {% endblock %}
     {% if listform.has_buttons %}
     <div class="navbar navbar-fixed-bottom">
       <div class="navbar-inner">

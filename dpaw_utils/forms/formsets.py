@@ -92,6 +92,10 @@ class ListUpdateForm(forms.ActionMixin,forms.RequestUrlMixin,forms.RequestMixin,
     def boundfields(self):
         return BoundFieldIterator(self.form_instance)
 
+    @property
+    def boundfieldlength(self):
+        return len(self.form_instance._meta.ordered_fields)
+
     def full_clean(self):
         super().full_clean()
         if not self.is_bound:  # Stop further processing.
@@ -118,6 +122,14 @@ class ListUpdateForm(forms.ActionMixin,forms.RequestUrlMixin,forms.RequestMixin,
 
 
 class ListMemberForm(forms.ModelForm,metaclass=ListModelFormMetaclass):
+    def __init__(self,parent_instance=None,*args,**kwargs):
+        super(ListMemberForm,self).__init__(*args,**kwargs)
+        if parent_instance:
+            self.set_parent_instance(parent_instance)
+
+    def set_parent_instance(self,parent_instace):
+        pass
+
     def __getitem__(self, name):
         """Return a BoundField with the given name."""
         try:

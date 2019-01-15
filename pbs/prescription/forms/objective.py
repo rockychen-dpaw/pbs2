@@ -1,6 +1,6 @@
 
 from pbs.forms import (BUTTON_ACTIONS,OPTION_ACTIONS)
-from ..models import (Objective,)
+from pbs.prescription.models import (Objective,)
 
 from dpaw_utils import forms
 
@@ -26,10 +26,8 @@ class ObjectiveConfigMixin(object):
         }
 
 class ObjectiveMemberUpdateForm(ObjectiveCleanMixin,ObjectiveConfigMixin,forms.ListMemberForm):
-    def __init__(self,parent_instance=None,*args,**kwargs):
-        super(ObjectiveMemberUpdateForm,self).__init__(*args,**kwargs)
-        if parent_instance:
-            self.instance.prescription = parent_instance
+    def set_parent_instance(self,parent_instance):
+        self.instance.prescription = parent_instance
 
     @property
     def can_delete(self):
@@ -45,7 +43,7 @@ ObjectiveListUpdateForm = forms.listupdateform_factory(ObjectiveMemberUpdateForm
 
 class ObjectiveBaseListForm(ObjectiveConfigMixin,forms.ListForm):
     class Meta:
-        purpose = ('list','view')
+        purpose = (None,('list','view'))
 
 class ObjectiveListForm(ObjectiveBaseListForm):
     all_buttons = [

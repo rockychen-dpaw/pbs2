@@ -1,8 +1,8 @@
 from django.urls import path 
 from django import urls
 
-from ..models import (Prescription,SuccessCriteria)
-from ..forms import (SuccessCriteriaListUpdateForm,SuccessCriteriaListForm)
+from pbs.prescription.models import (Prescription,SuccessCriteria)
+from pbs.prescription.forms import (SuccessCriteriaListUpdateForm,SuccessCriteriaListForm)
 from dpaw_utils import views
 import pbs.forms
 

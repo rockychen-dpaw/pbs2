@@ -2,8 +2,8 @@
 from django.urls import path 
 from django import urls
 
-from ..models import (Prescription,RegionalObjective)
-from ..forms import (RegionalObjectiveListForm,)
+from pbs.prescription.models import (Prescription,RegionalObjective)
+from pbs.prescription.forms import (RegionalObjectiveListForm,)
 from dpaw_utils import views
 import pbs.forms
 

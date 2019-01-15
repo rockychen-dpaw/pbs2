@@ -1,6 +1,6 @@
 
 from pbs.forms import (BUTTON_ACTIONS,OPTION_ACTIONS)
-from ..models import (RegionalObjective,)
+from pbs.prescription.models import (RegionalObjective,)
 
 from dpaw_utils import forms
 
@@ -21,7 +21,7 @@ class RegionalObjectiveConfigMixin(object):
 
 class RegionalObjectiveBaseListForm(RegionalObjectiveConfigMixin,forms.ListForm):
     class Meta:
-        purpose = ('list','view')
+        purpose = (None,('list','view'))
 
 class RegionalObjectiveListForm(RegionalObjectiveBaseListForm):
     all_buttons = [

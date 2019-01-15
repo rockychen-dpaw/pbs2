@@ -7,7 +7,7 @@ from pbs.prescription.models import (Prescription,Region,District)
 from pbs.forms import (BUTTON_ACTIONS,OPTION_ACTIONS)
 from pbs.utils import FinancialYear
 from pbs.report.forms import (SummaryCompletionStateViewForm,BurnImplementationStateViewForm,BurnClosureStateViewForm)
-from .fundingallocation import FundingAllocationUpdateFormSet
+from pbs.prescription.forms.fundingallocation import FundingAllocationUpdateFormSet
 import pbs.widgets
 import pbs.fields
 
@@ -395,7 +395,7 @@ class PrescriptionFilterForm(PrescriptionConfigMixin,forms.FilterForm):
 
     class Meta:
         model = Prescription
-        purpose = 'filter'
+        purpose = ('filter','view')
         all_fields = ('region','district','financial_year','contentious','aircraft_burn','priority',
                   'planning_status','endorsement_status','approval_status','ignition_status','status',
                   'contingencies_migrated')
@@ -413,7 +413,7 @@ class PrescriptionViewForm(PrescriptionBaseForm):
 
     class Meta:
         model = Prescription
-        purpose = "view"
+        purpose = (None,"view")
         all_fields = ('burn_id','planned_season', 'financial_year', 'name', 'description', 'region',
                   'district','last_year_unknown', 'last_year',
                   'last_season_unknown','last_season', 'forest_blocks', 
@@ -433,8 +433,17 @@ class PrescriptionMaximumComplexityForm(PrescriptionBaseForm):
 
     class Meta:
         model = Prescription
-        purpose = "view"
+        purpose = (None,"view")
         all_fields = ("maximum_complexity",)
+
+class PrescriptionMaximumDraftRiskForm(PrescriptionBaseForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        model = Prescription
+        purpose = (None,"view")
+        all_fields = ("maximum_draft_risk",)
 
 class PrescriptionUpdateForm(PrescriptionBaseForm):
     all_buttons = [
@@ -512,7 +521,7 @@ class PrescriptionPriorityUpdateForm(PrescriptionBaseForm):
 
 class PrescriptionBaseListForm(PrescriptionConfigMixin,forms.ListForm):
     class Meta:
-        purpose = ('list','view')
+        purpose = (None,('list','view'))
 
 class PrescriptionListForm(PrescriptionBaseListForm):
     all_actions = [

@@ -338,6 +338,11 @@ class ParentObjectMixin(object):
         except self.model.DoesNotExist:
             raise Http404("The {0} (id={1}) does not exist".format(self.pmodel._meta.verbose_name,ppk))
 
+    def get_form_kwargs(self):
+        kwargs = super(ParentObjectMixin,self).get_form_kwargs()
+        kwargs["parent_instance"] = self.pobject
+        return kwargs
+
     def get_context_data(self, **kwargs):
         context = super(ParentObjectMixin,self).get_context_data(**kwargs)
         context["pobject"] = self.pobject
@@ -378,7 +383,8 @@ class OneToOneModelMixin(ParentObjectMixin):
         try:
             obj = queryset.get()
         except self.model.DoesNotExist:
-            raise Http404("The {0} ({1}={2}) does not exist".format(queryset.model._meta.verbose_name,one_to_one_field_name,ppk))
+            #raise Http404("The {0} ({1}={2}) does not exist".format(queryset.model._meta.verbose_name,self.one_to_one_field_name,self.pobject.pk))
+            return None
 
         return obj
             

@@ -2,10 +2,10 @@ from django.urls import path
 from django import urls
 
 from pbs.prescription.models import (Prescription,)
-from pbs.prescription.forms import (PrescriptionMaximumComplexityForm,)
-from ..models import (Complexity,factorlist)
-from ..forms import (ComplexityListUpdateForm,ComplexityListForm,ComplexityFilterForm)
-from ..filters import (ComplexityFilter,)
+from pbs.prescription.forms import (PrescriptionMaximumDraftRiskForm,)
+from pbs.risk.models import (Complexity,factorlist)
+from pbs.risk.forms import (ComplexityListUpdateForm,ComplexityListForm,ComplexityFilterForm)
+from pbs.risk.filters import (ComplexityFilter,)
 from dpaw_utils import views
 import pbs.forms
 
@@ -15,7 +15,7 @@ class PrescriptionComplexitiesUpdateView(pbs.forms.GetActionMixin,views.OneToMan
     model = Complexity
     filter_class = ComplexityFilter
     filterform_class = ComplexityFilterForm
-    pform_class = PrescriptionMaximumComplexityForm
+    pform_class = PrescriptionMaximumDraftRiskForm
     listform_class = ComplexityListUpdateForm
     context_pform_name = "prescriptionform"
     context_pobject_name = "prescription"

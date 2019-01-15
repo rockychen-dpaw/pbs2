@@ -34,7 +34,12 @@ def call_method(obj,method_name,*args,**kwargs):
 
 @register.simple_tag
 def setvar(*args):
-    return "".join(args)
+    if len(args) == 0:
+        return None
+    elif len(args) == 1:
+        return args[0]
+    else:
+        return "".join([str(o) for o in args])
 
 @register.simple_tag
 def debug(obj,*args):

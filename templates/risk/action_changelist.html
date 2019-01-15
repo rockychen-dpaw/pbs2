@@ -2,19 +2,12 @@
 {% load i18n %}
 {% load pbs_utils %}
 
-{% block content_title %}
-{{block.super}}
-<div class="span9">
-<p id="max_complexity">Maximum rating: <strong>{{prescriptionform.maximum_complexity}}</strong></p>
-</div>
-{% endblock %}
 {% block breadcrumbs %}
-
 <ul class="breadcrumb">
   <li><a href="{% url 'prescription:prescription_list' %}">{% trans 'Regional Overview' %}</a> <span class="divider">/</span></li>
   <li><a href="{% url 'prescription:prescription_home' prescription.id %}">{{ prescription.burn_id }}</a> <span class="divider">/</span></li>
-  <li><a href="% url 'report:prescription_pre_state_update' object.id %}">Part A</a> <span class="divider">/</span></li>
-  <li>Section A5 &#x2010; Prescribed Burn Complexity Analysis Summary</li>
+  <li><a href="{% url 'report:prescription_day_state_update' prescription.id %}">Part B</a> <span class="divider">/</span></li>
+  <li>Section B1 &#x2010; Plan Actions</li>
 </ul>
 
 {% endblock %}
@@ -34,11 +27,11 @@
         </thead>
         <tbody>
             {% for form in listform %}
-            {% if factor != form.factor.value %}
+            {% if category != form.instance.risk.category %}
             <tr>
-                <td colspan="{{listform.boundfieldlength}}">{{factor}} -- {{form.factor}}</td>
+                <td colspan="{{listform.boundfieldlength}}">{{form.risk__category}}</td>
             </tr>
-            {% setvar form.factor.value as factor %}
+            {% setvar form.instance.risk.category as category %}
             {% endif %}
             <tr> 
                 {% for field in form.boundfields %}
@@ -53,8 +46,8 @@
 
         </tbody>
     </table>
-
 {% endblock %}
+
 {% block rightpanel %}
 <div class="span3">
   <h5>Filter</h5>

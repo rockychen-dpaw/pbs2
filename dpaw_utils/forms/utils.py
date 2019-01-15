@@ -22,33 +22,40 @@ class FieldClassConfigDict(dict):
         self._meta_class = meta_class
         self._default_key_name =  "__default__"
         self._editable_fields = self._meta_class.editable_fields if self._meta_class and hasattr(self._meta_class,"editable_fields") else None
-        self._purpose = self._meta_class.purpose if self._meta_class and hasattr(self._meta_class,"purpose") else None
+        self._purpose = self.init_purpose(self._meta_class.purpose if self._meta_class and hasattr(self._meta_class,"purpose") else None)
 
-    def purpose(self,name):
-        if self._purpose:
-            if "edit" in self._purpose:
-                return self._purpose if (self._editable_fields is None or name in self._editable_fields) else "view"
-            else:
-                return self._purpose
+    def init_purpose(self,purpose):
+        if not purpose:
+            return ("edit","view")
+
+        if not purpose[1]:
+            return (purpose[0],"view")
+
+        return purpose
+
+    def keypurpose(self,name,purpose=None):
+        purpose = purpose or self._purpose
+        if purpose[0] and (self._editable_fields is None or name in self._editable_fields):
+            return (purpose[0],True)
         else:
-            return "edit" if (self._editable_fields is None or name in self._editable_fields) else "view"
+            return (purpose[1] or "view",False)
 
     def search_keys(self,name,purpose=None):
-        purpose = purpose or self.purpose(name)
-        if isinstance(purpose,str):
+        keypurpose,editable = self.keypurpose(name,purpose)
+        if isinstance(keypurpose,str):
             if self._meta_class.is_editable_dbfield(name):
-                return ("{}.{}".format(name,purpose),name)
+                return ("{}.{}".format(name,keypurpose),name)
             else:
-                return ("{}.{}".format(name,purpose),name,"{}.{}".format(self._default_key_name,purpose),self._default_key_name)
+                return ("{}.{}".format(name,keypurpose),name,"{}.{}".format(self._default_key_name,keypurpose),self._default_key_name)
         else:
             if self._meta_class.is_editable_dbfield(name):
-                keys = ["{}.{}".format(name,p) for p in purpose]
+                keys = ["{}.{}".format(name,p) for p in keypurpose]
                 keys.append(name)
                 return keys
             else:
-                keys =["{}.{}".format(name,p) for p in purpose]
+                keys =["{}.{}".format(name,p) for p in keypurpose]
                 keys.append(name)
-                for p in purpose:
+                for p in keypurpose:
                     keys.append("{}.{}".format(self._default_key_name,p))
                 keys.append(self._default_key_name)
                 return keys
@@ -80,8 +87,6 @@ class FieldClassConfigDict(dict):
 
 
     def get_config(self,name,purpose=None):
-        if name=="approval_expiry":
-            pass
         for key in self.search_keys(name,purpose):
             try:
                 value = self.data[key]
@@ -103,20 +108,20 @@ class FieldWidgetConfigDict(FieldClassConfigDict):
     """
 
     def search_keys(self,name,purpose=None):
-        purpose = purpose or self.purpose(name)
-        if isinstance(purpose,str):
-            if purpose == 'edit' and self._meta_class.is_dbfield(name):
-                return ("{}.{}".format(name,purpose),name)
+        keypurpose,editable = self.keypurpose(name,purpose)
+        if isinstance(keypurpose,str):
+            if editable and self._meta_class.is_dbfield(name):
+                return ("{}.{}".format(name,keypurpose),name)
             else:
-                return ("{}.{}".format(name,purpose),"{}.{}".format(self._default_key_name,purpose),self._default_key_name)
+                return ("{}.{}".format(name,keypurpose),"{}.{}".format(self._default_key_name,keypurpose),self._default_key_name)
         else:
-            if "edit" in purpose and self._meta_class.is_dbfield(name):
-                keys = ["{}.{}".format(name,p) for p in purpose]
+            if editable and self._meta_class.is_dbfield(name):
+                keys = ["{}.{}".format(name,p) for p in keypurpose]
                 keys.append(name)
                 return keys
             else:
-                keys = ["{}.{}".format(name,p) for p in purpose]
-                for p in purpose:
+                keys = ["{}.{}".format(name,p) for p in keypurpose]
+                for p in keypurpose:
                     keys.append("{}.{}".format(self._default_key_name,p))
                 keys.append(self._default_key_name)
                 return keys

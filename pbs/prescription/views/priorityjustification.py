@@ -1,8 +1,8 @@
 from django.urls import path 
 from django import urls
 
-from ..models import (Prescription,PriorityJustification)
-from ..forms import (PriorityJustificationListUpdateForm,PriorityJustificationListForm,PrescriptionPriorityUpdateForm)
+from pbs.prescription.models import (Prescription,PriorityJustification)
+from pbs.prescription.forms import (PriorityJustificationListUpdateForm,PriorityJustificationListForm,PrescriptionPriorityUpdateForm)
 from dpaw_utils import views
 import pbs.forms
 

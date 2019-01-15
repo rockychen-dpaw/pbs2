@@ -216,6 +216,10 @@ class ListForm(forms.ActionMixin,forms.RequestUrlMixin,forms.ModelFormMetaMixin,
         self.dataform = ListDataForm(self)
 
     @property
+    def boundfieldlength(self):
+        return len(self._meta.ordered_fields)
+
+    @property
     def boundfields(self):
         return BoundFieldIterator(self)
 

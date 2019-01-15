@@ -2,7 +2,7 @@
 from dpaw_utils import forms
 from django.forms.formsets import DELETION_FIELD_NAME
 
-from ..models import (CriticalStakeholder,)
+from pbs.stakeholder.models import (CriticalStakeholder,)
 import pbs.widgets
 from pbs.forms import (BUTTON_ACTIONS,OPTION_ACTIONS)
 
@@ -32,10 +32,8 @@ class CriticalStakeholderConfigMixin(object):
 
 
 class CriticalStakeholderMemberUpdateForm(CriticalStakeholderCleanMixin,CriticalStakeholderConfigMixin,forms.ListMemberForm):
-    def __init__(self,parent_instance=None,*args,**kwargs):
-        super(CriticalStakeholderMemberUpdateForm,self).__init__(*args,**kwargs)
-        if parent_instance:
-            self.instance.prescription = parent_instance
+    def set_parent_instance(self,parent_instance):
+        self.instance.prescription = parent_instance
 
     @property
     def can_delete(self):
@@ -52,7 +50,7 @@ CriticalStakeholderListUpdateForm = forms.listupdateform_factory(CriticalStakeho
         
 class CriticalStakeholderBaseListForm(CriticalStakeholderConfigMixin,forms.ListForm):
     class Meta:
-        purpose = ('list','view')
+        purpose = (None,('list','view'))
 
 
 class CriticalStakeholderListForm(CriticalStakeholderBaseListForm):

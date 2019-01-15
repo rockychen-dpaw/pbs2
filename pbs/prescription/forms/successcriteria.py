@@ -1,5 +1,5 @@
 from pbs.forms import (BUTTON_ACTIONS,OPTION_ACTIONS)
-from ..models import (SuccessCriteria,)
+from pbs.prescription.models import (SuccessCriteria,)
 
 from dpaw_utils import forms
 
@@ -25,10 +25,8 @@ class SuccessCriteriaConfigMixin(object):
         }
 
 class SuccessCriteriaMemberUpdateForm(SuccessCriteriaCleanMixin,SuccessCriteriaConfigMixin,forms.ListMemberForm):
-    def __init__(self,parent_instance=None,*args,**kwargs):
-        super(SuccessCriteriaMemberUpdateForm,self).__init__(*args,**kwargs)
-        if parent_instance:
-            self.instance.prescription = parent_instance
+    def set_parent_instance(self,parent_instance):
+        self.instance.prescription = parent_instance
 
     @property
     def can_delete(self):
@@ -44,7 +42,7 @@ SuccessCriteriaListUpdateForm = forms.listupdateform_factory(SuccessCriteriaMemb
 
 class SuccessCriteriaBaseListForm(SuccessCriteriaConfigMixin,forms.ListForm):
     class Meta:
-        purpose = ('list','view')
+        purpose = (None,('list','view'))
 
 class SuccessCriteriaListForm(SuccessCriteriaBaseListForm):
     all_buttons = [

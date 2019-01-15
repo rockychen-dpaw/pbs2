@@ -2,8 +2,8 @@
 from django import urls
 
 from pbs.prescription.models import (Prescription,)
-from ..models import (Context,ContextRelevantAction)
-from ..forms import (ContextUpdateForm,)
+from pbs.risk.models import (Context,ContextRelevantAction)
+from pbs.risk.forms import (ContextUpdateForm,)
 from dpaw_utils.views import (OneToOneUpdateView,)
 
 class ContextUpdateView(OneToOneUpdateView):

@@ -50,7 +50,7 @@ class BurnClosureStateViewForm(BurnClosureStateBaseForm):
 
     class Meta:
         model = BurnClosureState
-        purpose = "view"
+        purpose = (None,"view")
         all_fields = ["post_actions","evaluation_summary","evaluation","post_ignitions","aerial_intensity","satellite_intensity","other","post_burn_checklist","closure_declaration","signage",'progress']
 
 class BurnClosureStateUpdateForm(forms.EditableFieldsMixin,BurnClosureStateBaseForm):

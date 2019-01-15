@@ -1,5 +1,5 @@
 from pbs.forms import (BUTTON_ACTIONS,OPTION_ACTIONS)
-from ..models import (Complexity,)
+from pbs.risk.models import (Complexity,)
 
 from dpaw_utils import forms
 
@@ -40,14 +40,14 @@ class ComplexityFilterForm(ComplexityConfigMixin,forms.FilterForm):
 
     class Meta:
         model = Complexity
-        purpose = 'filter'
+        purpose = ('filter','view')
         all_fields = ('factor',)
 
 class ComplexityMemberUpdateForm(forms.RequestUrlMixin,ComplexityCleanMixin,ComplexityConfigMixin,forms.ListMemberForm):
-    def __init__(self,parent_instance=None,*args,**kwargs):
-        super(ComplexityMemberUpdateForm,self).__init__(*args,**kwargs)
-        if parent_instance:
-            self.instance.prescription = parent_instance
+
+    def set_parent_instance(self,parent_instance):
+        self.instance.prescription = parent_instance
+
 
     @property
     def can_delete(self):
@@ -67,7 +67,7 @@ ComplexityListUpdateForm = forms.listupdateform_factory(ComplexityMemberUpdateFo
 
 class ComplexityBaseListForm(ComplexityConfigMixin,forms.ListForm):
     class Meta:
-        purpose = ('list','view')
+        purpose = (None,('list','view'))
 
 class ComplexityListForm(ComplexityBaseListForm):
     all_buttons = [

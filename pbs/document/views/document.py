@@ -4,9 +4,9 @@ from django import urls
 
 from django_downloadview import ObjectDownloadView
 
-from ..models import (Document,)
+from pbs.document.models import (Document,)
 from pbs.prescription.models import (Prescription,)
-from ..forms import (TaggedDocumentCreateForm,DocumentListForm)
+from pbs.document.forms import (TaggedDocumentCreateForm,DocumentListForm)
 from dpaw_utils import views
 import pbs.forms
 

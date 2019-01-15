@@ -46,7 +46,7 @@ class SummaryCompletionStateViewForm(SummaryCompletionStateBaseForm):
 
     class Meta:
         model = SummaryCompletionState
-        purpose = "view"
+        purpose = (None,"view")
         all_fields = ["summary","context_statement","context_map","objectives","success_criteria","priority_justification","complexity_analysis","risk_register",'progress']
 
 

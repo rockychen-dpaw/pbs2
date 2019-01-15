@@ -20,6 +20,10 @@ class DisplayWidget(DisplayMixin,forms.Widget):
     def __deepcopy__(self, memo):
         return self
 
+
+    def render(self,name,value,attrs=None,renderer=None):
+        return str(value) if value else ""
+
 class HtmlTag(DisplayWidget):
     template = "<{0} {1}>{2}</{0}>"
     def __init__(self,tag,attrs = None,value=None):

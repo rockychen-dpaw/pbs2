@@ -1,6 +1,6 @@
 
 from pbs.forms import (BUTTON_ACTIONS,OPTION_ACTIONS)
-from ..models import (Context,)
+from pbs.risk.models import (Context,)
 from dpaw_utils import forms
 
 class ContextCleanMixin(object):

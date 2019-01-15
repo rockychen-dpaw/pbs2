@@ -150,6 +150,9 @@
 {% url 'prescription:prescription_successcriteria_changelist' prescription.id as success_criteria %}
 {% url 'prescription:prescription_priorityjustification_changelist' prescription.id as priority_justification %}
 {% url 'risk:prescription_complexity_changelist' prescription.id as complexity %}
+{% url 'risk:prescription_register_changelist' prescription.id as register %}
+{% url 'implementation:prescription_operationaloverview_update' prescription.id as operational_overview %}
+{% url 'risk:prescription_action_changelist' prescription.id as actions %}
 {% block body %}
 <body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}" style={% page_background %}>
 {% if not is_popup %}
@@ -293,7 +296,7 @@
                   <li{% if request.path == success_criteria %} class="active"{% endif %}><a href="{{ success_criteria }}">A3 - Success Criteria</a></li>
                   <li{% if request.path == priority_justification %} class="active"{% endif %}><a href="{{ priority_justification }}">A4 - Priority Justification</a></li>
                   <li{% if request.path == complexity %} class="active"{% endif %}><a href="{{ complexity }}">A5 - Complexity Analysis</a></li>
-                  <li{% if request.path == sectiona6 %} class="active"{% endif %}><a href="{{ sectiona6 }}">A6 - Risk Register</a></li>
+                  <li{% if request.path == register %} class="active"{% endif %}><a href="{{ register }}">A6 - Risk Register</a></li>
                 </ul>
               </li>
               <li id="implementation-dropdown" class="dropdown">

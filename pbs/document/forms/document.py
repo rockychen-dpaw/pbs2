@@ -1,6 +1,6 @@
 
 from pbs.forms import (BUTTON_ACTIONS,OPTION_ACTIONS)
-from ..models import (Document,)
+from pbs.document.models import (Document,)
 
 from dpaw_utils import forms
 
@@ -31,7 +31,7 @@ class TaggedDocumentCreateForm(forms.EditableFieldsMixin,DocumentBaseForm):
     ]
     class Meta:
         model = Document
-        purpose = ('tagged','edit')
+        purpose = (('tagged','edit'),"view")
         all_fields = ("tag","document")
         editable_fields = ("tag","document")
 
@@ -42,14 +42,14 @@ class DocumentUpdateForm(forms.EditableFieldsMixin,DocumentBaseForm):
     ]
     class Meta:
         model = Document
-        purpose = ('edit',)
+        purpose = ('edit','view')
         all_fields = ("document",)
         editable_fields = ("document",)
 
 
 class DocumentBaseListForm(DocumentConfigMixin,forms.ListForm):
     class Meta:
-        purpose = ('list','view')
+        purpose = (None,('list','view'))
 
 class DocumentListForm(DocumentBaseListForm):
     all_buttons = [

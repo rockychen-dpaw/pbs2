@@ -11,7 +11,7 @@ from django.utils import timezone
 from django.template.defaultfilters import date
 from django.utils.safestring import mark_safe
 
-from dpaw_utils.models import AuditMixin
+from dpaw_utils.models import (AuditMixin,ModelDictMixin)
 
 from pbs.prescription.models import Prescription,FuelType,Season
 from pbs.implementation.utils import field_range
@@ -25,8 +25,8 @@ trafficdiagram_storage = FileSystemStorage(
     base_url=settings.STATIC_URL + "pbs/traffic-control-diagrams/")
 
 
-class OperationalOverview(AuditMixin):
-    prescription = models.ForeignKey(Prescription, on_delete=models.PROTECT)
+class OperationalOverview(ModelDictMixin,AuditMixin):
+    prescription = models.OneToOneField(Prescription, on_delete=models.PROTECT)
     overview = models.TextField(blank=True, null=True)
 
     def __str__(self):

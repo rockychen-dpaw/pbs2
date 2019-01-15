@@ -36,7 +36,7 @@ class RiskCategoryManager(models.Manager):
     def get_by_natural_key(self, name):
         return self.get(name=name)
 
-class RiskCategory(models.Model):
+class RiskCategory(ModelDictMixin,models.Model):
     name = models.CharField(
         verbose_name="Potential Source of Risk Category", max_length=200)
 
@@ -54,7 +54,7 @@ class RiskCategory(models.Model):
         verbose_name_plural = "Potential Source of Risk Categories"
 
 
-class Risk(AuditMixin):
+class Risk(ModelDictMixin,AuditMixin):
     """
     Standard set of risks to be created on every prescription.
     """
@@ -88,7 +88,7 @@ class Risk(AuditMixin):
     class Meta:
         ordering = ['category', 'name']
         verbose_name = 'Potential Source of Risk'
-        verbose_name = "Potential Sources of Risk"
+        verbose_name_plural = "Potential Sources of Risk"
 
 
 class Context(ModelDictMixin,AuditMixin):
@@ -106,7 +106,7 @@ class Context(ModelDictMixin,AuditMixin):
         ordering = ['pk']
 
 
-class Action(AuditMixin):
+class Action(ModelDictMixin,AuditMixin):
     RESOLUTION_NO = "No"
     RESOLUTION_YES = "Yes"
     RESOLUTION_EXPLANATION = "Explanation"
@@ -280,7 +280,7 @@ class ContextRelevantAction(AuditMixin):
     def prescription(self):
         return self.action.prescription
 
-class Register(AuditMixin):
+class Register(ModelDictMixin,AuditMixin):
     CONSEQUENCE_LOW = 1
     CONSEQUENCE_HIGH = 2
     CONSEQUENCE_VERY_HIGH = 3

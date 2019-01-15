@@ -12,6 +12,7 @@ from . import fields
 
 class BoundField(forms.boundfield.BoundField):
     def __init__(self, form, field, name):
+        self.form_field_name = name
         super(BoundField,self).__init__(form,field,field.field_name if isinstance(field,fields.AliasFieldMixin) else name)
     """ 
     Extend django's BoundField to support the following features
@@ -236,7 +237,10 @@ class ListBoundFieldMixin(object):
         label = (conditional_escape(self.label) or '') if self.label else ''
 
         if self.is_hidden:
-            attrs = " style='display:none'"
+            if self.form._meta.widths and self.form_field_name in self.form._meta.widths:
+                attrs = ""
+            else:
+                attrs = " style='display:none'"
         elif not self.sortable:
             if hasattr(self.field,"css_classes"):
                 attrs = " class=\"{}\"".format(" ".join(self.field.css_classes))
@@ -250,8 +254,8 @@ class ListBoundFieldMixin(object):
             else:
                 attrs = " onclick=\"document.location='{}'\" class=\"{}\"".format(self.form.querystring(ordering="{}{}".format("-" if sorting_status == 'asc' else '',self.name)),sorting_class)
 
-        if self.form._meta.widths and self.name in self.form._meta.widths:
-            attrs = "{} style='width:{};'".format(attrs,self.form._meta.widths[self.name])
+        if self.form._meta.widths and self.form_field_name in self.form._meta.widths:
+            attrs = "{} style='width:{};'".format(attrs,self.form._meta.widths[self.form_field_name])
 
         return mark_safe(template.format(label=label,attrs=attrs))
 

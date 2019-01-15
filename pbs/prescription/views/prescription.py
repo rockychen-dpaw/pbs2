@@ -19,9 +19,9 @@ from pbs.report.models import Evaluation
 from pbs import mutex, SemaphoreException
 import pbs.forms
 
-from ..models import (Prescription,)
-from ..forms import (PrescriptionCreateForm,PrescriptionFilterForm,PrescriptionListForm,PrescriptionViewForm,PrescriptionUpdateForm,DraftPrescriptionUpdateForm)
-from ..filters import (PrescriptionFilter,)
+from pbs.prescription.models import (Prescription,)
+from pbs.prescription.forms import (PrescriptionCreateForm,PrescriptionFilterForm,PrescriptionListForm,PrescriptionViewForm,PrescriptionUpdateForm,DraftPrescriptionUpdateForm)
+from pbs.prescription.filters import (PrescriptionFilter,)
 
 class PrescriptionCreateView(CreateView):
     model = Prescription
