@@ -749,15 +749,15 @@ class ListUpdateView(ListView):
         self.object_list = self.get_queryset()
         self.listform = self.get_listform_class()(instance_list=self.object_list,data=request.POST,request=self.request,requesturl = self.requesturl)
         if self.listform.is_valid():
-            return self.valid_form()
+            return self.form_valid()
         else:
-            return self.invalid_form()
+            return self.form_invalid()
 
-    def invalid_form(self):
+    def form_invalid(self):
         context = self.get_context_data()
         return self.render_to_response(context)
 
-    def valid_form(self):
+    def form_valid(self):
         with transaction.atomic():
             pform_class = self.get_pform_class()
             if pform_class:
@@ -777,7 +777,7 @@ class OneToManyListUpdateView(OneToManyModelMixin,ListUpdateView):
         else:
             pform_valid = True
         if self.listform.is_valid()  and pform_valid:
-            return self.valid_form()
+            return self.form_valid()
         else:
-            return self.invalid_form()
+            return self.form_invalid()
 

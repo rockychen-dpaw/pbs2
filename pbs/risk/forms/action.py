@@ -25,7 +25,7 @@ class ActionConfigMixin(object):
             "__default__.edit":forms.widgets.TextInput(),
             "id.edit":forms.widgets.Hidden(),
             'details.edit':forms.widgets.Textarea(attrs={"class":"vTextField"}),
-            "risk__name":forms.widgets.HyperlinkFactory("risk__name","risk:prescription_action_update",ids=[("id","pk"),("risk__prescription__id","ppk")]),
+            "risk_name":forms.widgets.HyperlinkFactory("risk_name","risk:prescription_action_update",ids=[("id","pk"),("risk__prescription__id","ppk")]),
             "delete.view":forms.widgets.HyperlinkFactory("id","prescription:prescription_successcriteria_delete_confirm",ids=[("id","pk"),("prescription","ppk")],template="<button id='delete' title='Delete' onclick='window.location=\"{url}\"' type='button' style='display:none' >Delete</button>")
         }
 
@@ -44,6 +44,17 @@ class ActionBaseForm(ActionCleanMixin,ActionConfigMixin,forms.ModelForm):
     class Meta:
         pass
 
+class ActionCreateForm(forms.RequestUrlMixin,ActionBaseForm):
+    all_buttons = [
+        BUTTON_ACTIONS["save"],
+        BUTTON_ACTIONS["back"]
+    ]
+    class Meta:
+        model = Action
+        all_fields = ("risk__category","relevant","risk_name","details","pre_burn","day_of_burn","post_burn","context_statement")
+        editable_fields = ("relevant","details","pre_burn","day_of_burn","post_burn","context_statement")
+        ordered_fields = ("risk__category","relevant","risk_name","details","pre_burn","day_of_burn","post_burn","context_statement")
+
 class ActionUpdateForm(forms.RequestUrlMixin,ActionBaseForm):
     all_buttons = [
         BUTTON_ACTIONS["save"],
@@ -51,12 +62,9 @@ class ActionUpdateForm(forms.RequestUrlMixin,ActionBaseForm):
     ]
     class Meta:
         model = Action
-        widths = {
-            "delete":"16px"
-        }
-        all_fields = ("risk__category","relevant","risk__name","details","pre_burn","day_of_burn","post_burn","context_statement")
+        all_fields = ("risk__category","relevant","risk_name","details","pre_burn","day_of_burn","post_burn","context_statement")
         editable_fields = ("relevant","details","pre_burn","day_of_burn","post_burn","context_statement")
-        ordered_fields = ("risk__category","relevant","risk__name","details","pre_burn","day_of_burn","post_burn","context_statement")
+        ordered_fields = ("risk__category","relevant","risk_name","details","pre_burn","day_of_burn","post_burn","context_statement")
 
 class ActionMemberUpdateForm(forms.RequestUrlMixin,ActionCleanMixin,ActionConfigMixin,forms.ListMemberForm):
     def set_parent_instance(self,parent_instance):
@@ -71,9 +79,9 @@ class ActionMemberUpdateForm(forms.RequestUrlMixin,ActionCleanMixin,ActionConfig
         widths = {
             "delete":"16px"
         }
-        all_fields = ("risk__category","id","relevant","risk__name","details","pre_burn","day_of_burn","post_burn","context_statement","delete")
+        all_fields = ("risk__category","id","relevant","risk_name","details","pre_burn","day_of_burn","post_burn","context_statement","delete")
         editable_fields = ("id","relevant","details","pre_burn","day_of_burn","post_burn","context_statement")
-        ordered_fields = ("id","relevant","risk__name","details","pre_burn","day_of_burn","post_burn","context_statement","delete")
+        ordered_fields = ("id","relevant","risk_name","details","pre_burn","day_of_burn","post_burn","context_statement","delete")
 
 ActionListUpdateForm = forms.listupdateform_factory(ActionMemberUpdateForm,min_num=0,max_num=400,extra=0,all_buttons=[BUTTON_ACTIONS.get('back'),BUTTON_ACTIONS.get('save')],can_delete=True,can_add=False)
 

@@ -29,6 +29,22 @@ class RiskBaseForm(RiskCleanMixin,RiskConfigMixin,forms.ModelForm):
         model = Risk
         all_fields = ()
 
+class CustomRiskCreateForm(forms.RequestUrlMixin,RiskBaseForm):
+    all_buttons = [
+        BUTTON_ACTIONS["save"],
+        BUTTON_ACTIONS["back"]
+    ]
+    def __init__(self,*args,**kwargs):
+        kwargs["instance"] = Risk(custom=True,risk=Risk.RISK_UNASSESSED)
+        super(CustomRiskCreateForm,self).__init__(*args,**kwargs)
+
+    class Meta:
+        model = Risk
+        all_fields = ("category","name")
+        editable_fields = ("category","name")
+        ordered_fields = ("category","name")
+
+
 class RiskMemberUpdateForm(forms.RequestUrlMixin,RiskCleanMixin,RiskConfigMixin,forms.ListMemberForm):
     def set_parent_instance(self,parent_instance):
         self.instance.prescription = parent_instance

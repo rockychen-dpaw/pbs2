@@ -9,10 +9,32 @@
   <li><a href="{% url 'report:prescription_day_state_update' prescription.id %}">Part B</a> <span class="divider">/</span></li>
   <li>Section B1 &#x2010; Plan Actions</li>
 </ul>
-
 {% endblock %}
 
+{% block pretitle %}
+<ul class="nav nav-tabs" style="margin-bottom:2px">
+    <li><a href="{% url 'risk:context_update' prescription.id %}"><i class="icon-legal"></i> Risk management context statement</a></li>
+    <li><a href="{% url 'stakeholder:criticalstakeholder_changelist' prescription.id  %}"><i class="icon-user"></i> Critical stakeholders</a></li>
+    <li class="active"><a href="{% url 'risk:prescription_action_changelist' prescription.id %}"><i class="icon-legal"></i> Actions</a></li>
+    <li><a href="{% url 'risk:prescription_register_changelist' prescription.id %}"><i class="icon-warning-sign"></i> Risk Register</a></li>
+</ul>
+<ul id="actionnav" class="nav nav-pills">
+    <li{% if not 'pre_burn' in request.GET and not 'day_of_burn' in request.GET and not 'post_burn' in request.GET %} class="active"{% endif %}><a href="{% url 'risk:prescription_action_changelist' prescription.id %}"><i class="icon-list-ol"></i>Plan actions</a></li>
+    <li{% if 'pre_burn' in request.GET %} class="active"{% endif %}><a href="?pre_burn=true"><i class="icon-tasks"></i>Pre-burn actions</a></li>
+    <li{% if 'day_of_burn' in request.GET %} class="active"{% endif %}><a href="?day_of_burn=true"><i class="icon-legal"></i>Day of burn actions</a></li>
+    <li{% if 'post_burn' in request.GET %} class="active"{% endif %}><a href="?post_burn=true"><i class="icon-warning-sign"></i>Post-burn actions</a></li>
+</ul>
+{% endblock %}
 
+{% block content_title %}
+<div class="row">
+    <div class="span9" >
+        <h1>{{ title }}
+            <a href="{% url 'risk:prescription_risk_create' prescription.id %}" class="pull-right btn btn-small btn-info"><i class="icon-plus"></i> Add source of risk</a>
+        </h1>
+    </div>
+</div>
+{% endblock %}
 
 {% block list_content %}
     <table id="{{listform.model_name_lower}}_result_list" class="table table-striped table-condensed table-hober table-fixed-header">

@@ -1,0 +1,14 @@
+{% extends "../change_form.html" %}
+{% load i18n %}
+{% load pbs_utils %}
+
+{% block breadcrumbs %}
+<ul class="breadcrumb">
+  <li><a href="{% url 'prescription:prescription_list' %}">{% trans 'Regional Overview' %}</a> <span class="divider">/</span></li>
+  <li><a href="{% url 'prescription:prescription_home' prescription.id %}">{{ prescription.burn_id }}</a> <span class="divider">/</span></li>
+  <li><a href="{% url 'report:prescription_day_state_update' prescription.id %}">Part B</a> <span class="divider">/</span></li>
+  <li><a href="{% url 'risk:prescription_action_changelist' prescription.id %}">Section B1 &#x2010; Plan Actions</a> <span class="divider">/</span></li>
+  <li>Add Potential Source of Risk</li>
+</ul>
+
+{% endblock %}

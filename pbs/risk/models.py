@@ -186,6 +186,13 @@ class Action(ModelDictMixin,AuditMixin):
         verbose_name="Total number of actions for this risk")
 
     @property
+    def risk_name(self):
+        if self.total == 1:
+            return self.risk.name
+        else:
+            return "{} ({} of {})".format(self.risk.name,self.index,self.total)
+
+    @property
     def prescription(self):
         return self.risk.prescription
 

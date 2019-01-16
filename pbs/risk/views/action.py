@@ -2,12 +2,25 @@ from django.urls import path
 from django import urls
 
 from pbs.prescription.models import (Prescription,)
-from pbs.prescription.forms import (PrescriptionMaximumDraftRiskForm,)
 from pbs.risk.models import (Action,Risk,categorylist)
 from pbs.risk.forms import (ActionListUpdateForm,ActionListForm,ActionFilterForm,ActionUpdateForm)
 from pbs.risk.filters import (ActionFilter,)
 from dpaw_utils import views
 import pbs.forms
+
+class PrescriptionActionCreateView(pbs.forms.GetActionMixin,views.OneToManyCreateView):
+    title = "Add Plan Action"
+    pmodel = Prescription
+    model = Action
+    form_class = ActionUpdateForm
+    context_pobject_name = "prescription"
+    one_to_many_field_name = "risk__prescription"
+    urlpattern = "prescription/<int:ppk>/action/<int:pk>/"
+    urlname = "prescription_action_update"
+    template_name_suffix = "_update"
+
+    def get_success_url(self):
+        return urls.reverse("risk:prescription_action_changelist",args=(self.object.risk.prescription.id,))
 
 class PrescriptionActionUpdateView(pbs.forms.GetActionMixin,views.OneToManyUpdateView):
     title = "Change Plan Action"
@@ -35,7 +48,7 @@ class PrescriptionActionsUpdateView(pbs.forms.GetActionMixin,views.OneToManyList
     urlpattern = "prescription/<int:ppk>/action/"
     urlname = "prescription_action_changelist"
     filtertool = False
-    default_order = ("risk__category__name","risk__name")
+    default_order = ("risk__category__name","risk__name","index")
 
 
     @property

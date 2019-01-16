@@ -15,8 +15,8 @@
 <ul class="nav nav-tabs">
     <li class="active"><a href="{% url 'risk:context_update' prescription.id %}"><i class="icon-legal"></i> Risk management context statement</a></li>
     <li><a href="{% url 'stakeholder:criticalstakeholder_changelist' prescription.id  %}"><i class="icon-user"></i> Critical stakeholders</a></li>
-    <li><a href=""><i class="icon-legal"></i> Actions</a></li>
-    <li><a href=""><i class="icon-warning-sign"></i> Risk Register</a></li>
+    <li><a href="{% url 'risk:prescription_action_changelist' prescription.id %}"><i class="icon-legal"></i> Actions</a></li>
+    <li><a href="{% url 'risk:prescription_register_changelist' prescription.id %}"><i class="icon-warning-sign"></i> Risk Register</a></li>
 </ul>
 {% endblock %}
 
