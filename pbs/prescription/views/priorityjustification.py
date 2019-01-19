@@ -39,7 +39,7 @@ class PrescriptionPriorityJustificationsUpdateView(pbs.forms.GetActionMixin,view
             path('prescription/<int:ppk>/priorityjustifications/delete', cls.as_view(),{"action":"deleteconfirmed"},name='prescription_priorityjustifications_delete'),
         ]
 
-    def get_success_url(self):
+    def _get_success_url(self):
         return urls.reverse("prescription:prescription_priorityjustification_changelist",args=(self.pobject.id,))
 
     def get_listform_class(self):

@@ -60,7 +60,7 @@ class BoundField(forms.boundfield.BoundField):
     @property
     def initial(self):
         if self.is_display and hasattr(self.field.widget,"prepare_initial_data"):
-            return self.field.widget.prepare_initial_data(self.form.initial,self.name)
+            return self.field.widget.prepare_initial_data(self.form,self.name)
         data = super(BoundField,self).initial
 
         #print("{}: {} = {}".format("view" if self.is_display else "edit",self.name ,data))

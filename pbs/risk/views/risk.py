@@ -19,7 +19,7 @@ class PrescriptionRiskCreateView(pbs.forms.GetActionMixin,views.OneToManyCreateV
     urlname = "prescription_risk_create"
     template_name_suffix = "_create"
 
-    def get_success_url(self):
+    def _get_success_url(self):
         return urls.reverse("risk:prescription_action_changelist",args=(self.object.prescription.id,))
 
     def form_valid(self,form):

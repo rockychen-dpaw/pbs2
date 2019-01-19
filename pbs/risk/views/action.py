@@ -3,23 +3,36 @@ from django import urls
 
 from pbs.prescription.models import (Prescription,)
 from pbs.risk.models import (Action,Risk,categorylist)
-from pbs.risk.forms import (ActionListUpdateForm,ActionListForm,ActionFilterForm,ActionUpdateForm)
+from pbs.risk.forms import (ActionListUpdateForm,PreburnActionListUpdateForm,ActionListForm,ActionFilterForm,MultipleActionCreateForm,ActionUpdateForm)
 from pbs.risk.filters import (ActionFilter,)
 from dpaw_utils import views
 import pbs.forms
 
-class PrescriptionActionCreateView(pbs.forms.GetActionMixin,views.OneToManyCreateView):
+class PrescriptionMultipleActionCreateView(pbs.forms.GetActionMixin,views.OneToManyCreateView):
     title = "Add Plan Action"
     pmodel = Prescription
     model = Action
-    form_class = ActionUpdateForm
+    form_class = MultipleActionCreateForm
     context_pobject_name = "prescription"
     one_to_many_field_name = "risk__prescription"
-    urlpattern = "prescription/<int:ppk>/action/<int:pk>/"
-    urlname = "prescription_action_update"
-    template_name_suffix = "_update"
+    urlpattern = "prescription/<int:ppk>/action/<int:actionpk>/add/multiple/"
+    urlname = "prescription_multipleaction_add"
+    template_name_suffix = "_multiple_add"
 
-    def get_success_url(self):
+    def get(self,request,ppk,actionpk,**kwargs):
+        self.baseaction = Action.objects.get(id = actionpk)
+        return super().get(request,ppk,actionpk,**kwargs)
+
+    def post(self,request,ppk,actionpk,**kwargs):
+        self.baseaction = Action.objects.get(id = actionpk)
+        return super().post(request,ppk,actionpk,**kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['baseaction'] = self.baseaction
+        return kwargs
+
+    def _get_success_url(self):
         return urls.reverse("risk:prescription_action_changelist",args=(self.object.risk.prescription.id,))
 
 class PrescriptionActionUpdateView(pbs.forms.GetActionMixin,views.OneToManyUpdateView):
@@ -33,7 +46,7 @@ class PrescriptionActionUpdateView(pbs.forms.GetActionMixin,views.OneToManyUpdat
     urlname = "prescription_action_update"
     template_name_suffix = "_update"
 
-    def get_success_url(self):
+    def _get_success_url(self):
         return urls.reverse("risk:prescription_action_changelist",args=(self.object.risk.prescription.id,))
 
 class PrescriptionActionsUpdateView(pbs.forms.GetActionMixin,views.OneToManyListUpdateView):
@@ -63,7 +76,7 @@ class PrescriptionActionsUpdateView(pbs.forms.GetActionMixin,views.OneToManyList
             path('prescription/<int:ppk>/actions/delete', cls.as_view(),{"action":"deleteconfirmed"},name='prescription_actions_delete'),
         ]
 
-    def get_success_url(self):
+    def _get_success_url(self):
         return urls.reverse("risk:prescription_action_changelist",args=(self.pobject.id,))
 
     def get_listform_class(self):
@@ -76,5 +89,38 @@ class PrescriptionActionsUpdateView(pbs.forms.GetActionMixin,views.OneToManyList
         context = super().get_context_data(**kwargs)
         context["relevantlist"] = ((True,"Yes"),(False,"No"))
         context["categorylist"] = categorylist
+
+        return context
+
+
+class PrescriptionPreBurnActionsUpdateView(pbs.forms.GetActionMixin,views.OneToManyListUpdateView):
+    title = "Pre-burn Actions"
+    pmodel = Prescription
+    model = Action
+    listform_class = PreburnActionListUpdateForm
+    context_pobject_name = "prescription"
+    one_to_many_field_name = "risk__prescription"
+    urlpattern = "prescription/<int:ppk>/action/preburn/"
+    urlname = "prescription_preburn_action_changelist"
+    default_order = ("risk__category__name","risk__name","index")
+    template_name_suffix = "_preburn_changelist"
+
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(pre_burn=True)
+
+    def _get_success_url(self):
+        return urls.reverse("risk:prescription_preburn_action_changelist",args=(self.pobject.id,))
+
+    def get_listform_class(self):
+        if self.action == 'deleteconfirm':
+            return ActionListForm
+        else:
+            return super().get_listform_class()
+
+    def get_context_data(self,**kwargs):
+        context = super().get_context_data(**kwargs)
+        context["documents"] = self.pobject.document_set.filter(tag__id=171)
 
         return context

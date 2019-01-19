@@ -3,6 +3,18 @@
 {% load static %}
 {% load pbs_utils %}
 
+{% block fieldstyle %}
+  {% for css in listform.media.render_css %}
+  {{css}}
+  {% endfor %}
+{% endblock %}
+
+{% block fieldjs %}
+  {% for js in listform.media.render_js %}
+  {{js}}
+  {% endfor %}
+{% endblock %}
+
 {% block extrajs %}
    {% if filterform or listform.toggleablefields %}
         <script src="{% static 'js/toggle_columns.js' %}"></script>
@@ -154,6 +166,7 @@
 
         </tbody>
     </table>
+    {% endblock %}
 
     {% if listform.can_add or listform.can_delete %}
     <script type="text/javascript">
@@ -214,7 +227,6 @@
     </script>
     {% endif %}
 
-    {% endblock %}
     {% if listform.has_buttons %}
     <div class="navbar navbar-fixed-bottom">
       <div class="navbar-inner">

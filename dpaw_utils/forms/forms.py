@@ -505,8 +505,22 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
             field_list = OrderedDict(field_list)
             new_class.base_fields.update(field_list)
 
-        if not opts.ordered_fields:
-            opts.ordered_fields = [f for f in new_class.base_fields.keys()]
+        #add '*' for required field
+        for field in new_class.base_fields.values():
+            if isinstance(field.widget,widgets.DisplayMixin):
+                continue
+            if not field.required:
+                continue
+            if not field.label:
+                continue
+
+            if field.label.endswith('*'):
+                continue
+            field.label = "{} *".format(field.label)
+
+
+        #if not opts.ordered_fields:
+        #   opts.ordered_fields = [f for f in new_class.base_fields.keys()]
 
         media = forms.widgets.Media()
 

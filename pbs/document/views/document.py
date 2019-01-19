@@ -10,7 +10,7 @@ from pbs.document.forms import (TaggedDocumentCreateForm,DocumentListForm)
 from dpaw_utils import views
 import pbs.forms
 
-class PrescriptionDocumentCreateView(views.RequestActionMixin,views.SendDataThroughGetMixin,views.OneToManyCreateView):
+class PrescriptionDocumentCreateView(pbs.forms.GetActionMixin,views.RequestActionMixin,views.SendDataThroughGetMixin,views.OneToManyCreateView):
     pmodel = Prescription
     model = Document
     form_class = TaggedDocumentCreateForm
@@ -19,7 +19,7 @@ class PrescriptionDocumentCreateView(views.RequestActionMixin,views.SendDataThro
     urlpattern = "document/add/prescription/<int:ppk>/"
     urlname = "prescription_document_update"
     template_name_suffix = "_create"
-    default_action = "upload"
+    default_post_action = "upload"
 
     @classmethod
     def _get_extra_urlpatterns(cls):
@@ -35,14 +35,10 @@ class PrescriptionDocumentCreateView(views.RequestActionMixin,views.SendDataThro
         except:
             return "Add document"
 
-    def get_success_url(self):
+    def _get_success_url(self):
         return urls.reverse("risk:context_update",args=(self.pobject.id,))
 
-    def get_action(self,action_name):
-        return pbs.forms.get_action(action_name)
-
-
-class PrescriptionDocumentsView(views.OneToManyListView):
+class PrescriptionDocumentsView(pbs.forms.GetActionMixin,views.OneToManyListView):
     pmodel = Prescription
     model = Document
     context_pobject_name = "prescription"
@@ -64,8 +60,5 @@ class PrescriptionDocumentsView(views.OneToManyListView):
     def deleteconfirm_url(self):
         return urls.reverse("document:prescription_documents_delete",args=(self.pobject.id,))
 
-    def get_success_url(self):
+    def _get_success_url(self):
         return urls.reverse("risk:context_update",args=(self.pobject.id,))
-
-    def get_action(self,action_name):
-        return pbs.forms.get_action(action_name)

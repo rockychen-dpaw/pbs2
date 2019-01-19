@@ -37,7 +37,7 @@ class PrescriptionComplexitiesUpdateView(pbs.forms.GetActionMixin,views.OneToMan
             path('prescription/<int:ppk>/complexities/delete', cls.as_view(),{"action":"deleteconfirmed"},name='prescription_complexities_delete'),
         ]
 
-    def get_success_url(self):
+    def _get_success_url(self):
         return urls.reverse("risk:prescription_complexity_changelist",args=(self.pobject.id,))
 
     def get_listform_class(self):

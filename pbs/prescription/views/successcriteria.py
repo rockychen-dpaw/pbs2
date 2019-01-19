@@ -28,7 +28,7 @@ class PrescriptionSuccessCriteriasUpdateView(pbs.forms.GetActionMixin,views.OneT
             path('prescription/<int:ppk>/successcriterias/delete', cls.as_view(),{"action":"deleteconfirmed"},name='prescription_successcriterias_delete'),
         ]
 
-    def get_success_url(self):
+    def _get_success_url(self):
         return urls.reverse("prescription:prescription_successcriteria_changelist",args=(self.pobject.id,))
 
     def get_listform_class(self):

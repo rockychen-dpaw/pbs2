@@ -1,5 +1,6 @@
 import traceback
 import markdown
+from urllib.parse import quote
 
 from django import forms
 from django.core.cache import caches
@@ -7,6 +8,7 @@ from django.urls import reverse
 from django.db import models
 from django.utils.html import mark_safe
 from django.utils.encoding import force_text
+from django.utils.http import urlencode
 
 from ..utils import hashvalue
 
@@ -101,8 +103,8 @@ class Hyperlink(DisplayWidget):
         super(Hyperlink,self).__init__(**kwargs)
         self.widget = self.widget_class(**kwargs)
 
-    def prepare_initial_data(self,initial_data,name):
-        value = initial_data.get(name)
+    def prepare_initial_data(self,form,name):
+        value = form.initial.get(name)
         if not self.ids:
             #no configured 
             return (value,None)
@@ -110,7 +112,7 @@ class Hyperlink(DisplayWidget):
         url = None
         kwargs = {}
         for f in self.ids:
-            val = initial_data.get(f[0])
+            val = form.initial.get(f[0])
             if val is None:
                 #can't find value for url parameter, no link can be generated
                 kwargs = None
@@ -120,14 +122,37 @@ class Hyperlink(DisplayWidget):
             else:
                 kwargs[f[1]] = val
         if kwargs:
-            return (value,reverse(self.url_name,kwargs=kwargs))
+            url = reverse(self.url_name,kwargs=kwargs)
+            if self.querystring:
+                if self.parameters:
+                    kwargs.clear()
+                    for f in self.parameters:
+                        if f[0] == "request_full_path":
+                            kwargs[f[1]] = quote(form.fullpath)
+                        else:
+                            val = form.initial.get(f[0])
+                            if val is None:
+                                #can't find value for url parameter, no link can be generated
+                                kwargs[f[1]] = ""
+                            elif isinstance(val,models.Model):
+                                kwargs[f[1]] = val.pk
+                            else:
+                                kwargs[f[1]] = val
+                    url = "{}?{}".format(url,self.querystring.format(**kwargs))
+                else:
+                    url = "{}?{}".format(url,self.querystring)
         else:
-            return(value,None)
+            url = None
+
+        return (value,url)
 
     def render(self,name,value,attrs=None,renderer=None):
         if value :
             if self.template:
-                return self.template.format(url=value[1],widget=self.widget.render(name,value[0],attrs,renderer))
+                if callable(self.template):
+                    return self.template(value[0]).format(url=value[1],widget=self.widget.render(name,value[0],attrs,renderer))
+                else:
+                    return self.template.format(url=value[1],widget=self.widget.render(name,value[0],attrs,renderer))
             elif value[1]:
                 return "<a href='{}'>{}</a>".format(value[1],self.widget.render(name,value[0],attrs,renderer))
             else:
@@ -137,14 +162,14 @@ class Hyperlink(DisplayWidget):
 
 widget_classes = {}
 widget_class_id = 0
-def HyperlinkFactory(field_name,url_name,widget_class=TextDisplay,ids=[("id","pk")],baseclass=Hyperlink,template=None):
+def HyperlinkFactory(field_name,url_name,widget_class=TextDisplay,ids=[("id","pk")],querystring=None,parameters=None,baseclass=Hyperlink,template=None):
     global widget_class_id
     key = hashvalue("{}{}{}{}".format(baseclass.__name__,url_name,field_name,template))
     cls = widget_classes.get(key)
     if not cls:
         widget_class_id += 1
         class_name = "{}_{}".format(baseclass.__name__,widget_class_id)
-        cls = type(class_name,(baseclass,),{"url_name":url_name,"widget_class":widget_class,"ids":ids,"template":template})
+        cls = type(class_name,(baseclass,),{"url_name":url_name,"widget_class":widget_class,"ids":ids,"querystring":querystring,"parameters":parameters,"template":staticmethod(template) if callable(template) else template})
         widget_classes[key] = cls
     return cls
 
@@ -162,6 +187,16 @@ class TemplateDisplay(DisplayWidget):
 
 
 class DatetimeInput(forms.TextInput):
+    @property
+    def media(self):
+        js = [
+            'js/jquery.datetimepicker.full.min.js',
+        ]
+        css = {
+            "all":['css/jquery.datetimepicker.css']
+        }
+        return forms.Media(js=js,css=css)
+
     def render(self,name,value,attrs=None,renderer=None):
         html = super(DatetimeInput,self).render(name,value,attrs)
         datetime_picker = """

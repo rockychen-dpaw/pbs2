@@ -675,8 +675,14 @@ class ActionListener(object):
     @receiver(post_delete, sender=Action)
     def update_index_total_delete(sender, instance, **kwargs):
         actions = Action.objects.filter(risk=instance.risk_id).order_by("index")
-        for index, action in enumerate(actions):
-            action.index = index + 1
-            action.total = F('total') - 1
-            action.save()
+        if len(actions) == 0:
+            #no more actions for this risk
+            if instance.risk.custom:
+                #this is a custom risk,delete it
+                instance.risk.delete()
+        else:
+            for index, action in enumerate(actions):
+                action.index = index + 1
+                action.total = F('total') - 1
+                action.save()
 

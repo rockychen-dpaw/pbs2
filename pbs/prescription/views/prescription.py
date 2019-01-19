@@ -236,7 +236,7 @@ class PrescriptionUpdateView(pbs.forms.GetActionMixin,UpdateView):
     title = "Summary & Approval"
     context_object_name = "prescription"
 
-    def get_success_url(self):
+    def _get_success_url(self):
         return urls.reverse("prescription:prescription_update",args=(self.object.id,))
 
     def get_form_class(self):

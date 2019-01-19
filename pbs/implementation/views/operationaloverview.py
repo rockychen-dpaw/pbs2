@@ -16,7 +16,7 @@ class PrescriptionOperationalOverviewUpdateView(OneToOneUpdateView):
     urlname = "prescription_operationaloverview_update"
     template_name_suffix = "_update"
 
-    def get_success_url(self):
+    def _get_success_url(self):
         return urls.reverse("implementation:prescription_operationaloverview_update",args=(self.pobject.id,))
     """
     def post(self,*args,**kwargs):

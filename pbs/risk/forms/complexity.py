@@ -43,7 +43,7 @@ class ComplexityFilterForm(ComplexityConfigMixin,forms.FilterForm):
         purpose = ('filter','view')
         all_fields = ('factor',)
 
-class ComplexityMemberUpdateForm(forms.RequestUrlMixin,ComplexityCleanMixin,ComplexityConfigMixin,forms.ListMemberForm):
+class ComplexityMemberUpdateForm(ComplexityCleanMixin,ComplexityConfigMixin,forms.ListMemberForm):
 
     def set_parent_instance(self,parent_instance):
         self.instance.prescription = parent_instance

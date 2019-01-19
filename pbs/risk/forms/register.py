@@ -24,7 +24,7 @@ class RegisterConfigMixin(object):
             "delete.view":forms.widgets.HyperlinkFactory("id","risk:prescription_register_delete_confirm",ids=[("id","pk"),("prescription","ppk")],template="<button id='delete' title='Delete' onclick='window.location=\"{url}\"' type='button' style='display:none' >Delete</button>")
         }
 
-class RegisterMemberUpdateForm(forms.RequestUrlMixin,RegisterCleanMixin,RegisterConfigMixin,forms.ListMemberForm):
+class RegisterMemberUpdateForm(RegisterCleanMixin,RegisterConfigMixin,forms.ListMemberForm):
     def set_parent_instance(self,parent_instance):
         self.instance.prescription = parent_instance
 

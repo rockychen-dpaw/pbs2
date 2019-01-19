@@ -28,7 +28,7 @@ class PrescriptionObjectivesUpdateView(pbs.forms.GetActionMixin,views.OneToManyL
             path('prescription/<int:ppk>/objectives/delete', cls.as_view(),{"action":"deleteconfirmed"},name='prescription_objectives_delete'),
         ]
 
-    def get_success_url(self):
+    def _get_success_url(self):
         return urls.reverse("prescription:prescription_objective_changelist",args=(self.pobject.id,))
 
     def get_listform_class(self):

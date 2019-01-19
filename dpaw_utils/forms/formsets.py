@@ -36,11 +36,11 @@ class BaseFormSet(formsets.BaseFormSet):
         if self.primary_field:
             name = self.get_form_field_name(index,self.primary_field)
             value = self.data.get(name)
-            value = self.form.fields[self.primary_field].clean(value,None)
+            value = self.form.base_fields[self.primary_field].clean(value)
             if value:
                 for instance in self.instance_list:
                     if value == getattr(instance,self.primary_field):
-                        return value
+                        return instance
                 raise ObjectDoesNotExist("{}({}) doesn't exist".format(self.form.model_verbose_name,value))
             else:
                 return None
@@ -62,8 +62,9 @@ def formset_factory(form, formset=BaseFormSet, extra=1, can_order=False,
                     min_num=None, validate_min=False,primary_field=None):
 
     cls = formsets.formset_factory(form,formset=formset,extra=extra,can_order=can_order,can_delete=can_delete,max_num=max_num,validate_max=validate_max,min_num=min_num,validate_min=validate_min)
-    cls.primary_field = primary_field
+    cls.primary_field = primary_field or form._meta.model._meta.pk.name
     cls.default_prefix = form._meta.model.__name__.lower()
+    cls.media = form().media
     return cls
 
 
@@ -96,6 +97,12 @@ class ListUpdateForm(forms.ActionMixin,forms.RequestUrlMixin,forms.RequestMixin,
     def boundfieldlength(self):
         return len(self.form_instance._meta.ordered_fields)
 
+    def get_form_kwargs(self, index):
+        kwargs = super(ListUpdateForm,self).get_form_kwargs(index)
+        kwargs["request"] = self.request
+        kwargs["requesturl"] = self.requesturl
+        return kwargs
+
     def full_clean(self):
         super().full_clean()
         if not self.is_bound:  # Stop further processing.
@@ -121,7 +128,7 @@ class ListUpdateForm(forms.ActionMixin,forms.RequestUrlMixin,forms.RequestMixin,
  
 
 
-class ListMemberForm(forms.ModelForm,metaclass=ListModelFormMetaclass):
+class ListMemberForm(forms.RequestUrlMixin,forms.ModelForm,metaclass=ListModelFormMetaclass):
     def __init__(self,parent_instance=None,*args,**kwargs):
         super(ListMemberForm,self).__init__(*args,**kwargs)
         if parent_instance:
@@ -158,9 +165,10 @@ def listupdateform_factory(form, formset=ListUpdateForm, extra=1, can_order=Fals
                     min_num=None, validate_min=False,primary_field=None,all_actions=None,all_buttons=None):
 
     cls = formsets.formset_factory(form,formset=formset,extra=extra,can_order=can_order,can_delete=can_delete,max_num=max_num,validate_max=validate_max,min_num=min_num,validate_min=validate_min)
-    cls.primary_field = primary_field
+    cls.primary_field = primary_field or form._meta.model._meta.pk.name
     cls.default_prefix = form._meta.model.__name__.lower()
     cls.model_name_lower = form._meta.model.__name__.lower()
+    cls.media = form().media
     if all_actions:
         cls.all_actions = all_actions
     if all_buttons:

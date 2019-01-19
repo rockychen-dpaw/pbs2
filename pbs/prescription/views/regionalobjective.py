@@ -31,7 +31,7 @@ class PrescriptionRegionalObjectivesUpdateView(pbs.forms.GetActionMixin,views.Ma
             path('prescription/<int:ppk>/regionalobjectives/delete', cls.as_view(),{"action":"deleteconfirmed"},name='prescription_regionalobjectives_delete'),
         ]
 
-    def get_success_url(self):
+    def _get_success_url(self):
         return urls.reverse("risk:context_update",args=(self.pobject.id,))
 
     def get_context_data(self,**kwargs):

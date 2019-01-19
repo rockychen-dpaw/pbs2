@@ -30,7 +30,7 @@ class CriticalStakeholderListUpdateView(pbs.forms.GetActionMixin,OneToManyListUp
     def deleteconfirm_url(self):
         return urls.reverse("stakeholder:prescription_criticalstakeholders_delete",args=(self.pobject.id,))
 
-    def get_success_url(self):
+    def _get_success_url(self):
         return urls.reverse("stakeholder:criticalstakeholder_changelist",args=(self.pobject.id,))
 
     def get_listform_class(self):

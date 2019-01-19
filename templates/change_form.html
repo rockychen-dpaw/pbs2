@@ -19,6 +19,9 @@
 </span></div>
 
 <form action="" method="post" autocomplete="off" enctype="multipart/form-data">{% csrf_token %}
+    {% if nexturl %}
+    <input type="hidden" name="nexturl" value="{{nexturl}}">
+    {% endif %}
     {% block form_content%}
     <table class="table">
         <tbody>

@@ -1,5 +1,6 @@
 import re
 import traceback
+from urllib import parse
 
 from django.urls import path 
 from django.http import (Http404,HttpResponse,HttpResponseForbidden,JsonResponse,HttpResponseRedirect)
@@ -17,8 +18,12 @@ class NextUrlMixin(object):
         
         if next_url:
             return next_url
-        else:
-            return super(NextUrlMixin,self).get_success_url()
+        
+        next_url = self._get_success_url()
+        if next_url:
+            return next_url
+
+        return super(NextUrlMixin,self).get_success_url()
 
     @property
     def nexturl(self):
@@ -26,6 +31,24 @@ class NextUrlMixin(object):
             return self.request.GET.get('nexturl')
         else:
             return self.request.POST.get('nexturl')
+
+
+    def get_context_data(self,**kwargs):
+        context_data = super(NextUrlMixin,self).get_context_data(**kwargs)
+        if self.nexturl:
+            context_data["nexturl"] = self.nexturl
+        return context_data
+
+class SuccessUrlMixin(object):
+    def get_success_url(self):
+        next_url = self._get_success_url()
+        if next_url:
+            return next_url
+
+        return super(SuccessUrlMixin,self).get_success_url()
+
+    def _get_success_url(self):
+        return None
 
 class FormMixin(object):
     def get_form(self, form_class=None):
@@ -389,7 +412,7 @@ class OneToOneModelMixin(ParentObjectMixin):
         return obj
             
         
-class CreateView(UrlpatternsMixin,FormMixin,django_edit_view.CreateView):
+class CreateView(NextUrlMixin,UrlpatternsMixin,FormMixin,django_edit_view.CreateView):
     title = None
     def get_form_kwargs(self):
         kwargs = super(CreateView,self).get_form_kwargs()
@@ -479,7 +502,8 @@ class OneToManyModelMixin(ParentObjectMixin):
             'object_title':'{} details'.format(self.model._meta.verbose_name),
             'pobject':self.pobject,
             'object_list':object_list,
-            'listform':self.get_listform_class()(instance_list=object_list,request=self.request,requesturl = self.requesturl)
+            'listform':self.get_listform_class()(instance_list=object_list,request=self.request,requesturl = self.requesturl),
+            'nexturl':self.nexturl
         }
         if self.context_pobject_name:
             context[self.context_pobject_name] = self.pobject
@@ -490,7 +514,7 @@ class OneToManyModelMixin(ParentObjectMixin):
         #remove selected rows.
         for o in self.get_queryset().filter(pk__in=selected_ids):
             o.delete()
-
+    
         return HttpResponseRedirect(self.get_success_url())
         
 
@@ -552,7 +576,8 @@ class ManyToManyModelMixin(ParentObjectMixin):
             'object_title':'{} details'.format(self.model._meta.verbose_name),
             'pobject':self.pobject,
             'object_list':object_list,
-            'listform':self.get_listform_class()(instance_list=object_list,request=self.request,requesturl = self.requesturl)
+            'listform':self.get_listform_class()(instance_list=object_list,request=self.request,requesturl = self.requesturl),
+            'nexturl':self.nexturl
         }
         if self.context_pobject_name:
             context[self.context_pobject_name] = self.pobject
@@ -727,8 +752,6 @@ class ListView(NextUrlMixin,ListBaseView):
         context_data["listform"] = self.listform
         context_data["modelname"] = self.model_verbose_name
         context_data["requesturl"] = self.requesturl
-        if self.nexturl:
-            context_data["nexturl"] = self.nexturl
         if self.filtertool and self.get_filter_class():
             context_data["filterform"] = self.filterform
 

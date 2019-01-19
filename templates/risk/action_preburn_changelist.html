@@ -1,4 +1,4 @@
-{% extends "../changelist_2panels.html" %}
+{% extends "../changelist.html" %}
 {% load i18n %}
 {% load pbs_utils %}
 
@@ -7,7 +7,7 @@
   <li><a href="{% url 'prescription:prescription_list' %}">{% trans 'Regional Overview' %}</a> <span class="divider">/</span></li>
   <li><a href="{% url 'prescription:prescription_home' prescription.id %}">{{ prescription.burn_id }}</a> <span class="divider">/</span></li>
   <li><a href="{% url 'report:prescription_day_state_update' prescription.id %}">Part B</a> <span class="divider">/</span></li>
-  <li>Section B1 &#x2010; Plan Actions</li>
+  <li>Section B1 &#x2010; Pre-burn Actions</li>
 </ul>
 {% endblock %}
 
@@ -19,8 +19,8 @@
     <li><a href="{% url 'risk:prescription_register_changelist' prescription.id %}"><i class="icon-warning-sign"></i> Risk Register</a></li>
 </ul>
 <ul id="actionnav" class="nav nav-pills">
-    <li class="active" ><a href="{% url 'risk:prescription_action_changelist' prescription.id %}"><i class="icon-list-ol"></i>Plan actions</a></li>
-    <li><a href="{% url 'risk:prescription_preburn_action_changelist' prescription.id %}"><i class="icon-tasks"></i>Pre-burn actions</a></li>
+    <li><a href="{% url 'risk:prescription_action_changelist' prescription.id %}"><i class="icon-list-ol"></i>Plan actions</a></li>
+    <li class="active"><a href="{% url 'risk:prescription_preburn_action_changelist' prescription.id %}"><i class="icon-tasks"></i>Pre-burn actions</a></li>
     <li{% if 'day_of_burn' in request.GET %} class="active"{% endif %}><a href="?day_of_burn=true"><i class="icon-legal"></i>Day of burn actions</a></li>
     <li{% if 'post_burn' in request.GET %} class="active"{% endif %}><a href="?post_burn=true"><i class="icon-warning-sign"></i>Post-burn actions</a></li>
 </ul>
@@ -28,7 +28,12 @@
 
 {% block content_title %}
 <div class="row">
-    <div class="span9" >
+    <div class="span12" >
+	<h1>Actions Report
+           <a href="{% url 'document:prescription_document_update' prescription.id %}?tag=171&nexturl={% url 'risk:prescription_preburn_action_changelist' prescription.id %}" class="pull-right btn btn-info btn-small"><b><i class="icon-plus"></i> Upload Pre Burn Actions List</b></a>
+	</h1>
+	<h5><a class="btn btn-small btn-info" href=""><i class="icon-download-alt"></i> Download the Pre Burn Actions List template</a></h5>
+        {% include "document/includes/document_list.html" with document_type="Pre Burn Actoions List" %}
         <h1>{{ title }}
             <a href="{% url 'risk:prescription_risk_create' prescription.id %}" class="pull-right btn btn-small btn-info"><i class="icon-plus"></i> Add source of risk</a>
         </h1>
