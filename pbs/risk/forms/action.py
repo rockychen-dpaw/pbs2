@@ -53,7 +53,7 @@ class ActionFilterForm(ActionConfigMixin,forms.FilterForm):
 
 class ActionBaseForm(ActionCleanMixin,ActionConfigMixin,forms.ModelForm):
     class Meta:
-        pass
+        model = Action
 
 class MultipleActionCreateForm(forms.RequestUrlMixin,ActionBaseForm):
     def __init__(self,baseaction,*args,**kwargs):
@@ -121,6 +121,48 @@ class PreburnActionMemberUpdateForm(ActionCleanMixin,ActionConfigMixin,forms.Lis
         ordered_fields = ("id","relevant","risk_name","details","pre_burn_resolved","pre_burn_explanation","pre_burn_completed","pre_burn_completer","delete")
 
 PreburnActionListUpdateForm = forms.listupdateform_factory(PreburnActionMemberUpdateForm,min_num=0,max_num=400,extra=0,all_buttons=[BUTTON_ACTIONS.get('back'),BUTTON_ACTIONS.get('save')],can_delete=True,can_add=False)
+
+class DayofburnActionMemberUpdateForm(ActionCleanMixin,ActionConfigMixin,forms.ListMemberForm):
+    def set_parent_instance(self,parent_instance):
+        pass
+
+    @property
+    def can_delete(self):
+        return not self.cleaned_data.get("id") and not self.cleaned_data.get("criteria")
+
+    class Meta:
+        model = Action
+        widths = {
+            "delete":"16px",
+        }
+        add_required_to_label = False
+        purpose = (("listedit","edit"),("list","view"))
+        all_fields = ("risk__category","id","relevant","risk_name","details","day_of_burn_responsible","day_of_burn_include","day_of_burn_situation","day_of_burn_mission","day_of_burn_execution","day_of_burn_administration","day_of_burn_command","day_of_burn_safety","delete")
+        editable_fields = ("id","day_of_burn_responsible","day_of_burn_include","day_of_burn_situation","day_of_burn_mission","day_of_burn_execution","day_of_burn_administration","day_of_burn_command","day_of_burn_safety")
+        ordered_fields = ("id","relevant","risk_name","details","day_of_burn_responsible","day_of_burn_include","day_of_burn_situation","day_of_burn_mission","day_of_burn_execution","day_of_burn_administration","day_of_burn_command","day_of_burn_safety","delete")
+
+DayofburnActionListUpdateForm = forms.listupdateform_factory(DayofburnActionMemberUpdateForm,min_num=0,max_num=400,extra=0,all_buttons=[BUTTON_ACTIONS.get('back'),BUTTON_ACTIONS.get('save')],can_delete=True,can_add=False)
+
+class PostburnActionMemberUpdateForm(ActionCleanMixin,ActionConfigMixin,forms.ListMemberForm):
+    def set_parent_instance(self,parent_instance):
+        pass
+
+    @property
+    def can_delete(self):
+        return not self.cleaned_data.get("id") and not self.cleaned_data.get("criteria")
+
+    class Meta:
+        model = Action
+        widths = {
+            "delete":"16px",
+        }
+        add_required_to_label = False
+        purpose = (("listedit","edit"),("list","view"))
+        all_fields = ("risk__category","id","relevant","risk_name","details","post_burn_completer","post_burn_completed","delete")
+        editable_fields = ("id",)
+        ordered_fields = ("id","relevant","risk_name","details","post_burn_completer","post_burn_completed","delete")
+
+PostburnActionListUpdateForm = forms.listupdateform_factory(PostburnActionMemberUpdateForm,min_num=0,max_num=400,extra=0,all_buttons=[BUTTON_ACTIONS.get('back'),BUTTON_ACTIONS.get('save')],can_delete=True,can_add=False)
 
 class ActionBaseListForm(ActionConfigMixin,forms.ListForm):
     class Meta:

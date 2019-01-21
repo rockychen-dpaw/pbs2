@@ -2,8 +2,10 @@ from django.urls import path
 from django import urls
 
 from pbs.prescription.models import (Prescription,)
-from pbs.risk.models import (Action,Risk,categorylist)
-from pbs.risk.forms import (ActionListUpdateForm,PreburnActionListUpdateForm,ActionListForm,ActionFilterForm,MultipleActionCreateForm,ActionUpdateForm)
+from pbs.risk.models import (Action,Risk,categorylist,Treatment)
+from pbs.risk.forms import (ActionListUpdateForm,PreburnActionListUpdateForm,DayofburnActionListUpdateForm,PostburnActionListUpdateForm,ActionListForm,ActionFilterForm,
+        MultipleActionCreateForm,ActionUpdateForm,
+        TreatmentListForm)
 from pbs.risk.filters import (ActionFilter,)
 from dpaw_utils import views
 import pbs.forms
@@ -113,14 +115,62 @@ class PrescriptionPreBurnActionsUpdateView(pbs.forms.GetActionMixin,views.OneToM
     def _get_success_url(self):
         return urls.reverse("risk:prescription_preburn_action_changelist",args=(self.pobject.id,))
 
-    def get_listform_class(self):
-        if self.action == 'deleteconfirm':
-            return ActionListForm
-        else:
-            return super().get_listform_class()
-
     def get_context_data(self,**kwargs):
         context = super().get_context_data(**kwargs)
         context["documents"] = self.pobject.document_set.filter(tag__id=171)
 
         return context
+
+class PrescriptionDayOfBurnActionsUpdateView(pbs.forms.GetActionMixin,views.OneToManyListUpdateView):
+    title = "Day of Burn Actions"
+    pmodel = Prescription
+    model = Action
+    listform_class = DayofburnActionListUpdateForm
+    context_pobject_name = "prescription"
+    one_to_many_field_name = "risk__prescription"
+    urlpattern = "prescription/<int:ppk>/action/dayofburn/"
+    urlname = "prescription_dayofburn_action_changelist"
+    default_order = ("risk__category__name","risk__name","index")
+    template_name_suffix = "_dayofburn_changelist"
+
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(day_of_burn=True)
+
+    def _get_success_url(self):
+        return urls.reverse("risk:prescription_dayofburn_action_changelist",args=(self.pobject.id,))
+
+    def get_context_data(self,**kwargs):
+        context = super().get_context_data(**kwargs)
+        context["documents"] = self.pobject.document_set.filter(tag__id=184)
+        context["treatmentlistform"] = TreatmentListForm(instance_list=Treatment.objects.filter(register__prescription = self.pobject),request=self.request,requesturl = self.requesturl)
+
+        return context
+
+class PrescriptionPostBurnActionsUpdateView(pbs.forms.GetActionMixin,views.OneToManyListUpdateView):
+    title = "Post Burn Actions"
+    pmodel = Prescription
+    model = Action
+    listform_class = PostburnActionListUpdateForm
+    context_pobject_name = "prescription"
+    one_to_many_field_name = "risk__prescription"
+    urlpattern = "prescription/<int:ppk>/action/postburn/"
+    urlname = "prescription_postburn_action_changelist"
+    default_order = ("risk__category__name","risk__name","index")
+    template_name_suffix = "_postburn_changelist"
+
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(post_burn=True)
+
+    def _get_success_url(self):
+        return urls.reverse("risk:prescription_postburn_action_changelist",args=(self.pobject.id,))
+
+    def get_context_data(self,**kwargs):
+        context = super().get_context_data(**kwargs)
+        context["documents"] = self.pobject.document_set.filter(tag__id=189)
+
+        return context
+

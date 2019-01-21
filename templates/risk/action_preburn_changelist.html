@@ -21,8 +21,8 @@
 <ul id="actionnav" class="nav nav-pills">
     <li><a href="{% url 'risk:prescription_action_changelist' prescription.id %}"><i class="icon-list-ol"></i>Plan actions</a></li>
     <li class="active"><a href="{% url 'risk:prescription_preburn_action_changelist' prescription.id %}"><i class="icon-tasks"></i>Pre-burn actions</a></li>
-    <li{% if 'day_of_burn' in request.GET %} class="active"{% endif %}><a href="?day_of_burn=true"><i class="icon-legal"></i>Day of burn actions</a></li>
-    <li{% if 'post_burn' in request.GET %} class="active"{% endif %}><a href="?post_burn=true"><i class="icon-warning-sign"></i>Post-burn actions</a></li>
+    <li><a href="{% url 'risk:prescription_dayofburn_action_changelist' prescription.id %}"><i class="icon-legal"></i>Day of burn actions</a></li>
+    <li><a href="{% url 'risk:prescription_postburn_action_changelist' prescription.id %}"><i class="icon-warning-sign"></i>Post-burn actions</a></li>
 </ul>
 {% endblock %}
 

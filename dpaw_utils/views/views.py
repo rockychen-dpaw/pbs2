@@ -412,7 +412,7 @@ class OneToOneModelMixin(ParentObjectMixin):
         return obj
             
         
-class CreateView(NextUrlMixin,UrlpatternsMixin,FormMixin,django_edit_view.CreateView):
+class CreateView(NextUrlMixin,SuccessUrlMixin,UrlpatternsMixin,FormMixin,django_edit_view.CreateView):
     title = None
     def get_form_kwargs(self):
         kwargs = super(CreateView,self).get_form_kwargs()
@@ -424,7 +424,7 @@ class CreateView(NextUrlMixin,UrlpatternsMixin,FormMixin,django_edit_view.Create
         context_data["title"] = self.title or "Add {}".format(self.model._meta.verbose_name)
         return context_data
 
-class ReadonlyView(UrlpatternsMixin,FormMixin,ModelMixin,django_edit_view.UpdateView):
+class ReadonlyView(UrlpatternsMixin,SuccessUrlMixin,FormMixin,ModelMixin,django_edit_view.UpdateView):
     title = None
 
     def get_form_kwargs(self):
@@ -446,7 +446,7 @@ class ReadonlyView(UrlpatternsMixin,FormMixin,ModelMixin,django_edit_view.Update
     def put(self,request,*args,**kwargs):
         return HttpResponseForbidden()
 
-class UpdateView(UrlpatternsMixin,FormMixin,ModelMixin,django_edit_view.UpdateView):
+class UpdateView(UrlpatternsMixin,SuccessUrlMixin,FormMixin,ModelMixin,django_edit_view.UpdateView):
     title = None
 
     def get_form_kwargs(self):
@@ -593,7 +593,7 @@ class ManyToManyModelMixin(ParentObjectMixin):
         
 
 
-class ListBaseView(RequestActionMixin,UrlpatternsMixin,ModelMixin,django_list_view.ListView):
+class ListBaseView(RequestActionMixin,UrlpatternsMixin,SuccessUrlMixin,ModelMixin,django_list_view.ListView):
     default_action = "search"
     title = None
     order_by_re = re.compile('[?&]order_by=([-+]?)([a-zA-Z0-9_\-]+)')

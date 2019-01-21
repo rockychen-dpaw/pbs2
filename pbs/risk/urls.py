@@ -1,6 +1,6 @@
 from .views import (ContextUpdateView,PrescriptionComplexitiesUpdateView,PrescriptionRegistersUpdateView,
-        PrescriptionRiskCreateView,
-        PrescriptionActionUpdateView,PrescriptionActionsUpdateView,PrescriptionPreBurnActionsUpdateView,PrescriptionMultipleActionCreateView)
+        PrescriptionRiskCreateView,PrescriptionMultipleActionCreateView,
+        PrescriptionActionUpdateView,PrescriptionActionsUpdateView,PrescriptionPreBurnActionsUpdateView,PrescriptionDayOfBurnActionsUpdateView,PrescriptionPostBurnActionsUpdateView)
 
 
 app_name = "risk"
@@ -13,6 +13,8 @@ urlpatterns.extend(PrescriptionRiskCreateView.urlpatterns())
 urlpatterns.extend(PrescriptionActionUpdateView.urlpatterns())
 urlpatterns.extend(PrescriptionActionsUpdateView.urlpatterns())
 urlpatterns.extend(PrescriptionPreBurnActionsUpdateView.urlpatterns())
+urlpatterns.extend(PrescriptionDayOfBurnActionsUpdateView.urlpatterns())
+urlpatterns.extend(PrescriptionPostBurnActionsUpdateView.urlpatterns())
 urlpatterns.extend(PrescriptionMultipleActionCreateView.urlpatterns())
 
 

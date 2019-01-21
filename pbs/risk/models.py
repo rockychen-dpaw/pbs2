@@ -468,7 +468,7 @@ class TreatmentManager(models.Manager):
         else :
             return super(TreatmentManager,self).__getattr__(name)
 
-class Treatment(AuditMixin):
+class Treatment(ModelDictMixin,AuditMixin):
     register = models.ForeignKey(Register, on_delete=models.PROTECT)
     description = models.TextField()
     location = models.ForeignKey(TreatmentLocation, on_delete=models.PROTECT)
