@@ -66,7 +66,7 @@ RiskListUpdateForm = forms.listupdateform_factory(RiskMemberUpdateForm,min_num=0
 
 class RiskBaseListForm(RiskConfigMixin,forms.ListForm):
     class Meta:
-        purpose = ('list','view')
+        purpose = (None,('list','view'))
 
 class RiskListForm(RiskBaseListForm):
     all_buttons = [

@@ -50,7 +50,7 @@ RegisterListUpdateForm = forms.listupdateform_factory(RegisterMemberUpdateForm,m
 
 class RegisterBaseListForm(RegisterConfigMixin,forms.ListForm):
     class Meta:
-        purpose = ('list','view')
+        purpose = (None,('list','view'))
 
 class RegisterListForm(RegisterBaseListForm):
     all_buttons = [

@@ -1,3 +1,5 @@
+from django import urls
+
 from pbs.forms import (BUTTON_ACTIONS,OPTION_ACTIONS)
 from pbs.risk.models import (Treatment,)
 
@@ -21,6 +23,7 @@ class TreatmentConfigMixin(object):
             "__default__.view":forms.widgets.TextDisplay(),
             "__default__.edit":forms.widgets.TextInput(),
             "id.edit":forms.widgets.Hidden(),
+            "complete.list":forms.widgets.AjaxWidgetFactory(forms.widgets.CheckboxInput(),url_name="risk:prescription_treatment_complete_set",ids=[("register__prescription","ppk"),("id","pk")]),
             "delete.view":forms.widgets.HyperlinkFactory("id","risk:prescription_register_delete_confirm",ids=[("id","pk"),("prescription","ppk")],template="<button id='delete' title='Delete' onclick='window.location=\"{url}\"' type='button' style='display:none' >Delete</button>")
         }
 
@@ -28,6 +31,11 @@ class TreatmentBaseForm(TreatmentCleanMixin,TreatmentConfigMixin,forms.ModelForm
     class Meta:
         model = Treatment
         all_fields = ()
+
+class TreatmentDetailForm(TreatmentCleanMixin,TreatmentConfigMixin,forms.ModelForm):
+    class Meta:
+        model = Treatment
+        all_fields = ("id","description","complete")
 
 class TreatmentMemberUpdateForm(TreatmentCleanMixin,TreatmentConfigMixin,forms.ListMemberForm):
     def set_parent_instance(self,parent_instance):
@@ -50,7 +58,7 @@ TreatmentListUpdateForm = forms.listupdateform_factory(TreatmentMemberUpdateForm
 
 class TreatmentBaseListForm(TreatmentConfigMixin,forms.ListForm):
     class Meta:
-        purpose = ('list','view')
+        purpose = (None,('list','view'))
 
 class TreatmentListForm(TreatmentBaseListForm):
     all_buttons = [

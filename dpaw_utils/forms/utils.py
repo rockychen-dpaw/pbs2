@@ -1,11 +1,51 @@
+import json
 from collections import OrderedDict
 import hashlib
+
+from django import forms
+from django.db import models
+from django.utils.html import mark_safe
+
+class JSONEncoder(json.JSONEncoder):
+    """
+    A JSON encoder to support encode model instance and static methods
+    """
+    def default(self,obj):
+        if isinstance(obj,models.Model):
+            return obj.pk
+        elif callable(obj) or isinstance(obj,staticmethod):
+            return id(obj)
+        return json.JSONEncoder.default(self,obj)
 
 def hashvalue(value):
     m = hashlib.sha1()
     m.update(value.encode('utf-8'))
     return m.hexdigest()
     
+
+class Media(forms.Media):
+    def __init__(self, media=None, css=None, js=None,statements=None):
+        super().__init__(media=media,css=css,js=js)
+        self._statements = [] if statements is None else statements
+
+    def __repr__(self):
+        return 'Media(css=%r, js=%r, statements=%r)' % (self._css, self._js,self._statements)
+
+    def render_statements(self):
+        return [mark_safe(s) for s in self._statements]
+
+    def __add__(self, other):
+        combined = Media()
+        combined._js = self.merge(self._js, other._js)
+        combined._css = {
+            medium: self.merge(self._css.get(medium, []), other._css.get(medium, []))
+            for medium in self._css.keys() | other._css.keys()
+        }
+        if hasattr(other,"_statements"):
+            combined._statements = self.merge(self._statements, other._statements)
+        else:
+            combined._statements = self._statements
+        return combined
 
 class FieldClassConfigDict(dict):
     """

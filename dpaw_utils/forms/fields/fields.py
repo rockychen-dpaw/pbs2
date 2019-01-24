@@ -1,11 +1,10 @@
 import json
 
 from django import forms
-from django.db import models
 
 from dpaw_utils.utils import ConditionalChoice
 from .. import widgets
-from ..utils import hashvalue
+from ..utils import hashvalue,JSONEncoder
 from .coerces import *
 from ..boundfield import (CompoundBoundField,)
 
@@ -48,17 +47,6 @@ class NullDirectionField(forms.ChoiceField):
     def __init__(self,**kwargs):
         super(NullDirectionField,self).__init__(choices=DIRECTION_CHOICES,**kwargs)
 
-class _JSONEncoder(json.JSONEncoder):
-    """
-    A JSON encoder to support encode model instance and static methods
-    """
-    def default(self,obj):
-        if isinstance(obj,models.Model):
-            return obj.pk
-        elif callable(obj) or isinstance(obj,staticmethod):
-            return id(obj)
-        return json.JSONEncoder.default(self,obj)
-
 class FieldParametersMixin(object):
     """
     A mixin to inject some parameters into field instance.
@@ -79,7 +67,7 @@ def OverrideFieldFactory(model,field_name,field_class=None,**kwargs):
 
     kwargs = kwargs or {}
     field_class = field_class or model._meta.get_field(field_name).formfield().__class__
-    class_key = hashvalue("OverrideField<{}.{}.{}.{}.{}.{}>".format(model.__module__,model.__name__,field_name,field_class.__module__,field_class.__name__,json.dumps(kwargs,cls=_JSONEncoder)))
+    class_key = hashvalue("OverrideField<{}.{}.{}.{}.{}.{}>".format(model.__module__,model.__name__,field_name,field_class.__module__,field_class.__name__,json.dumps(kwargs,cls=JSONEncoder)))
     if class_key not in field_classes:
         class_id += 1
         class_name = "{}_{}".format(field_class.__name__,class_id)
@@ -95,7 +83,7 @@ def AliasFieldFactory(model,field_name,field_class=None,field_params=None):
     global class_id
     field_class = field_class or model._meta.get_field(field_name).formfield().__class__
     if field_params:
-        class_key = hashvalue("AliasField<{}.{}{}{}{}>".format(model.__module__,model.__name__,field_name,field_class,json.dumps(field_params,cls=_JSONEncoder)))
+        class_key = hashvalue("AliasField<{}.{}{}{}{}>".format(model.__module__,model.__name__,field_name,field_class,json.dumps(field_params,cls=JSONEncoder)))
     else:
         class_key = hashvalue("AliasField<{}.{}{}{}>".format(model.__module__,model.__name__,field_name,field_class))
 
@@ -145,7 +133,7 @@ def CompoundFieldFactory(compoundfield_class,model,field_name,related_field_name
 
     hidden_layout="{}" * (len(related_field_names) + 1)
     field_class = field_class or model._meta.get_field(field_name).formfield().__class__
-    class_key = hashvalue("CompoundField<{}.{}.{}.{}.{}.{}.{}.{}>".format(compoundfield_class.__name__,model.__module__,model.__name__,field_name,field_class.__module__,field_class.__name__,json.dumps(related_field_names),json.dumps(kwargs,cls=_JSONEncoder)))
+    class_key = hashvalue("CompoundField<{}.{}.{}.{}.{}.{}.{}.{}>".format(compoundfield_class.__name__,model.__module__,model.__name__,field_name,field_class.__module__,field_class.__name__,json.dumps(related_field_names),json.dumps(kwargs,cls=JSONEncoder)))
     if class_key not in field_classes:
         class_id += 1
         class_name = "{}_{}".format(field_class.__name__,class_id)
@@ -177,9 +165,9 @@ class ChoiceFieldMixin(object):
 def ChoiceFieldFactory(choices,choice_class=forms.TypedChoiceField,field_params=None,type_name=None):
     global class_id
     if type_name:
-        class_key = hashvalue("ChoiceField<{}.{}{}{}>".format(choice_class.__module__,choice_class.__name__,type_name,json.dumps(field_params,cls=_JSONEncoder)))
+        class_key = hashvalue("ChoiceField<{}.{}{}{}>".format(choice_class.__module__,choice_class.__name__,type_name,json.dumps(field_params,cls=JSONEncoder)))
     else:
-        class_key = hashvalue("ChoiceField<{}.{}{}{}>".format(choice_class.__module__,choice_class.__name__,json.dumps(choices),json.dumps(field_params,cls=_JSONEncoder)))
+        class_key = hashvalue("ChoiceField<{}.{}{}{}>".format(choice_class.__module__,choice_class.__name__,json.dumps(choices),json.dumps(field_params,cls=JSONEncoder)))
     if class_key not in field_classes:
         class_id += 1
         class_name = "{}_{}".format(choice_class.__name__,class_id)

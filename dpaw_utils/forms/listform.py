@@ -10,6 +10,7 @@ from django.utils.html import mark_safe
 from . import forms
 from . import boundfield
 from . import fields
+from .utils import SubpropertyEnabledDict
 
 
 class ListDataForm(django_forms.BaseForm,collections.Iterable):
@@ -197,6 +198,8 @@ class ListForm(forms.ActionMixin,forms.RequestUrlMixin,forms.ModelFormMetaMixin,
         #set index to one position before the start position. because we need to call next() before getting the first data 
         self.index = None
         self.dataform = ListDataForm(self)
+        if self._meta.subproperty_enabled:
+            self.current_instance = SubpropertyEnabledDict({})
 
     @property
     def boundfieldlength(self):
@@ -230,11 +233,19 @@ class ListForm(forms.ActionMixin,forms.RequestUrlMixin,forms.ModelFormMetaMixin,
         return self._meta.model._meta.verbose_name_plural;
 
     @property
+    def media(self):
+        return self._meta.media
+
+    @property
     def instance(self):
         if self.index < 0:
             return None
         elif self.instance_list and self.index < len(self.instance_list):
-            return self.instance_list[self.index]
+            if self._meta.subproperty_enabled:
+                self.current_instance.data = self.instance_list[self.index]
+                return self.current_instance
+            else:
+                return self.instance_list[self.index]
         else:
             return None
 
@@ -247,7 +258,11 @@ class ListForm(forms.ActionMixin,forms.RequestUrlMixin,forms.ModelFormMetaMixin,
         if self.index < 0:
             return {}
         elif self.instance_list and self.index < len(self.instance_list):
-            return self.instance_list[self.index]
+            if self._meta.subproperty_enabled:
+                self.current_instance.data = self.instance_list[self.index]
+                return self.current_instance
+            else:
+                return self.instance_list[self.index]
         else:
             return {}
 

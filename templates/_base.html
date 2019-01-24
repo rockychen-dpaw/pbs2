@@ -26,6 +26,14 @@
   {% endfor %}
   {% endblock %}
 
+  {% block fieldstatements %}
+  <script type="text/javascript">
+    {% for statement in form.media.render_statements %}
+    {{statement}}
+    {% endfor %}
+  </script>
+  {% endblock %}
+
   {% block extrastyle %}{% endblock %}
 
   {% if LANGUAGE_BIDI %}<link rel="stylesheet" href="{% block stylesheet_rtl %}{% static "admin/css/rtl.css" %}{% endblock %}">{% endif %}

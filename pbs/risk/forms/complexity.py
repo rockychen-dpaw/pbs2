@@ -40,7 +40,7 @@ class ComplexityFilterForm(ComplexityConfigMixin,forms.FilterForm):
 
     class Meta:
         model = Complexity
-        purpose = ('filter','view')
+        purpose = (None,('filter','view'))
         all_fields = ('factor',)
 
 class ComplexityMemberUpdateForm(ComplexityCleanMixin,ComplexityConfigMixin,forms.ListMemberForm):

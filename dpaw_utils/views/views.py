@@ -123,7 +123,9 @@ class RequestActionMixin(AjaxRequestMixin):
         raise Exception('Not Implemented')
 
     def has_permission(self,request,action_name):
-        return self.get_action(action_name).has_permission(request.user) 
+        action = self.get_action(action_name)
+
+        return action.has_permission(request.user)  if action else True
 
     def get_template_names(self):
         if self.action == "deleteconfirm":
@@ -159,7 +161,7 @@ class RequestActionMixin(AjaxRequestMixin):
                     if hasattr(self,"pre_action"):
                         self.pre_action(*args,**kwargs)
                     if request.is_ajax():
-                        return JsonResponse(getattr(self,handler)())
+                        return JsonResponse(getattr(self,handler)() or {"status":"ok"})
                     else:
                         return getattr(self,handler)()
                 else:
@@ -477,6 +479,9 @@ class UpdateView(UrlpatternsMixin,SuccessUrlMixin,FormMixin,ModelMixin,django_ed
 class OneToOneUpdateView(OneToOneModelMixin,UpdateView):
     pass
 
+class OneToOneReadonlyView(OneToOneModelMixin,ReadonlyView):
+    pass
+
 class OneToManyModelMixin(ParentObjectMixin):
     """
     used for one to many table relationship
@@ -520,6 +525,9 @@ class OneToManyModelMixin(ParentObjectMixin):
 
 
 class OneToManyUpdateView(OneToManyModelMixin,UpdateView):
+    pass
+
+class OneToManyReadonlyView(OneToManyModelMixin,ReadonlyView):
     pass
 
 class OneToManyCreateView(OneToManyModelMixin,CreateView):

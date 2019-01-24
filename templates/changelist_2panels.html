@@ -15,6 +15,14 @@
   {% endfor %}
 {% endblock %}
 
+{% block fieldstatements %}
+  <script type="text/javasctipt">
+    {% for statement in listform.media.render_statements %}
+    {{statement}}
+    {% endfor %}
+  </script>
+{% endblock %}
+
 {% block extrajs %}
    {% if filterform or listform.toggleablefields %}
         <script src="{% static 'js/toggle_columns.js' %}"></script>

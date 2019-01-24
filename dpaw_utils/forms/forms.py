@@ -18,7 +18,7 @@ from . import fields
 from .boundfield import (BoundField,CompoundBoundField,BoundFormField,BoundFormSetField,BoundFieldIterator)
 from .fields import (CompoundField,FormField,FormSetField,AliasFieldMixin)
 
-from .utils import FieldClassConfigDict,FieldWidgetConfigDict,SubpropertyEnabledDict,ChainDict
+from .utils import FieldClassConfigDict,FieldWidgetConfigDict,SubpropertyEnabledDict,ChainDict,Media
 from ..models import DictMixin
 from dpaw_utils.utils import load_module
 
@@ -524,7 +524,7 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
         #if not opts.ordered_fields:
         #   opts.ordered_fields = [f for f in new_class.base_fields.keys()]
 
-        media = forms.widgets.Media()
+        media = Media()
 
         for field in new_class.base_fields.values():
             if hasattr(field.widget,"media") and field.widget.media:

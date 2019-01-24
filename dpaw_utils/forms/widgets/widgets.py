@@ -1,5 +1,6 @@
 import traceback
 import markdown
+import json
 from urllib.parse import quote
 
 from django import forms
@@ -10,7 +11,7 @@ from django.utils.html import mark_safe
 from django.utils.encoding import force_text
 from django.utils.http import urlencode
 
-from ..utils import hashvalue
+from ..utils import hashvalue,JSONEncoder,Media
 
 
 to_str = lambda o: "" if o is None else str(o)
@@ -105,44 +106,42 @@ class Hyperlink(DisplayWidget):
 
     def prepare_initial_data(self,form,name):
         value = form.initial.get(name)
-        if not self.ids:
-            #no configured 
-            return (value,None)
-            
         url = None
-        kwargs = {}
-        for f in self.ids:
-            val = form.initial.get(f[0])
-            if val is None:
-                #can't find value for url parameter, no link can be generated
-                kwargs = None
-                break;
-            elif isinstance(val,models.Model):
-                kwargs[f[1]] = val.pk
-            else:
-                kwargs[f[1]] = val
-        if kwargs:
+        if not self.ids:
             url = reverse(self.url_name,kwargs=kwargs)
-            if self.querystring:
-                if self.parameters:
-                    kwargs.clear()
-                    for f in self.parameters:
-                        if f[0] == "request_full_path":
-                            kwargs[f[1]] = quote(form.fullpath)
-                        else:
-                            val = form.initial.get(f[0])
-                            if val is None:
-                                #can't find value for url parameter, no link can be generated
-                                kwargs[f[1]] = ""
-                            elif isinstance(val,models.Model):
-                                kwargs[f[1]] = val.pk
-                            else:
-                                kwargs[f[1]] = val
-                    url = "{}?{}".format(url,self.querystring.format(**kwargs))
-                else:
-                    url = "{}?{}".format(url,self.querystring)
         else:
-            url = None
+            kwargs = {}
+            for f in self.ids:
+                val = form.initial.get(f[0])
+                if val is None:
+                    #can't find value for url parameter, no link can be generated
+                    kwargs = None
+                    break;
+                elif isinstance(val,models.Model):
+                    kwargs[f[1]] = val.pk
+                else:
+                    kwargs[f[1]] = val
+            if kwargs:
+                url = reverse(self.url_name,kwargs=kwargs)
+
+        if url and self.querystring:
+            if self.parameters:
+                kwargs.clear()
+                for f in self.parameters:
+                    if f[0] == "request_full_path":
+                        kwargs[f[1]] = quote(form.fullpath)
+                    else:
+                        val = form.initial.get(f[0])
+                        if val is None:
+                            #can't find value for url parameter, no link can be generated
+                            kwargs[f[1]] = ""
+                        elif isinstance(val,models.Model):
+                            kwargs[f[1]] = val.pk
+                        else:
+                            kwargs[f[1]] = val
+                url = "{}?{}".format(url,self.querystring.format(**kwargs))
+            else:
+                url = "{}?{}".format(url,self.querystring)
 
         return (value,url)
 
@@ -195,7 +194,7 @@ class DatetimeInput(forms.TextInput):
         css = {
             "all":['css/jquery.datetimepicker.css']
         }
-        return forms.Media(js=js,css=css)
+        return Media(js=js,css=css)
 
     def render(self,name,value,attrs=None,renderer=None):
         html = super(DatetimeInput,self).render(name,value,attrs)
@@ -515,4 +514,114 @@ class Hidden(forms.Widget):
         else:
             return "<input type='hidden' name='{}' value='{}' {} >".format(name,"" if value is None else value,htmlid)
         return to_str(value)
+
+class AjaxWidget(forms.Widget):
+    def prepare_initial_data(self,form,name):
+        value = form.initial.get(name)
+
+        if not self.ids:
+            #no configured 
+            url = reverse(self.url_name)
+        else:   
+            kwargs = {}
+            for f in self.ids:
+                val = form.initial.get(f[0])
+                if val is None:
+                    #can't find value for url parameter, no link can be generated
+                    kwargs = None
+                    break;
+                elif isinstance(val,models.Model):
+                    kwargs[f[1]] = val.pk
+                else:
+                    kwargs[f[1]] = val
+
+            if kwargs:
+                url = reverse(self.url_name,kwargs=kwargs)
+            else:
+                url = None
+
+        return (value,url)
+
+    def render(self,name,value,attrs=None,renderer=None):
+        if value[1]:
+            if not attrs:
+                attrs = {}
+            for k,v in self.ajax_attrs.items():
+                attrs[k] = v.format(url=value[1])
+        return self.widget.render(name,value[0],attrs=attrs,renderer=renderer)
+
+def AjaxWidgetFactory(widget,url_name,ids,data_func=None,method="post",editable=False,succeed=None,failed=None):
+    """
+    Create ajax widget class
+    widget: can be a widget class or widget instance
+    """
+    global widget_class_id
+
+    key = hashvalue("AjaxWidget<{}.{}{}{}{}{}{}{}>".format(id(widget),url_name,ids,json.dumps(data_func,cls=JSONEncoder),method,editable,succeed,failed))
+    cls = widget_classes.get(key)
+    
+    if not isinstance(widget,forms.Widget):
+        widget = widget()
+
+    if not cls:
+        widget_class_id += 1
+        class_name = "{}_{}".format(widget.__class__.__name__,widget_class_id)
+        if not succeed:
+            succeed = """function (res) {
+            }
+            """
+        
+        attrs = {}
+        if isinstance(widget,forms.CheckboxInput):
+            if not failed :
+                failed  = """function (srcElement,msg) {
+                    alert(msg);
+                    srcElement.checked = !srcElement.checked;
+                }
+                """
+
+            attrs["onclick"]="{class_name}_ajax(this,'{{url}}')".format(class_name=class_name)
+            if not data_func:
+                data_func = """function(){
+                        return {"value":this.checked?"on":"off"}
+                    }
+                """
+        else:
+            raise NotImplementedError()
+
+        ajax_func = """
+            var {class_name}_data = {data_func}
+            var {class_name}_failed = {failed}
+            var {class_name}_succeed = {succeed}
+            function {class_name}_ajax(srcElement,url) {{
+                var data = {class_name}_data.call(srcElement)
+                $.ajax({{
+                    url:url,
+                    data:data,
+                    dataType:"json",
+                    error: function(xhr,status,error) {{
+                        {class_name}_failed(srcElement,xhr.responseText || error)
+                    }},
+                    success:function(resp,stat,xhr) {{
+                        {class_name}_succeed(resp)
+                    }},
+                    method:"{method}",
+                    xhrFields:{{
+                        withCredentials:true
+                    }}
+    
+                }})
+            }}
+        """.format(class_name=class_name,data_func=data_func,failed=failed,succeed=succeed,method=method)
+
+        media = Media(statements=[ajax_func])
+
+        if editable:
+            cls = type(class_name,(AjaxWidget,),{"widget":widget,"media":media,"url_name":url_name,"ids":ids,"data_func":data_func,"method":method,"ajax_attrs":attrs})
+        else:
+            cls = type(class_name,(AjaxWidget,DisplayMixin),{"widget":widget,"media":media,"url_name":url_name,"ids":ids,"data_func":data_func,"method":method,"ajax_attrs":attrs})
+
+        widget_classes[key] = cls
+    return cls
+
 

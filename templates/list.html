@@ -3,6 +3,26 @@
 {% load static %}
 {% load pbs_utils %}
 
+{% block fieldstyle %}
+  {% for css in listform.media.render_css %}
+  {{css}}
+  {% endfor %}
+{% endblock %}
+
+{% block fieldjs %}
+  {% for js in listform.media.render_js %}
+  {{js}}
+  {% endfor %}
+{% endblock %}
+
+{% block fieldstatements %}
+  <script type="text/javasctipt">
+    {% for statement in listform.media.render_statements %}
+    {{statement}}
+    {% endfor %}
+  </script>
+{% endblock %}
+
 {% block extrajs %}
   <script src="{% static 'js/toggle_columns.js' %}"></script>
   <script src="{% static 'js/listselector.js' %}"></script>
@@ -102,8 +122,10 @@
     {% blocktrans count counter=errors|length %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
     </p>
 {% endif %}
+
 <div class="row">
 <div class="span12">
+
 <div id="id_pageerrors"><span id="id__all__">
     {% if listform.non_field_errors %}
         {% include "display_errors.html" with errors=listform.non_field_errors %}
