@@ -133,15 +133,35 @@
 </span></div>
 
 {% if listform.has_actions_or_buttons %}
-<form action="{{requesturl.path}}" method="post" class="form-inline" autocomplete="off">{% csrf_token %}
+{% if listform.has_actions %}
+    <script type="text/javascript">
+        function checkListFormAction() {
+            if (!$("#listform_action").val()) {
+                alert("Please select a action to perform.")
+                return false
+            }
+            if ({{listform.model_name_lower}}_selector.selected <= 0) {
+                alert("No {{listform.model_name_lower}} is selected")
+                return false
+            }
+            return true
+        }
+    </script>
+    <form action="{{requesturl.path}}" method="post" class="form-inline" onsubmit="return checkListFormAction()">
+{% else %}
+    <form action="{{requesturl.path}}" method="post" class="form-inline" autocomplete="off">
+{% endif %}
+    {% csrf_token %}
 {% if nexturl %}
     <input type="hidden" name="nexturl" value="{{nexturl}}">
+{% else %}
+    <input type="hidden" name="nexturl" value="{{listform.fullpath}}">
 {% endif %}
 {% endif %}
 {% if listform.has_actions %}
     <div class="actions">
         <label><span class="action-label">Action:</span> 
-        <select name="action">
+        <select name="action" id="listform_action">
             <option value="" selected="selected">---------</option>
             {% for action in listform.actions %}
                 {{action.widget.html}}
@@ -177,6 +197,10 @@
                 {% for field in dataform %}
                     {% call_method field "html" "<td{attrs}>{widget}</td>"%}
                 {% endfor %}
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">There are no {{ listform.model_name_lower }}.</td>
             </tr>
             {% endfor %}
 

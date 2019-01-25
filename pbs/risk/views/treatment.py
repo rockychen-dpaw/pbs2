@@ -6,7 +6,7 @@ from django.http import (HttpResponseRedirect,)
 
 from pbs.prescription.models import (Prescription,)
 from pbs.risk.models import (Action,Treatment)
-from pbs.risk.forms import (TreatmentDetailForm)
+from pbs.risk.forms import (TreatmentDetailForm,TreatmentListForm)
 from dpaw_utils import views
 import pbs.forms
 
@@ -31,7 +31,7 @@ class PrescriptionTreatmentReadonlyView(pbs.forms.GetActionMixin,views.RequestAc
         ]
 
     def set_complete_ajax(self):
-        complete = self.request.POST.get("value") == 'on'
+        complete = TreatmentListForm.base_fields["complete"].to_python(self.request.POST.get("value"))
         self.object.complete = complete
         self.object.save(update_fields=["complete","modifier","modified"])
         

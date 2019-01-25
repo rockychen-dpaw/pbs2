@@ -55,10 +55,10 @@ class PrescriptionActionsUpdateView(pbs.forms.GetActionMixin,views.OneToManyList
     title = "Plan Actions"
     pmodel = Prescription
     model = Action
+    context_pobject_name = "prescription"
     filter_class = ActionFilter
     filterform_class = ActionFilterForm
     listform_class = ActionListUpdateForm
-    context_pobject_name = "prescription"
     one_to_many_field_name = "risk__prescription"
     urlpattern = "prescription/<int:ppk>/action/"
     urlname = "prescription_action_changelist"

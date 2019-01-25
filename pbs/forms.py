@@ -21,7 +21,10 @@ OPTION_ACTIONS = {
     "burn_summary_to_csv":forms.Action("burn_summary_to_csv","option","Export Burn Summary to CSV"),
     "delete_approval_endorsement":forms.Action("delete_approval_endorsement","option","Remove Burn Plan Endorsements and Approval"),
     "carry_over_burns":forms.Action("carry_over_burns","option","Carry over burns"),
-    "bulk_corporate_approve":forms.Action("bulk_corporate_approve","option","Apply corporate approval")
+    "bulk_corporate_approve":forms.Action("bulk_corporate_approve","option","Apply corporate approval"),
+
+    "delete_selected_documents":forms.Action("deleteconfirm","option","Delete selected documents",permission="prescription.delete_prescription"),
+    "archive_selected_documents":forms.Action("archiveconfirm","option","Archive selected documents",permission="document.archive_document"),
 }
 
 class GetActionMixin(object):

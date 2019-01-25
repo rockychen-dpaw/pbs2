@@ -252,6 +252,7 @@ class PrescriptionListView(ListView):
     filter_class = PrescriptionFilter
     model = Prescription
     paginate_by=8
+    default_order = ("modified","name","id")
 
     def burn_summary_to_csv_post(self, request,*args,**kwargs):
         queryset = self.get_queryset_4_selected(request)

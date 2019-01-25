@@ -1,4 +1,4 @@
-from .views import (RequestActionMixin,UrlpatternsMixin,AjaxRequestMixin,ParentObjectMixin,SendDataThroughGetMixin,
+from .views import (RequestActionMixin,UrlpatternsMixin,AjaxRequestMixin,ParentObjectMixin,SendDataThroughUrlMixin,
         CreateView,OneToManyCreateView,
         ReadonlyView,OneToOneReadonlyView,OneToManyReadonlyView,
         UpdateView,OneToOneUpdateView,OneToManyUpdateView,

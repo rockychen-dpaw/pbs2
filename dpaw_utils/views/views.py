@@ -3,11 +3,19 @@ import traceback
 from urllib import parse
 
 from django.urls import path 
+from django.contrib import messages
 from django.http import (Http404,HttpResponse,HttpResponseForbidden,JsonResponse,HttpResponseRedirect)
 import django.views.generic.edit as django_edit_view
 import django.views.generic.list as django_list_view
 from django.db import transaction
+from dpaw_utils.forms.utils import ChainDict
 
+
+class ReturnHttpResponse(Exception):
+    def __init__(self,response):
+        super(ReturnHttpResponse,self).__init__(str(response))
+        self.response = response
+    
 class NextUrlMixin(object):
     def get_success_url(self):
         if self.request.method == 'GET':
@@ -58,29 +66,41 @@ class FormMixin(object):
                 self.form.is_valid()
         return self.form
 
-class SendDataThroughGetMixin(object):
+class SendDataThroughUrlMixin(object):
+    data_in_querystring = False
+    data_in_url = False
+
     def get_form_kwargs(self):
         """Return the keyword arguments for instantiating the form."""
-        kwargs = {
-            'initial': self.get_initial(),
-            'prefix': self.get_prefix(),
-        }
-
-        if self.request.method in ('POST', 'PUT'):
-            kwargs.update({
-                'data': self.request.POST,
-                'files': self.request.FILES,
-            })
-        elif self.request.method in ('GET'):
-            form_cls = self.get_form_class()
-            editable_fields = [f for f in form_cls._meta.editable_fields if f in self.request.GET]
-            if editable_fields:
+        if self.data_in_querystring or self.data_in_url:
+            kwargs = {
+                'initial': self.get_initial(),
+                'prefix': self.get_prefix(),
+            }
+    
+            if self.request.method in ('POST', 'PUT'):
                 kwargs.update({
-                    'data': self.request.GET,
-                    'editable_fields':editable_fields
+                    'data': ChainDict([self.request.POST,self.kwargs]) if self.data_in_url else self.request.POST,
+                    'files': self.request.FILES,
                 })
+            elif self.request.method in ('GET'):
+                form_cls = self.get_form_class()
+                if self.data_in_querystring and self.data_in_url:
+                    data = ChainDict([self.request.GET,self.kwargs])
+                elif self.data_in_querystring:
+                    data = self.request.GET
+                else:
+                    data = self.kwargs
 
-        return kwargs
+                editable_fields = [f for f in form_cls._meta.editable_fields if f in data]
+                if editable_fields:
+                    kwargs.update({
+                        'data': data,
+                        'editable_fields':editable_fields
+                    })
+            return kwargs
+        else:
+            return super(SendDataThroughUrlMixin,self).get_form_kwargs()
 
 class ModelMixin(object):
     @property
@@ -130,6 +150,8 @@ class RequestActionMixin(AjaxRequestMixin):
     def get_template_names(self):
         if self.action == "deleteconfirm":
             return [self.deleteconfirm_template if hasattr(self,"deleteconfirm_template") else "{}/{}_deleteconfirm.html".format(self.model._meta.app_label.lower(),self.model.__name__.lower())]
+        elif self.action == "archiveconfirm":
+            return [self.archiveconfirm_template if hasattr(self,"archiveconfirm_template") else "{}/{}_archiveconfirm.html".format(self.model._meta.app_label.lower(),self.model.__name__.lower())]
         else:
             return super(RequestActionMixin,self).get_template_names()
 
@@ -167,6 +189,8 @@ class RequestActionMixin(AjaxRequestMixin):
                 else:
                     raise Http404("Action '{}' is not supported.".format(self.action))
             return super(RequestActionMixin,self).dispatch(request,*args,**kwargs)
+        except ReturnHttpResponse as ex:
+            return ex.response
         except Http404:
             raise
         except Exception as ex:
@@ -514,7 +538,37 @@ class OneToManyModelMixin(ParentObjectMixin):
             context[self.context_pobject_name] = self.pobject
         return self.render_to_response(context)
 
+    def deleteconfirm_post(self):
+        return self.deleteconfirm_get()
+
     def deleteconfirmed_post(self):
+        selected_ids = self.get_selected_ids()
+        #remove selected rows.
+        for o in self.get_queryset().filter(pk__in=selected_ids):
+            o.delete()
+    
+        return HttpResponseRedirect(self.get_success_url())
+        
+    def archiveconfirm_get(self):
+        object_list = self.get_queryset_4_selected()
+        context = {
+            'title':"Archive {}".format(self.model._meta.verbose_name if len(object_list) < 2 else self.model._meta.verbose_name_plural),
+            'confirm_message':"Are you sure you wish to archive the {}?".format(self.model._meta.verbose_name if len(object_list) < 2 else self.model._meta.verbose_name_plural),
+            'confirm_url':self.archiveconfirm_url if hasattr(self,"archiveconfirm_url") else "",
+            'object_title':'{} details'.format(self.model._meta.verbose_name),
+            'pobject':self.pobject,
+            'object_list':object_list,
+            'listform':self.get_listform_class()(instance_list=object_list,request=self.request,requesturl = self.requesturl),
+            'nexturl':self.nexturl
+        }
+        if self.context_pobject_name:
+            context[self.context_pobject_name] = self.pobject
+        return self.render_to_response(context)
+
+    def archiveconfirm_post(self):
+        return self.archiveconfirm_get()
+
+    def archiveconfirmed_post(self):
         selected_ids = self.get_selected_ids()
         #remove selected rows.
         for o in self.get_queryset().filter(pk__in=selected_ids):
@@ -616,12 +670,15 @@ class ListBaseView(RequestActionMixin,UrlpatternsMixin,SuccessUrlMixin,ModelMixi
     def get_filterform_class(self):
         return self.filterform_class
 
+    def get_filterform_data(self):
+        return self.request.GET
+
     def get_queryset(self):
         filterformclass = self.get_filterform_class()
         if not filterformclass:
             queryset = self.model.objects.all() if self.queryset is None else self.queryset
         else:
-            self.filterform = filterformclass(data=self.request.GET,request=self.request)
+            self.filterform = filterformclass(data=self.get_filterform_data(),request=self.request)
             if self.filterform.is_valid():
                 data_filter = self.get_filter_class()(self.filterform,request=self.request,queryset=self.queryset)
                 queryset = data_filter.qs
@@ -721,6 +778,9 @@ class ListBaseView(RequestActionMixin,UrlpatternsMixin,SuccessUrlMixin,ModelMixi
                 #print("All {} records are selected.".format(len(queryset)))
         elif selected_ids:
             queryset = (queryset or self.model.objects).filter(pk__in=selected_ids)
+        elif self.nexturl:
+            messages.add_message(self.request,messages.ERROR,"No {} is selected".format(self.model_verbose_name))
+            raise ReturnHttpResponse(HttpResponseRedirect(self.nexturl))
         else:
             raise Exception("No {} is selected.".format(self.model_verbose_name))
 

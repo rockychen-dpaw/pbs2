@@ -60,9 +60,11 @@ class Action(object):
         return True;
 
     def _check_permission(self,user):
+        print("check permission:user={}, permission={}".format(user,self.permission))
         return user.has_perm(self.permission)
 
     def _check_any_permissions(self,user):
+        print("check permission:user={}, permission={}".format(user,self.permission))
         for p in self.permission:
             if user.has_perm(p):
                 return True
@@ -238,7 +240,7 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
     4. new property 'widgets_config' to config widget for editing and view
     5. new property 'other_fields' to support readonly model field and class property field
     6. new property 'editable_fields' to list all editable fields
-    7. new property 'ordered_fields' to support sort fields
+    7. new property 'ordered_fields' to support sort fields, default is 'all_fields'
     8. new property 'extra_update_fields' to add extra update fields to 'update_fields' whensaving a model instance
     9. new property 'purpose' to indicate the purpose of this form
     10. new property 'all_fields' to list all the fields including the fields and other_fields.
@@ -283,6 +285,9 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
                     config = BaseModelFormMetaclass.meta_item_from_base(bases,item)
                     if config:
                         setattr(attrs["Meta"],item,config)
+
+            if hasattr(attrs['Meta'],"all_fields") and not hasattr(attrs['Meta'],"ordered_fields"):
+                setattr(attrs['Meta'],"ordered_fields",getattr(attrs['Meta'],'all_fields'))
 
             for item in ("editable_fields","widths"):
                 if not hasattr(attrs['Meta'],item):

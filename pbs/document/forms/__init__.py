@@ -1,1 +1,1 @@
-from .document import (TaggedDocumentCreateForm,DocumentUpdateForm,DocumentListForm)
+from .document import (TaggedDocumentCreateForm,DocumentUpdateForm,DocumentListForm,DocumentConfirmListForm,DocumentFilterForm)

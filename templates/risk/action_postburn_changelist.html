@@ -30,10 +30,10 @@
 <div class="row">
     <div class="span12" >
 	<h1>Actions Report
-           <a href="{% url 'document:prescription_document_update' prescription.id %}?tag=189&nexturl={% url 'risk:prescription_postburn_action_changelist' prescription.id %}" class="pull-right btn btn-info btn-small"><b><i class="icon-plus"></i> Upload Pre Burn Actions List</b></a>
+           <a href="{% url 'document:prescription_taggeddocument_add' prescription.id 189 %}?nexturl={% url 'risk:prescription_postburn_action_changelist' prescription.id %}" class="pull-right btn btn-info btn-small"><b><i class="icon-plus"></i> Upload Post Burn Actions List</b></a>
 	</h1>
 	<h5><a class="btn btn-small btn-info" href=""><i class="icon-download-alt"></i> Download the Pre Burn Actions List template</a></h5>
-        {% include "document/includes/document_list.html" with document_type="Pre Burn Actoions List" %}
+        {% include "document/includes/document_list.html" with document_type="Post Burn Actoions List" %}
         <h1>{{ title }}
             <a href="{% url 'risk:prescription_risk_create' prescription.id %}" class="pull-right btn btn-small btn-info"><i class="icon-plus"></i> Add source of risk</a>
         </h1>

@@ -583,7 +583,11 @@ def AjaxWidgetFactory(widget,url_name,ids,data_func=None,method="post",editable=
             attrs["onclick"]="{class_name}_ajax(this,'{{url}}')".format(class_name=class_name)
             if not data_func:
                 data_func = """function(){
-                        return {"value":this.checked?"on":"off"}
+                        if (this.checked) {
+                            return {"value":this.value}
+                        } else {
+                            return {}
+                        }
                     }
                 """
         else:
