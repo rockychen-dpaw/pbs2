@@ -1,0 +1,12 @@
+{% extends "../changelist.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<ul class="breadcrumb">
+  <li><a href="{% url 'prescription:prescription_list' %}">{% trans 'Regional Overview' %}</a> <span class="divider">/</span></li>
+  <li><a href="{% url 'prescription:prescription_home' prescription.id %}">{{ prescription.burn_id }}</a> <span class="divider">/</span></li>
+  <li><a href="">Part D</a> <span class="divider">/</span></li>
+  <li>Section D1 &#x2010; Notificationss</li>
+</ul>
+{% endblock %}
+

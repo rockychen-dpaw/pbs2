@@ -145,9 +145,33 @@
         if ($$.length) {
             var hideAddButton = !showAddButton(),
                 addButton, template;
-            if (!options.formTemplate) {
-                throw "missing option 'formTemplate'"
+            if (options.formTemplate) {
+                // If a form template was specified, we'll clone it to generate new form instances:
+                template = (options.formTemplate instanceof $) ? options.formTemplate : $(options.formTemplate);
+                template.removeAttr('id').addClass(options.formCssClass + ' formset-custom-template');
+                template.find(childElementSelector).each(function() {
+                    updateElementIndex($(this), options.prefix, '__prefix__');
+                });
+                insertDeleteLink(template);
+            } else {
+                // Otherwise, use the last form in the formset; this works much better if you've got
+                // extra (>= 1) forms (thnaks to justhamade for pointing this out):
+                template = $('.' + options.formCssClass + ':last').clone(true).removeAttr('id');
+                template.find('input:hidden[id $= "-DELETE"]').remove();
+                // Clear all cloned fields, except those the user wants to keep (thanks to brunogola for the suggestion):
+                template.find(childElementSelector).not(options.keepFieldValues).each(function() {
+                    var elem = $(this);
+                    // If this is a checkbox or radiobutton, uncheck it.
+                    // This fixes Issue 1, reported by Wilson.Andrew.J:
+                    if (elem.is('input:checkbox') || elem.is('input:radio')) {
+                        elem.attr('checked', false);
+                    } else {
+                        elem.val('');
+                    }
+                });
             }
+            // FIXME: Perhaps using $.data would be a better idea?
+            options.formTemplate = template;
 
             if ($$.is('TR')) {
                 // If forms are laid out as table rows, insert the
@@ -166,14 +190,9 @@
             }
             addButton.click(function() {
                 var formCount = parseInt(totalForms.val()),
+                    row = options.formTemplate.clone(true).removeClass('formset-custom-template'),
                     buttonRow = $($(this).parents('tr.' + options.formCssClass + '-add').get(0) || this)
                     delCssSelector = $.trim(options.deleteCssClass).replace(/\s+/g, '.');
-
-                // If a form template was specified, we'll clone it to generate new form instances:
-                var row = $(options.formTemplate).addClass(options.formCssClass) ;
-                row.removeAttr('id');
-                insertDeleteLink(row);
-
                 applyExtraClasses(row, formCount);
                 row.insertBefore(buttonRow).show();
                 row.find(childElementSelector).each(function() {

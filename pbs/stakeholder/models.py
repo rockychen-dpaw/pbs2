@@ -39,7 +39,7 @@ class PublicContact(AuditMixin):
         verbose_name = "Public Contact"
         verbose_name_plural = "Public Contacts"
 
-class Notification(AuditMixin):
+class Notification(ModelDictMixin,AuditMixin):
     ORG_BEEKEEPERS = 1
     ORG_NEIGHBOURS = 2
     ORG_FLORA_PICKERS = 3

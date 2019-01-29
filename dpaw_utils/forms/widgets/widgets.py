@@ -209,6 +209,30 @@ class DatetimeInput(forms.TextInput):
         """.format(attrs["id"])
         return mark_safe("{}{}".format(html,datetime_picker))
 
+class DateInput(forms.TextInput):
+    @property
+    def media(self):
+        js = [
+            'js/jquery.datetimepicker.full.min.js',
+        ]
+        css = {
+            "all":['css/jquery.datetimepicker.css']
+        }
+        return Media(js=js,css=css)
+
+    def render(self,name,value,attrs=None,renderer=None):
+        html = super(DateInput,self).render(name,value,attrs)
+        datetime_picker = """
+        <script type="text/javascript">
+            $("#{}").datetimepicker({{ 
+                format: "Y-m-d" ,
+                maxDate:true,
+                timepicker:false
+            }}); 
+        </script>
+        """.format(attrs["id"])
+        return mark_safe("{}{}".format(html,datetime_picker))
+
 
 class TemplateWidgetMixin(object):
     template = ""

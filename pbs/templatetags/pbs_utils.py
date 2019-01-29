@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.shortcuts import resolve_url
 from django import template
+from django.utils.html import mark_safe
 
 
 register = template.Library()
@@ -31,6 +32,10 @@ def page_background():
 @register.simple_tag
 def call_method(obj,method_name,*args,**kwargs):
     return getattr(obj,method_name)(*args,**kwargs)
+
+@register.simple_tag
+def call_method_escape(obj,method_name,*args,**kwargs):
+    return mark_safe(getattr(obj,method_name)(*args,**kwargs).replace("</script>","</\script>"))
 
 @register.simple_tag
 def setvar(*args):

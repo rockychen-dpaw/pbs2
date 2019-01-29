@@ -172,6 +172,7 @@
 {% url 'document:prescription_taggeddocument_list' prescription.id 183 as sectionb9 %}
 {% url 'document:prescription_taggeddocument_list' prescription.id 168 as sectionb10 %}
 {% url 'document:prescription_taggeddocument_list' prescription.id 181 as org_structure %}
+{% url 'stakeholder:prescription_notification_changelist' prescription.id as notifications %}
 {% block body %}
 <body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}" style={% page_background %}>
 {% if not is_popup %}

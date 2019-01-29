@@ -57,6 +57,10 @@ class BaseFormSet(formsets.BaseFormSet):
         form.cleaned_data[DELETION_FIELD_NAME] = should_delete
         return should_delete
 
+class TemplateFormsetMixin(object):
+    def add_prefix(self, index):
+        return '%s-99999' % (self.prefix)
+
 def formset_factory(form, formset=BaseFormSet, extra=1, can_order=False,
                     can_delete=False, max_num=None, validate_max=False,
                     min_num=None, validate_min=False,primary_field=None):
@@ -160,6 +164,16 @@ class ListMemberForm(forms.RequestUrlMixin,forms.ModelForm,metaclass=ListModelFo
     def boundfields(self):
         return boundfield.BoundFieldIterator(self)
 
+template_formset_classes = {}
+def TemplateFormsetFactory(formset):
+    key = "{}.{}".format(formset.__module__,formset.__name__)
+    cls = template_formset_classes.get(key)
+    if not cls:
+        class_name = "{}.{}_template".format(formset.__module__,formset.__name__)
+        cls = type(class_name,(TemplateFormsetMixin,formset),{})
+        template_formset_classes[key] = cls
+    return cls
+
 def listupdateform_factory(form, formset=ListUpdateForm, extra=1, can_order=False,
                     can_delete=False, max_num=None, validate_max=False,can_add=True,
                     min_num=None, validate_min=False,primary_field=None,all_actions=None,all_buttons=None):
@@ -176,7 +190,7 @@ def listupdateform_factory(form, formset=ListUpdateForm, extra=1, can_order=Fals
 
     cls.can_add = can_add
     if cls.can_add:
-        cls.template_forms = formsets.formset_factory(form,formset=formset,extra=1,min_num=1,max_num=1)(prefix=cls.default_prefix)
+        cls.template_forms = formsets.formset_factory(form,formset=TemplateFormsetFactory(formset),extra=1,min_num=1,max_num=1)(prefix=cls.default_prefix)
         for field in cls.template_forms[0].fields.values():
             field.required=False
 

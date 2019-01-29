@@ -1,0 +1,14 @@
+{% extends "../deleteconfirm.html" %}
+{% load i18n %}
+{% load admin_urls %}
+
+{% block breadcrumbs %}
+<ul class="breadcrumb">
+  <li><a href="{% url 'prescription:prescription_list' %}">{% trans 'Regional Overview' %}</a> <span class="divider">/</span></li>
+  <li><a href="{% url 'prescription:prescription_home' prescription.id %}">{{ prescription.burn_id }}</a> <span class="divider">/</span></li>
+  <li><a href="">Part D</a> <span class="divider">/</span></li>
+  <li><a href="{% url 'stakeholder:prescription_notification_changelist' prescription.id %}">Section D1 &#x2010; Notifications</a> <span class="divider">/</span></li>
+  <li>{% trans 'Delete' %}</li>
+</ul>
+{% endblock %}
+

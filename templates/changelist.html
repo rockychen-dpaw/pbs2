@@ -199,30 +199,30 @@
         {% if listform.can_add %}
         var formTemplate = `{% for form in listform.template_forms %}<tr> 
                 {% for field in form.boundfields %}
-                    {% call_method field "html" "<td{attrs}>{widget}</td>"%}
+                    {% call_method_escape field "html" "<td{attrs}>{widget}</td>" %}
                 {% endfor %}
             </tr>{% endfor %}`;
         {% endif %}
 
         
         {% if listform.can_add and listform.can_delete %}
-        $('#{{listform.model_name_lower}}_result_list tbody tr').formset({
+        var {{listform.model_name_lower}}_formset = $('#{{listform.model_name_lower}}_result_list tbody tr').formset({
             prefix: '{{ listform.prefix }}',
             formCssClass: '{{listform.model_name_lower}}_fs',
             addText: '<i class="icon-plus"></i> Add Another {{ modelname  }}',
             deleteText: '<img onclick="deleteForm(event)" src="/static/img/delete.png" style="width:16px;height:16px;"></img>',
             deleteCssClass: 'delete-row' + '-' + '{{ listform.prefix  }}',
-            formTemplate:$(formTemplate)
+            formTemplate:formTemplate
         });
         {% elif listform.can_add %}
-        $('#{{listform.model_name_lower}}_result_list tbody tr').formset({
+        var {{listform.model_name_lower}}_formset = $('#{{listform.model_name_lower}}_result_list tbody tr').formset({
             prefix: '{{ listform.prefix }}',
             formCssClass: '{{listform.model_name_lower}}_fs',
             addText: '<i class="icon-plus"></i> Add Another {{ modelname  }}',
-            formTemplate:$(formTemplate)
+            formTemplate:formTemplate
         });
         {% elif listform.can_delete %}
-        $('#{{listform.model_name_lower}}_result_list tbody tr').formset({
+        var {{listform.model_name_lower}}_formset = $('#{{listform.model_name_lower}}_result_list tbody tr').formset({
             prefix: '{{ listform.prefix }}',
             formCssClass: '{{listform.model_name_lower}}_fs',
             addText: '',
