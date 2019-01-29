@@ -17,7 +17,7 @@
             totalForms = $('#id_' + options.prefix + '-TOTAL_FORMS'),
             maxForms = $('#id_' + options.prefix + '-MAX_NUM_FORMS'),
             minForms = $('#id_' + options.prefix + '-MIN_NUM_FORMS'),
-            childElementSelector = 'input,select,textarea,label,div',
+            childElementSelector = 'input,select,textarea,label,div,script',
             $$ = $(this),
 
             applyExtraClasses = function(row, ndx) {
@@ -28,11 +28,17 @@
             },
 
             updateElementIndex = function(elem, prefix, ndx) {
-                var idRegex = new RegExp(prefix + '-(\\d+|__prefix__)-'),
+                var idRegex = new RegExp(prefix + '-(\\d+|__prefix__)-','g'),
                     replacement = prefix + '-' + ndx + '-';
-                if (elem.attr("for")) elem.attr("for", elem.attr("for").replace(idRegex, replacement));
-                if (elem.attr('id')) elem.attr('id', elem.attr('id').replace(idRegex, replacement));
-                if (elem.attr('name')) elem.attr('name', elem.attr('name').replace(idRegex, replacement));
+                if (elem.prop('tagName') == 'SCRIPT') {
+                    elem.text(elem.text().replace(idRegex,replacement))
+                } else {
+                    if (elem.attr("for")) elem.attr("for", elem.attr("for").replace(idRegex, replacement));
+                    if (elem.attr('id')) elem.attr('id', elem.attr('id').replace(idRegex, replacement));
+                    if (elem.attr('name')) elem.attr('name', elem.attr('name').replace(idRegex, replacement));
+                    if (elem.attr('onclick')) elem.attr('onclick', elem.attr('onclick').replace(idRegex, replacement));
+                    if (elem.attr('onselect')) elem.attr('onselect', elem.attr('onselect').replace(idRegex, replacement));
+                }
             },
 
             hasChildElements = function(row) {

@@ -59,7 +59,7 @@ class BaseFormSet(formsets.BaseFormSet):
 
 class TemplateFormsetMixin(object):
     def add_prefix(self, index):
-        return '%s-99999' % (self.prefix)
+        return '%s-__prefix__' % (self.prefix)
 
 def formset_factory(form, formset=BaseFormSet, extra=1, can_order=False,
                     can_delete=False, max_num=None, validate_max=False,
