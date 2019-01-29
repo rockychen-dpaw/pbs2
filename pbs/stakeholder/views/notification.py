@@ -10,7 +10,7 @@ import pbs.forms
 class PrescriptionNotificationListUpdateView(pbs.forms.GetActionMixin,OneToManyListUpdateView):
     model=Notification
     listform_class = NotificationListUpdateForm
-    urlpattern = "notification/prescription/<int:ppk>/"
+    urlpattern = "prescription/<int:ppk>/notification/"
     urlname = "prescription_notification_changelist"
     one_to_many_field_name = "prescription"
     pmodel = Prescription

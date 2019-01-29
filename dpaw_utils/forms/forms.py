@@ -245,7 +245,7 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
     9. new property 'purpose' to indicate the purpose of this form
     10. new property 'all_fields' to list all the fields including the fields and other_fields.
     11. new property 'widths' to list the width of the field. mostly used in the list table.
-    12. new property 'add_required_to_label': add '*' to label of required edit field,default is True
+    12. new property 'field_required_flag': add '*' to label of required edit field,default is True
 
     Add the following properties into _meta property of model instance
     1. subproperty_enabled: True if some form field is created for subproperty of a model field or model property
@@ -512,7 +512,7 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
             new_class.base_fields.update(field_list)
 
         #add '*' for required field
-        if not hasattr(meta,"add_required_to_label") or getattr(meta,"add_required_to_label"):
+        if not hasattr(meta,"field_required_flag") or getattr(meta,"field_required_flag"):
             for field in new_class.base_fields.values():
                 if isinstance(field.widget,widgets.DisplayMixin):
                     continue

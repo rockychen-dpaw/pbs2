@@ -1,2 +1,3 @@
 from .criticalstakeholder import (CriticalStakeholderListUpdateForm,CriticalStakeholderListForm)
 from .notification import (NotificationListUpdateForm,NotificationListForm)
+from .publiccontact import (PublicContactListUpdateForm,PublicContactListForm)

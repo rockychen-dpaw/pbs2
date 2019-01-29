@@ -18,7 +18,7 @@ class NotificationConfigMixin(object):
         }
         widgets_config = {
             "__default__.view":forms.widgets.TextDisplay(),
-            "__default__.edit":forms.widgets.TextInput(),
+            "__default__.edit":forms.widgets.TextInput(attrs={"class":"vTextField"}),
             'notified.edit':forms.widgets.DateInput(attrs={"style":"width:115px"}),
             'contacted.edit':forms.widgets.Textarea(attrs={"class":"vTextField","style":"height:53px"}),
             'address.edit':forms.widgets.Textarea(attrs={"class":"vTextField","style":"height:53px"}),
@@ -45,6 +45,7 @@ class NotificationMemberUpdateForm(NotificationCleanMixin,NotificationConfigMixi
 
     class Meta:
         model = Notification
+        field_required_flag = False
         all_fields = ("id",'notified','contacted',"organisation","address","phone","delete")
         editable_fields = ('id',"notified","contacted","organisation","address","phone")
 

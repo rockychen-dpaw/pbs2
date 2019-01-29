@@ -28,7 +28,7 @@ class CriticalStakeholder(ModelDictMixin,AuditMixin):
         verbose_name_plural = "Critical Stakeholders"
         ordering = ['id']
 
-class PublicContact(AuditMixin):
+class PublicContact(ModelDictMixin,AuditMixin):
     prescription = models.ForeignKey(Prescription, on_delete=models.PROTECT)
     name = models.CharField(max_length=320)
     organisation = models.TextField()

@@ -135,7 +135,7 @@ class DayofburnActionMemberUpdateForm(ActionCleanMixin,ActionConfigMixin,forms.L
         widths = {
             "delete":"16px",
         }
-        add_required_to_label = False
+        field_required_flag = False
         purpose = (("listedit","edit"),("list","view"))
         all_fields = ("risk__category","id","relevant","risk_name","details","day_of_burn_responsible","day_of_burn_include","day_of_burn_situation","day_of_burn_mission","day_of_burn_execution","day_of_burn_administration","day_of_burn_command","day_of_burn_safety","delete")
         editable_fields = ("id","day_of_burn_responsible","day_of_burn_include","day_of_burn_situation","day_of_burn_mission","day_of_burn_execution","day_of_burn_administration","day_of_burn_command","day_of_burn_safety")
@@ -156,7 +156,7 @@ class PostburnActionMemberUpdateForm(ActionCleanMixin,ActionConfigMixin,forms.Li
         widths = {
             "delete":"16px",
         }
-        add_required_to_label = False
+        field_required_flag = False
         purpose = (("listedit","edit"),("list","view"))
         all_fields = ("risk__category","id","relevant","risk_name","details","post_burn_completer","post_burn_completed","delete")
         editable_fields = ("id",)
