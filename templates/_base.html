@@ -37,7 +37,7 @@
   {% block extrastyle %}{% endblock %}
 
   {% if LANGUAGE_BIDI %}<link rel="stylesheet" href="{% block stylesheet_rtl %}{% static "admin/css/rtl.css" %}{% endblock %}">{% endif %}
-  <script src="{% static 'js/jquery-1.9.1.min.js' %}"></script>
+  <script src="{% static 'js/jquery-2.2.0.min.js' %}"></script>
   <script src="{% static 'js/jquery-ui-1.11.4.min.js' %}"></script>
   <script src="{% static 'js/modernizr.js' %}"></script>
   <script src="{% static 'js/bootstrap.min.js' %}"></script>
@@ -172,6 +172,7 @@
 {% url 'document:prescription_taggeddocument_list' prescription.id 183 as sectionb9 %}
 {% url 'document:prescription_taggeddocument_list' prescription.id 168 as sectionb10 %}
 {% url 'document:prescription_taggeddocument_list' prescription.id 181 as org_structure %}
+{% url 'document:prescription_document_list' prescription.id as documents %}
 {% url 'stakeholder:prescription_notification_changelist' prescription.id as notifications %}
 {% url 'stakeholder:prescription_publiccontact_changelist' prescription.id as public_contacts %}
 {% block body %}
@@ -365,7 +366,7 @@
               <li id="document-dropdown" class="dropdown">
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">Part D<b class="caret"></b></a>
                 <ul class="dropdown-menu">
-                  <li{% if request.path == documents %} class="active"{% endif %}><a href="{{ documents }}?document_archived__exact=0">Documents</a></li>
+                  <li{% if request.path == documents %} class="active"{% endif %}><a href="{{ documents }}">Documents</a></li>
                   <li{% if request.path == notifications %} class="active"{% endif %}><a href="{{ notifications }}">D1 - Notifications</a></li>
                   <li{% if request.path == public_contacts %} class="active"{% endif %}><a href="{{ public_contacts }}">D2 - Public Contacts</a></li>
                 </ul>

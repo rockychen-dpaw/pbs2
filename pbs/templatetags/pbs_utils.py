@@ -47,6 +47,14 @@ def setvar(*args):
         return "".join([str(o) for o in args])
 
 @register.simple_tag
+def addurlparameter(url,name,value):
+    if "?" in url:
+        return "{}&{}={}".format(url,name,value)
+    else:
+        return "{}?{}={}".format(url,name,value)
+    
+
+@register.simple_tag
 def debug(obj,*args):
     import ipdb;ipdb.set_trace()
     return ""

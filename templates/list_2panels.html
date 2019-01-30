@@ -24,11 +24,8 @@
 {% endblock %}
 
 {% block extrajs %}
-   {% if filtertool or listform.toggleablefields %}
-        <script src="{% static 'js/toggle_columns.js' %}"></script>
-        <script src="{% static 'js/listselector.js' %}"></script>
-   {% endif %}
-   <script src="{% static 'js/jquery.formset.js' %}"></script>
+  <script src="{% static 'js/toggle_columns.js' %}"></script>
+  <script src="{% static 'js/listselector.js' %}"></script>
 {% endblock %}
 {% block content_title %}
     <div class="row">
@@ -125,8 +122,10 @@
     {% blocktrans count counter=errors|length %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
     </p>
 {% endif %}
+
 <div class="row">
 <div class="span9">
+
 <div id="id_pageerrors"><span id="id__all__">
     {% if listform.non_field_errors %}
         {% include "display_errors.html" with errors=listform.non_field_errors %}
@@ -134,15 +133,35 @@
 </span></div>
 
 {% if listform.has_actions_or_buttons %}
-<form action="{{requesturl.path}}" method="post" class="form-inline" autocomplete="off">{% csrf_token %}
+{% if listform.has_actions %}
+    <script type="text/javascript">
+        function checkListFormAction() {
+            if (!$("#listform_action").val()) {
+                alert("Please select a action to perform.")
+                return false
+            }
+            if ({{listform.model_name_lower}}_selector.selected <= 0) {
+                alert("No {{listform.model_name_lower}} is selected")
+                return false
+            }
+            return true
+        }
+    </script>
+    <form action="{{requesturl.path}}" method="post" class="form-inline" onsubmit="return checkListFormAction()">
+{% else %}
+    <form action="{{requesturl.path}}" method="post" class="form-inline" autocomplete="off">
+{% endif %}
+    {% csrf_token %}
 {% if nexturl %}
     <input type="hidden" name="nexturl" value="{{nexturl}}">
+{% else %}
+    <input type="hidden" name="nexturl" value="{{listform.fullpath}}">
 {% endif %}
 {% endif %}
 {% if listform.has_actions %}
     <div class="actions">
         <label><span class="action-label">Action:</span> 
-        <select name="action">
+        <select name="action" id="listform_action">
             <option value="" selected="selected">---------</option>
             {% for action in listform.actions %}
                 {{action.widget.html}}
@@ -152,89 +171,42 @@
         <button type="submit" class="btn" title="Run the selected action">Go</button>
         {% include "listselector.html" %}
     </div>
+{% else %}
+    <div class="actions">
+        {% include "listselector.html" %}
+    </div>
 {% endif %}
-    {{ listform.management_form }}
     {% block list_content%}
     <table id="{{listform.model_name_lower}}_result_list" class="table table-striped table-condensed table-hober table-fixed-header">
         <thead>
             <tr>
+                {% if listform.has_actions_or_buttons %}
+                <th><input type="checkbox" id="{{listform.model_name_lower}}_selector_header" onclick="{{listform.model_name_lower}}_selector.toggle_page_selection()"></th>
+                {% endif %}
                 {% for field in listform.boundfields %}
                 {% call_method field "html_header" "<th{attrs}><div class=\"text\"> {label}</div></th>"%}
                 {% endfor %}
             </tr>
         </thead>
         <tbody>
-            {% for form in listform %}
+            {% for dataform in listform %}
             <tr> 
-                {% for field in form.boundfields %}
+                {% if listform.has_actions_or_buttons %}
+                <td><input type="checkbox" onclick="{{listform.model_name_lower}}_selector.select(this.checked)" name="selectedpks" value="{{dataform.pk}}" {% if dataform.instance.pk in selectedpks %} checked {% endif %}></td>
+                {% endif %}
+                {% for field in dataform %}
                     {% call_method field "html" "<td{attrs}>{widget}</td>"%}
                 {% endfor %}
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">There are no {{ listform.model_name_lower }}.</td>
             </tr>
             {% endfor %}
 
         </tbody>
     </table>
     {% endblock %}
-
-    {% if listform.can_add or listform.can_delete %}
-    <script type="text/javascript">
-        {% if listform.can_delete %}
-        function deleteForm(ev){
-            var row = $(ev.srcElement).parents('.{{listform.model_name_lower}}_fs')
-            var index = null;
-            $.each(row.find("input"),function(i,element){
-                if ($(element).prop('name').startsWith('{{listform.prefix}}-')) {
-                    index = parseInt($(element).prop('name').substring('{{listform.prefix}}-'.length))
-                    return false
-                }
-            })
-            idElement = $("#id_{{listform.prefix}}-" + index + "-{{listform.model_primary_key}}")
-            if (idElement.length && idElement.val()) {
-                row.find("#delete").click()
-                ev.stopPropagation()
-            }
-        }
-        {% endif %}
-
-        {% if listform.can_add %}
-        var formTemplate = `{% for form in listform.template_forms %}<tr> 
-                {% for field in form.boundfields %}
-                    {% call_method field "html" "<td{attrs}>{widget}</td>"%}
-                {% endfor %}
-            </tr>{% endfor %}`;
-        {% endif %}
-
-        
-        {% if listform.can_add and listform.can_delete %}
-        $('#{{listform.model_name_lower}}_result_list tbody tr').formset({
-            prefix: '{{ listform.prefix }}',
-            formCssClass: '{{listform.model_name_lower}}_fs',
-            addText: '<i class="icon-plus"></i> Add Another {{ modelname  }}',
-            deleteText: '<img onclick="deleteForm(event)" src="/static/img/delete.png" style="width:16px;height:16px;"></img>',
-            deleteCssClass: 'delete-row' + '-' + '{{ listform.prefix  }}',
-            formTemplate:$(formTemplate)
-        });
-        {% elif listform.can_add %}
-        $('#{{listform.model_name_lower}}_result_list tbody tr').formset({
-            prefix: '{{ listform.prefix }}',
-            formCssClass: '{{listform.model_name_lower}}_fs',
-            addText: '<i class="icon-plus"></i> Add Another {{ modelname  }}',
-            formTemplate:$(formTemplate)
-        });
-        {% elif listform.can_delete %}
-        $('#{{listform.model_name_lower}}_result_list tbody tr').formset({
-            prefix: '{{ listform.prefix }}',
-            formCssClass: '{{listform.model_name_lower}}_fs',
-            addText: '',
-            deleteText: '<img onclick="deleteForm(event)" src="/static/img/delete.png" style="width:16px;height:16px;"></img>',
-            deleteCssClass: 'delete-row' + '-' + '{{ listform.prefix  }}',
-        });
-        $(".{{listform.model_name_lower}}_fs-add").hide()
-        {% endif %}
- 
-    </script>
-    {% endif %}
-
     {% if listform.has_buttons %}
     <div class="navbar navbar-fixed-bottom">
       <div class="navbar-inner">

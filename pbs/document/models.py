@@ -3,6 +3,8 @@ import datetime
 import os
 from functools import reduce
 
+from smart_selects.db_fields import ChainedForeignKey
+
 from django.contrib.gis.db import models
 from django.utils import timezone
 from django.db.models import Q,Max
@@ -43,6 +45,8 @@ class DocumentCategory(models.Model):
         verbose_name = "Document Category"
         verbose_name_plural = "Document Categories"
         ordering = ['name']
+
+documentcategory_list = [(o.id,o.name) for o in DocumentCategory.objects.all().order_by('name')]
 
 class CategoryManager(models.Manager):
     def _query_by_names(self, *names):
@@ -105,7 +109,7 @@ class Document(ModelDictMixin,AuditMixin):
         Prescription, null=True,
         help_text="Prescription that this document belongs to", on_delete=models.PROTECT)
     category = models.ForeignKey(DocumentCategory, related_name="documents", on_delete=models.PROTECT)
-    tag = models.ForeignKey(DocumentTag, verbose_name="Descriptor", on_delete=models.PROTECT)
+    tag = ChainedForeignKey(DocumentTag, chained_field="category",chained_model_field="category",auto_choose=True,show_all=False,sort=True,verbose_name="Descriptor", on_delete=models.PROTECT)
     custom_tag = models.CharField(
         max_length=64, blank=True, verbose_name="Custom Descriptor")
     document = ContentTypeRestrictedFileField(

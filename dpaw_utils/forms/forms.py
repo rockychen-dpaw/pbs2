@@ -231,6 +231,9 @@ class RequestUrlMixin(RequestMixin):
     def querystring_without_paging(self):
         return self.requesturl.querystring_without_paging
 
+    def get_querystring(self,paramname,paramvalue=None):
+        return self.requesturl.get_querystring(paramname,paramvalue)
+
 class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
     """
     Extend django's ModelFormMetaclass to support the following features

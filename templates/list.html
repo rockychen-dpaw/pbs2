@@ -36,9 +36,9 @@
         <div class="span8" >
             <div style="float:right;vertical-align:top">
                 <button type="submit" value="search" style="width:180px" class="btn btn-danger btn-block" onclick="$('#search_column_tools').toggle();$(this).toggleClass('btn-danger btn-success')">
-                    {% if filterform and listform.toggleablefields %}
+                    {% if filtertool and listform.toggleablefields %}
                         Search and Column tools
-                    {% elif filterform %}
+                    {% elif filtertool %}
                         Search tools
                     {% elif listform.toggleablefields %}
                         Column tools
@@ -52,9 +52,9 @@
         </div>
         {% endif %}
     </div>
-    {% if filterform or listform.toggleablefields %}
+    {% if filtertool or listform.toggleablefields %}
     <div class="row toggletools" id="search_column_tools">
-    {% if filterform %}
+    {% if filtertool %}
 
     <div class="span12">
         {% if filterform.errors %}

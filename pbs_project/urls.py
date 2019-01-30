@@ -37,6 +37,7 @@ handler404 = pbs.views.handler404
 
 urlpatterns = urlpatterns + [
     path("admin/",admin.site.urls),
+    path("chaining/",include('smart_selects.urls')),
     path("prescription/",include(pbs.prescription.urls,namespace="prescription")),
     path("prescription/",include(pbs.report.urls,namespace="report")),
     path("risk/",include(pbs.risk.urls,namespace="risk")),

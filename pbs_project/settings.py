@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'django_filters',
     'guardian',
 
+    'smart_selects',
+
     'pbs',
     'pbs.prescription',
     'pbs.document',
@@ -244,6 +246,8 @@ if DEBUG:
         INTERNAL_IPS.append(os.environ['INTERNAL_IP'])
     DEBUG_TOOLBAR_PATCH_SETTINGS = True
 
+#used by smart selector
+JQUERY_URL = False
 
 ENV_TYPE = env('ENV_TYPE') or None
 if not ENV_TYPE:

@@ -90,6 +90,10 @@ class BoundField(forms.boundfield.BoundField):
             return mark_safe(template.format(attrs=attrs,widget=getattr(self,method)()))
         else:
             return mark_safe(getattr(self,method)())
+    
+    @property
+    def cleanvalue(self):
+        return self.form.cleaned_data.get(self.name)
 
     def value(self):
         """
@@ -115,7 +119,6 @@ class BoundField(forms.boundfield.BoundField):
         """
         if self.is_hidden:
             attrs = {'style':'display:none'}
-
         html = super(BoundField,self).as_widget(widget,attrs,only_initial)
         if not self.is_display and self.name in self.form.errors:
             html =  "<div class=\"error\">{}<p class=\"text-error\"><i class=\"icon-warning-sign\"></i> {}</p></div>".format(html,"<br>".join(self.form.errors[self.name]))

@@ -1,0 +1,25 @@
+{% extends "../list.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<ul class="breadcrumb">
+  <li><a href="{% url 'prescription:prescription_list' %}">{% trans 'Regional Overview' %}</a> <span class="divider">/</span></li>
+  <li><a href="{% url 'prescription:prescription_home' prescription.id %}">{{prescription.burn_id}}</a> <span class="divider">/</span></li>
+  <li><a href="">Document</a> <span class="divider">/</span></li>
+  {% if tag %}
+  <li>{{tag.name}}</li>
+  {% endif %}
+</ul>
+{% endblock %}
+
+{% block content_title %}
+{{block.super}}
+<h5><a class="btn btn-small btn-info" href=""><i class="icon-download-alt"></i> Download the Sign Inspection and Surveillance Form template</a>
+    <div class="pull-right">
+        <a class="btn btn-small btn-info" href="{% url 'document:prescription_taggeddocument_add' prescription.id tag.id %}?nexturl={{listform.fullpath}}">
+            <i class="icon-plus icon-white"></i> Add document
+        </a>
+    </div>
+</h5>
+
+{% endblock %}

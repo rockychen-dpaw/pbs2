@@ -1,6 +1,9 @@
 from django.db import models
+from django.utils import timezone
 
 from django_filters.rest_framework import *
+
+from django_filters import filters
 
 class Filter(FilterSet):
     def __init__(self,form,request=None,queryset=None):
@@ -26,4 +29,36 @@ class Filter(FilterSet):
                 "Expected '%s.%s' to return a QuerySet, but got a %s instead." \
                 % (type(self).__name__, name, type(queryset).__name__)
         return queryset
+
+
+
+class DateRangeFilter(filters.DateRangeFilter):
+    choices = [
+        ('today', 'Today'),
+        ('yesterday', 'Yesterday'),
+        ('last_7_days', 'Past 7 days'),
+        ('current_month','This month'),
+        ('current_year', 'This year'),
+    ]
+
+    filters = {
+        'today': lambda qs, name: qs.filter(**{
+            '%s__gte' % name: timezone.now().date()
+        }),
+        'yesterday': lambda qs, name: qs.filter(**{
+            '%s__gte' % name: (lambda d: timezone.datetime(d.year,d.month,d.day - 1))(timezone.now()),
+            '%s__lt' % name: (lambda d: timezone.datetime(d.year,d.month,d.day))(timezone.now())
+        }),
+        'last_7_days': lambda qs, name: qs.filter(**{
+            '%s__gte' % name: (lambda d: timezone.datetime(d.year,d.month,d.day - 6))(timezone.now())
+        }),
+        'current_month': lambda qs, name: qs.filter(**{
+            '%s__gte' % name: (lambda d: timezone.datetime(d.year,d.month,1))(timezone.now())
+        }),
+        'current_year': lambda qs, name: qs.filter(**{
+            '%s__gte' % name: (lambda d: timezone.datetime(d.year,1,1))(timezone.now())
+        }),
+    }
+
+
 

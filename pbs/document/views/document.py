@@ -7,13 +7,14 @@ from django.contrib import messages
 
 from django_downloadview import ObjectDownloadView
 
-from pbs.document.models import (Document,DocumentTag)
+from pbs.document.models import (Document,DocumentTag,documentcategory_list)
 from pbs.document.filters import (DocumentFilter,)
 from pbs.prescription.models import (Prescription,)
-from pbs.document.forms import (TaggedDocumentCreateForm,DocumentListForm,DocumentConfirmListForm,DocumentFilterForm)
+from pbs.document.forms import (TaggedDocumentCreateForm,DocumentCreateForm,DocumentListForm,DocumentConfirmListForm,DocumentFilterForm)
 import pbs.forms
 from dpaw_utils import views
 from dpaw_utils.forms.utils import ChainDict
+from dpaw_utils.forms import filters
 
 class PrescriptionDocumentCreateView(pbs.forms.GetActionMixin,views.RequestActionMixin,views.SendDataThroughUrlMixin,views.OneToManyCreateView):
     pmodel = Prescription
@@ -43,10 +44,10 @@ class PrescriptionDocumentCreateView(pbs.forms.GetActionMixin,views.RequestActio
             return "Add document"
 
     def get_form_class(self):
-        try:
+        if "tag" in self.kwargs:
             return TaggedDocumentCreateForm
-        except:
-            raise NotImplementedError()
+        else:
+            return DocumentCreateForm
 
     def _get_success_url(self):
         return urls.reverse("document:prescription_document_list",args=(self.pobject.id,))
@@ -61,7 +62,6 @@ class PrescriptionDocumentsView(pbs.forms.GetActionMixin,views.OneToManyListView
     one_to_many_field_name = "prescription"
     urlpattern = "prescription/<int:ppk>/document/"
     urlname = "prescription_document_list"
-    template_name_suffix = "_list"
     filtertool = False
 
     @classmethod
@@ -73,6 +73,14 @@ class PrescriptionDocumentsView(pbs.forms.GetActionMixin,views.OneToManyListView
             path('prescription/<int:ppk>/document/archive', cls.as_view(),{"action":"archiveconfirmed"},name='prescription_documents_archive'),
             path('prescription/<int:ppk>/document/tag/<int:tag>/', cls.as_view(),name='prescription_taggeddocument_list'),
         ]
+
+
+    @property
+    def template_name_suffix(self):
+        if "tag" in self.kwargs:
+            return "_tagged_list"
+        else:
+            return "_list"
 
     @property
     def title(self):
@@ -110,8 +118,9 @@ class PrescriptionDocumentsView(pbs.forms.GetActionMixin,views.OneToManyListView
         try:
             context["tag"] = DocumentTag.objects.get(id = self.kwargs["tag"])
         except:
-            pass
-
+            context["archivestatuslist"] = ((True,"Yes"),(False,"No"))
+            context["categorylist"] = documentcategory_list
+            context["modifiedlist"] = filters.DateRangeFilter.choices
         return context
 
     def archiveconfirmed_post(self):

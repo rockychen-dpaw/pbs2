@@ -197,6 +197,7 @@ class DatetimeInput(forms.TextInput):
         return Media(js=js,css=css)
 
     def render(self,name,value,attrs=None,renderer=None):
+        value = (value if isinstance(value,str) else value.strftime("%Y-%m-%d %H:%M")) if value else ""
         html = super(DatetimeInput,self).render(name,value,attrs)
         datetime_picker = """
         <script type="text/javascript">

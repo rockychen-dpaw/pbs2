@@ -229,6 +229,8 @@ class RequestUrl(object):
         qs = qs or self.request.META["QUERY_STRING"]
         if qs:
             qs = "?{}".format(qs)
+        else:
+            return ("",None)
         if repeat:
             pos = 0
             m =  param_re.search(qs,pos)
@@ -329,6 +331,35 @@ class RequestUrl(object):
     def querystring_without_paging(self):
         self._parse_paging()
         return self.qs_without_paging
+
+    def get_querystring(self,paramname,paramvalue=None):
+        """
+        return if paramvalue is None, return the new querystring after removing the parameter from querystirng 
+               if paramvalue is not None, return the new querystring after override the existing value from querstring.
+        """
+        #import ipdb;ipdb.set_trace()
+        if paramname == "order_by":
+            if paramvalue:
+                return self.querystring(ordering=paramvalue)
+            else:
+                return self.querystring_without_ordering
+        elif paramname == "page":
+            if paramvalue:
+                return self.querystring(page=paramvalue)
+            else:
+                return self.querystring_without_paging
+
+        parameter_re = re.compile('[?&]{}=([^&]+)'.format(paramname))
+        qs,groups = self._get_request_parameter(parameter_re,remove=True)
+        if paramvalue:
+            if qs:
+                return "{}&{}={}".format(qs,paramname,paramvalue)
+            else:
+                return "?{}={}".format(paramname,paramvalue)
+        else:
+            return qs
+
+
 
 class UrlpatternsMixin(object):
     urlpattern = None
@@ -820,8 +851,11 @@ class ListView(NextUrlMixin,ListBaseView):
         context_data["listform"] = self.listform
         context_data["modelname"] = self.model_verbose_name
         context_data["requesturl"] = self.requesturl
-        if self.filtertool and self.get_filter_class():
+        if self.get_filter_class():
             context_data["filterform"] = self.filterform
+            context_data["filtertool"] = self.filtertool
+        else:
+            context_data["filtertool"] = False
 
         return context_data
 
