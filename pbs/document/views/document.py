@@ -121,6 +121,11 @@ class PrescriptionDocumentsView(pbs.forms.GetActionMixin,views.OneToManyListView
             context["archivestatuslist"] = ((True,"Yes"),(False,"No"))
             context["categorylist"] = documentcategory_list
             context["modifiedlist"] = filters.DateRangeFilter.choices
+            userlist = set()
+            for o in self.object_list:
+                if o.modifier:
+                    userlist.add(o.modifier)
+            context["modifierlist"] = sorted(userlist,key=lambda u:u.username)
         return context
 
     def archiveconfirmed_post(self):

@@ -19,7 +19,7 @@ class CriticalStakeholderConfigMixin(object):
         widgets_config = {
             "__default__.view":forms.widgets.TextDisplay(),
             "__default__.edit":forms.widgets.TextInput(),
-            "id.edit":forms.widgets.Hidden(),
+            "id.edit":forms.widgets.HiddenInput(),
             'name.edit':forms.widgets.TextInput(attrs={"class":"vTextField"}),
             'organisation.edit':forms.widgets.TextInput(attrs={"class":"vTextField"}),
             'interest.edit':forms.widgets.Textarea(attrs={"class":"vTextField","rows":3}),

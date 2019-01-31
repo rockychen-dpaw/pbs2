@@ -1,13 +1,16 @@
 from django.db import models
 from django.utils import timezone
+from django.db.models import Q
 
 from django_filters.rest_framework import *
 
 from django_filters import filters
+from django_filters.constants import EMPTY_VALUES
+
 
 class Filter(FilterSet):
     def __init__(self,form,request=None,queryset=None):
-        queryset = queryset or form._meta.model.objects.all()
+        queryset = form._meta.model.objects.all() if queryset is None else queryset
         super(Filter,self).__init__(request,queryset=queryset)
         self._form = form
 
@@ -29,6 +32,27 @@ class Filter(FilterSet):
                 "Expected '%s.%s' to return a QuerySet, but got a %s instead." \
                 % (type(self).__name__, name, type(queryset).__name__)
         return queryset
+
+
+class QFilter(filters.CharFilter):
+    def __init__(self, fields, *,field_name=None, label=None,method=None, distinct=False, exclude=False, **kwargs):
+        super(QFilter,self).__init__(field_name=field_name or "search",lookup_expr="icontains",label=label or "search",method=method,distinct=distinct,exclude=exclude, **kwargs)
+        self.fields = fields
+
+    def filter(self, qs, value):
+        if value in EMPTY_VALUES:
+            return qs
+        if self.distinct:
+            qs = qs.distinct()
+        lookup = '%s__%s' % (self.field_name, self.lookup_expr)
+        qfilter = None
+        for field in self.fields:
+            if qfilter:
+                qfilter = qfilter | Q(**{"{0}__{1}".format(*field):value})
+            else:
+                qfilter = Q(**{"{0}__{1}".format(*field):value})
+        qs = self.get_method(qs)(qfilter)
+        return qs
 
 
 

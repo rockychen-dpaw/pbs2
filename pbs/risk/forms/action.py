@@ -25,7 +25,7 @@ class ActionConfigMixin(object):
         widgets_config = {
             "__default__.view":forms.widgets.TextDisplay(),
             "__default__.edit":forms.widgets.TextInput(),
-            "id.edit":forms.widgets.Hidden(),
+            "id.edit":forms.widgets.HiddenInput(),
             'details.edit':forms.widgets.Textarea(attrs={"class":"vTextField"}),
             'pre_burn_explanation.edit':forms.widgets.Textarea(attrs={"class":"vTextField"}),
             'pre_burn_completer.edit':forms.widgets.Textarea(attrs={"class":"vTextField"}),

@@ -22,7 +22,7 @@ class PublicContactConfigMixin(object):
             'organisation.edit':forms.widgets.Textarea(attrs={"class":"vTextField","style":"height:53px"}),
             'person.edit':forms.widgets.Textarea(attrs={"class":"vTextField","style":"height:53px"}),
             'comments.edit':forms.widgets.Textarea(attrs={"class":"vTextField","style":"height:53px"}),
-            "id.edit":forms.widgets.Hidden(),
+            "id.edit":forms.widgets.HiddenInput(),
             "delete.view":forms.widgets.HyperlinkFactory("id","stakeholder:prescription_publiccontact_delete_confirm",ids=[("id","pk"),("prescription","ppk")],template="<button id='delete' title='Delete' onclick='window.location=\"{url}\"' type='button' style='display:none' >Delete</button>")
         }
         labels = {

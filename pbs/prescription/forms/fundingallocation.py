@@ -25,9 +25,9 @@ class FundingAllocationConfigMixin(object):
         widgets_config = {
             "__default__.view":forms.widgets.TextDisplay(),
             "__default__.edit":forms.widgets.TextInput(),
-            "allocation.edit":forms.widgets.Hidden(display_widget=pbs.widgets.FundingAllocationDisplay()),
+            "allocation.edit":forms.widgets.HiddenInput(display_widget=pbs.widgets.FundingAllocationDisplay()),
             'proportion.edit':forms.widgets.NumberInput(attrs={"min":0,"max":100,"step":0.01}),
-            "id.edit":forms.widgets.Hidden()
+            "id.edit":forms.widgets.HiddenInput()
         }
 
 

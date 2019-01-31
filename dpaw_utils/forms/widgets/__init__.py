@@ -3,6 +3,6 @@ from .widgets import (DisplayWidget,DisplayMixin,TextDisplay,FinancialYearDispla
         DatetimeDisplay,Hyperlink,HyperlinkFactory,TemplateDisplay,
         DatetimeInput,DateInput,TemplateWidgetFactory,SwitchWidgetFactory,ChoiceWidgetFactory,SelectableSelect,
         DisplayWidgetFactory,ChoiceFieldRendererFactory,HtmlTag,ImgBooleanDisplay,TextBooleanDisplay,DropdownMenuSelectMultiple,
-        NullBooleanSelect,Hidden,Markdownify,AjaxWidgetFactory)
+        NullBooleanSelect,Markdownify,AjaxWidgetFactory,HiddenInput)
 
 from .adminwidgets import (FilteredSelectMultiple,)

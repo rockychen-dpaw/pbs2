@@ -714,7 +714,7 @@ class ListBaseView(RequestActionMixin,UrlpatternsMixin,SuccessUrlMixin,ModelMixi
                 data_filter = self.get_filter_class()(self.filterform,request=self.request,queryset=self.queryset)
                 queryset = data_filter.qs
             else:
-                queryset = self.filterform._meta.objects.none()
+                queryset = self.filterform._meta.model.objects.none()
  
         ordering = self.get_ordering()
         if ordering:

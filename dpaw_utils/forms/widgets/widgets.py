@@ -523,9 +523,9 @@ class DropdownMenuSelectMultiple(forms.widgets.SelectMultiple):
         return html
 
 
-class Hidden(forms.Widget):
+class HiddenInput(forms.Widget):
     def __init__(self,display_widget=None,*args,**kwargs):
-        super(Hidden,self).__init__(*args,**kwargs)
+        super(HiddenInput,self).__init__(*args,**kwargs)
         self.display_widget = display_widget
 
     def render(self,name,value,attrs=None,renderer=None):

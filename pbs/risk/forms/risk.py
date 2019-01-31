@@ -19,7 +19,7 @@ class RiskConfigMixin(object):
         widgets_config = {
             "__default__.view":forms.widgets.TextDisplay(),
             "__default__.edit":forms.widgets.TextInput(),
-            "id.edit":forms.widgets.Hidden(),
+            "id.edit":forms.widgets.HiddenInput(),
             "category.list":forms.widgets.TemplateDisplay(forms.widgets.DisplayWidget(),"<span style='font-weight:bold'>{}</span>"),
             "delete.view":forms.widgets.HyperlinkFactory("id","prescription:prescription_successcriteria_delete_confirm",ids=[("id","pk"),("prescription","ppk")],template="<button id='delete' title='Delete' onclick='window.location=\"{url}\"' type='button' style='display:none' >Delete</button>")
         }

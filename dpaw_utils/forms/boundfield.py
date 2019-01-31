@@ -54,7 +54,7 @@ class BoundField(forms.boundfield.BoundField):
 
     @property
     def is_hidden(self):
-        return isinstance(self.field.widget,widgets.Hidden) and not self.field.widget.display_widget
+        return isinstance(self.field.widget,widgets.HiddenInput) and not self.field.widget.display_widget
 
 
     @property
@@ -94,6 +94,10 @@ class BoundField(forms.boundfield.BoundField):
     @property
     def cleanvalue(self):
         return self.form.cleaned_data.get(self.name)
+
+    @property
+    def hascleanvalue(self):
+        return self.name in self.form.cleaned_data
 
     def value(self):
         """

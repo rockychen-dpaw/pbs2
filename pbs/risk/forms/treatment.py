@@ -22,7 +22,7 @@ class TreatmentConfigMixin(object):
         widgets_config = {
             "__default__.view":forms.widgets.TextDisplay(),
             "__default__.edit":forms.widgets.TextInput(),
-            "id.edit":forms.widgets.Hidden(),
+            "id.edit":forms.widgets.HiddenInput(),
             "complete.list":forms.widgets.AjaxWidgetFactory(forms.widgets.CheckboxInput(),url_name="risk:prescription_treatment_complete_set",ids=[("register__prescription","ppk"),("id","pk")]),
             "delete.view":forms.widgets.HyperlinkFactory("id","risk:prescription_register_delete_confirm",ids=[("id","pk"),("prescription","ppk")],template="<button id='delete' title='Delete' onclick='window.location=\"{url}\"' type='button' style='display:none' >Delete</button>")
         }

@@ -13,8 +13,11 @@ class DocumentConfigMixin(object):
             "__default__":forms.fields.CharField,
             "document_archived.filter":forms.fields.NullBooleanField,
             "categoryid":forms.fields.IntegerField,
+            "modifierid":forms.fields.IntegerField,
+            "q":forms.fields.CharField,
             "modifiedrange.filter":forms.fields.CharField,
             "delete":forms.fields.AliasFieldFactory(Document,"id",field_class=forms.fields.IntegerField),
+            "tag.filter":forms.fields.OverrideFieldFactory(Document,"tag",field_params={"required":False})
         }
         labels = {
             "created":"Uploaded on",
@@ -22,11 +25,14 @@ class DocumentConfigMixin(object):
             "document_archived":"Archived?",
             "document_created":"Document Created",
             "delete":"",
-            "categoryid":"Category"
+            "categoryid":"Category",
+            "modifierid":"Modifier",
+            "q":"Search"
         }
         widgets_config = {
             "__default__.view":forms.widgets.TextDisplay(),
             "__default__.edit":forms.widgets.TextInput(),
+            "__default__.filter":forms.widgets.HiddenInput(),
             "document.edit":forms.widgets.TemplateWidgetFactory(forms.widgets.FileInput,"{{}} <span>{}</span>".format(Document._meta.get_field('document').help_text))(attrs={"style":"height:35px"}),
             "document_created.view":forms.widgets.DatetimeDisplay("%d-%m-%Y"),
             "document_created.edit":forms.widgets.DatetimeInput(),
@@ -34,7 +40,19 @@ class DocumentConfigMixin(object):
             "created.view":forms.widgets.DatetimeDisplay("%d-%m-%Y %H:%M"),
             "document_archived.view":forms.widgets.ImgBooleanDisplay(),
             "modified.view":forms.widgets.DatetimeDisplay("%d-%m-%Y %H:%M"),
-            "delete.view":forms.widgets.HyperlinkFactory("id","document:prescription_documents_delete_confirm",ids=[("id","pk"),("prescription","ppk")],querystring="nexturl={nexturl}",parameters=[("request_full_path","nexturl")],template='<img onclick="window.location=\'{url}\'" src="/static/img/delete.png" style="width:16px;height:16px;cursor:pointer"></img>')
+            "delete.view":forms.widgets.HyperlinkFactory("id","document:prescription_documents_delete_confirm",ids=[("id","pk"),("prescription","ppk")],querystring="nexturl={nexturl}",parameters=[("request_full_path","nexturl")],template='<img onclick="window.location=\'{url}\'" src="/static/img/delete.png" style="width:16px;height:16px;cursor:pointer"></img>'),
+            "tag.filter":forms.widgets.HiddenInput(),
+            "categoryid.filter":forms.widgets.HiddenInput(),
+            "document_archived.filter":forms.widgets.HiddenInput(),
+            "modifiedrange.filter":forms.widgets.HiddenInput(),
+            "modifierid.filter":forms.widgets.HiddenInput(),
+            "q.filter":forms.widgets.TemplateWidgetFactory(forms.widgets.TextInput,"""
+                <div class="input-prepend input-append">
+                    <span class="add-on"><i class="icon-search"></i></span>
+                    {}
+                    <button class="btn" type="submit">Search</button>
+                </div>
+            """)(attrs={"style":"width:160px"})
         }
 
 class DocumentFilterForm(DocumentConfigMixin,forms.FilterForm):
@@ -44,8 +62,8 @@ class DocumentFilterForm(DocumentConfigMixin,forms.FilterForm):
 
     class Meta:
         model = Document
-        purpose = (('filter','edit'),"view")
-        all_fields = ("tag","categoryid","document_archived","modifiedrange")
+        purpose = ('filter',"view")
+        all_fields = ("tag","categoryid","document_archived","modifiedrange","modifierid","q")
 
 class DocumentBaseForm(DocumentCleanMixin,DocumentConfigMixin,forms.ModelForm):
     class Meta:
