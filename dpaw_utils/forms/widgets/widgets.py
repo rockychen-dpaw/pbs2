@@ -104,29 +104,16 @@ class Hyperlink(DisplayWidget):
         super(Hyperlink,self).__init__(**kwargs)
         self.widget = self.widget_class(**kwargs)
 
+    def get_url(self,form,name):
+        raise NotImplemented("Not implemented")
+
     def prepare_initial_data(self,form,name):
         value = form.initial.get(name)
-        url = None
-        if not self.ids:
-            url = reverse(self.url_name,kwargs=kwargs)
-        else:
-            kwargs = {}
-            for f in self.ids:
-                val = form.initial.get(f[0])
-                if val is None:
-                    #can't find value for url parameter, no link can be generated
-                    kwargs = None
-                    break;
-                elif isinstance(val,models.Model):
-                    kwargs[f[1]] = val.pk
-                else:
-                    kwargs[f[1]] = val
-            if kwargs:
-                url = reverse(self.url_name,kwargs=kwargs)
+        url = self.get_url(form,name)
 
         if url and self.querystring:
             if self.parameters:
-                kwargs.clear()
+                kwargs = {}
                 for f in self.parameters:
                     if f[0] == "request_full_path":
                         kwargs[f[1]] = quote(form.fullpath)
@@ -159,16 +146,55 @@ class Hyperlink(DisplayWidget):
         else:
             return ""
 
+
+class UrlnameHyperlink(Hyperlink):
+    def get_url(self,form,name):
+        url = None
+        if not self.ids:
+            url = reverse(self.url_name)
+        else:
+            kwargs = {}
+            for f in self.ids:
+                val = form.initial.get(f[0])
+                if val is None:
+                    #can't find value for url parameter, no link can be generated
+                    kwargs = None
+                    break;
+                elif isinstance(val,models.Model):
+                    kwargs[f[1]] = val.pk
+                else:
+                    kwargs[f[1]] = val
+            if kwargs:
+                url = reverse(self.url_name,kwargs=kwargs)
+        return url
+
+class UrlfuncHyperlink(Hyperlink):
+    def get_url(self,form,name):
+        if form.instance:
+            return self.url_func(form.instance)
+        else:
+            return None
+
 widget_classes = {}
 widget_class_id = 0
-def HyperlinkFactory(field_name,url_name,widget_class=TextDisplay,ids=[("id","pk")],querystring=None,parameters=None,baseclass=Hyperlink,template=None):
+def HyperlinkFactory(field_name,url,widget_class=TextDisplay,ids=[("id","pk")],querystring=None,parameters=None,baseclass=None,template=None):
+    """
+    Create a Hyperlink widget class
+    url : can be a string 'url name' or a function with one parameter 'instance' to return a url
+    """
     global widget_class_id
-    key = hashvalue("{}{}{}{}".format(baseclass.__name__,url_name,field_name,template))
+    if not baseclass:
+        baseclass = UrlnameHyperlink if isinstance(url,str) else UrlfuncHyperlink
+    key = hashvalue("{}{}{}{}".format(baseclass.__name__,url if isinstance(url,str) else id(url),field_name,template))
     cls = widget_classes.get(key)
     if not cls:
         widget_class_id += 1
         class_name = "{}_{}".format(baseclass.__name__,widget_class_id)
-        cls = type(class_name,(baseclass,),{"url_name":url_name,"widget_class":widget_class,"ids":ids,"querystring":querystring,"parameters":parameters,"template":staticmethod(template) if callable(template) else template})
+        if isinstance(url,str):
+            cls = type(class_name,(baseclass,),{"url_name":url,"widget_class":widget_class,"ids":ids,"querystring":querystring,"parameters":parameters,"template":staticmethod(template) if callable(template) else template})
+        else:
+            cls = type(class_name,(baseclass,),{"url_func":staticmethod(url),"widget_class":widget_class,"querystring":querystring,"parameters":parameters,"template":staticmethod(template) if callable(template) else template})
+
         widget_classes[key] = cls
     return cls
 
@@ -211,6 +237,10 @@ class DatetimeInput(forms.TextInput):
         return mark_safe("{}{}".format(html,datetime_picker))
 
 class DateInput(forms.TextInput):
+    def __init__(self,maxdate=True,*args,**kwargs):
+        super(DateInput,self).__init__(*args,**kwargs)
+        self.maxdate = "true" if maxdate else "false"
+
     @property
     def media(self):
         js = [
@@ -225,13 +255,13 @@ class DateInput(forms.TextInput):
         html = super(DateInput,self).render(name,value,attrs)
         datetime_picker = """
         <script type="text/javascript">
-            $("#{}").datetimepicker({{ 
+            $("#{0}").datetimepicker({{ 
                 format: "Y-m-d" ,
-                maxDate:true,
+                maxDate:{1},
                 timepicker:false
             }}); 
         </script>
-        """.format(attrs["id"])
+        """.format(attrs["id"],self.maxdate)
         return mark_safe("{}{}".format(html,datetime_picker))
 
 

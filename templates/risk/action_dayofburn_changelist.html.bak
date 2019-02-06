@@ -41,12 +41,11 @@
 {% block content_title %}
 <div class="row">
     <div class="span12" >
-        <h1>Treatments</h1>
-        <div class="alert alert-info">
-            <strong>Note:</strong> Treatments for this section have been identified in the risk register.
-        </div>
-
-        {% include "includes/objectlist.html" with includedlistform=treatmentlistform %}
+	<h1>Treatments
+	</h1>
+        {% with objectlistform_=treatmentlistform %}
+            {% include "includes/objectlist.html" %}
+        {% endwith %}
     </div>
 </div>
 

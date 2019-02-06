@@ -101,80 +101,34 @@
 </head>
 {% load i18n %}
 {% load pbs_utils %}
-{% comment %}
-{% url 'admin:index' as home %}
-{% url 'admin:prescription_prescription_changelist' as all_prescriptions %}
-{% url 'admin:review_prescribedburn_add' as add_prescribed_burn %}
-{% url 'admin:review_prescribedburn_add' as add_fire %}
-{% if current %}
-{% url 'admin:prescription_prescription_sitemap' prescription.id as sitemap %}
-{% url 'admin:prescription_prescription_detail' prescription.id as overview %}
-{% url 'admin:document_document_add' prescription.id as upload_document %}
-{% url 'admin:prescription_prescription_download' prescription.id as download_pdf %}
-{% url 'admin:prescription_prescription_summary' prescription.id as parta %}
-{% url 'admin:prescription_prescription_pre_summary' prescription.id as sectiona1 %}
-{% url 'admin:prescription_prescription_pdf_summary' prescription.id as pdf_view %}
-{% url 'admin:risk_context_changelist' prescription.id as sectiona2 %}
-{% url 'admin:risk_register_changelist' prescription.id as sectiona6 %}
-{% url 'admin:prescription_prescription_day_summary' prescription.id as partb %}
-{% url 'admin:implementation_roadsegment_changelist' prescription.id as sectionb3_roads %}
-{% url 'admin:implementation_trailsegment_changelist' prescription.id as sectionb3_trails %}
-{% url 'admin:document_document_tag' prescription.id 'sign_inspection_and_surveillance_form' as sectionb3_inspection %}
-{% url 'admin:document_document_tag' prescription.id 'operations_officer_day_of_burn_checklist' as sectionb9 %}
-{% url 'admin:document_document_tag' prescription.id 'fire_and_weather_observations' as sectionb10 %}
-
-{% url 'admin:prescription_prescription_post_summary' prescription.id as post_summary %}
-{% url 'admin:prescription_objective_changelist' prescription.id as objectives_url %}
-{% url 'admin:prescription_successcriteria_changelist' prescription.id as success_criteria %}
-{% url 'admin:prescription_priorityjustification_changelist' prescription.id as priority_justification %}
-{% url 'admin:risk_contingency_changelist' prescription.id as contingency %}
-{% url 'admin:risk_action_changelist' prescription.id as actions %}
-{% url 'admin:implementation_operationaloverview_changelist' prescription.id as operational_overview %}
-{% url 'admin:implementation_burningprescription_changelist' prescription.id as burning_prescription %}
-{% url 'admin:implementation_edgingplan_changelist' prescription.id as edging_plan %}
-{% url 'admin:implementation_lightingsequence_changelist' prescription.id as lighting_sequence %}
-{% url 'admin:implementation_exclusionarea_changelist' prescription.id as exclusion_area %}
-{% url 'admin:document_document_tag' prescription.id 'prescribed_burning_organisational_structure_and_communications_plan' as org_structure %}
-{% url 'admin:document_document_tag' prescription.id 'operations_map' as operations_map %}
-{% url 'admin:document_document_tag' prescription.id 'aerial_burn_map' as aerial_burn_map %}
-{% url 'admin:document_document_tag' prescription.id 'smeac' as smeac %}
-{% url 'admin:document_document_all' prescription.id as documents %}
-{% url 'admin:prescription_briefingchecklist_changelist' prescription.id as briefing_checklist %}
-{% url 'admin:report_areaachievement_changelist' prescription.id as area_achievement %}
-{% url 'admin:prescription_prescription_post_summary' prescription.id as partc %}
-{% url 'admin:report_evaluation_changelist' prescription.id as evaluation %}
-{% url 'admin:report_proposedaction_changelist' prescription.id as proposed_action %}
-{% url 'admin:report_postburnchecklist_changelist' prescription.id as post_burn_checklist %}
-{% url 'admin:stakeholder_publiccontact_changelist' prescription.id as public_contacts %}
-{% url 'admin:stakeholder_notification_changelist' prescription.id as notifications %}
-{% endif %}
-{% endcomment %}
-{% url 'prescription:prescription_list' as prescription_list %}
-{% url 'prescription:prescription_create' as prescription_create %}
-{% url 'report:prescription_pre_state_update' prescription.id as parta %}
-{% url 'report:prescription_day_state_update' prescription.id as partb %}
-{% url 'report:prescription_post_state_update' prescription.id as partc %}
-{% url 'prescription:prescription_update' prescription.id as sectiona1 %}
-{% url 'risk:context_update' prescription.id as sectiona2 %}
-{% url 'prescription:prescription_home' prescription.id as overview %}
-{% url 'stakeholder:criticalstakeholder_changelist' prescription.id as critical_stakeholders %}
-{% url 'prescription:prescription_objective_changelist' prescription.id as objectives_url %}
-{% url 'prescription:prescription_successcriteria_changelist' prescription.id as success_criteria %}
-{% url 'prescription:prescription_priorityjustification_changelist' prescription.id as priority_justification %}
-{% url 'risk:prescription_complexity_changelist' prescription.id as complexity %}
-{% url 'risk:prescription_register_changelist' prescription.id as register %}
-{% url 'implementation:prescription_operationaloverview_update' prescription.id as operational_overview %}
-{% url 'risk:prescription_action_changelist' prescription.id as actions %}
-{% url 'risk:prescription_preburn_action_changelist' prescription.id as preburn_actions %}
-{% url 'risk:prescription_dayofburn_action_changelist' prescription.id as dayofburn_actions %}
-{% url 'risk:prescription_postburn_action_changelist' prescription.id as postburn_actions %}
-{% url 'document:prescription_taggeddocument_list' prescription.id 198 as sectionb3_inspection %}
-{% url 'document:prescription_taggeddocument_list' prescription.id 183 as sectionb9 %}
-{% url 'document:prescription_taggeddocument_list' prescription.id 168 as sectionb10 %}
-{% url 'document:prescription_taggeddocument_list' prescription.id 181 as org_structure %}
-{% url 'document:prescription_document_list' prescription.id as documents %}
-{% url 'stakeholder:prescription_notification_changelist' prescription.id as notifications %}
-{% url 'stakeholder:prescription_publiccontact_changelist' prescription.id as public_contacts %}
+{% url 'prescription:prescription_list' as prescriptionlisturl %}
+{% url 'prescription:prescription_create' as prescriptioncreateurl %}
+{% url 'report:prescription_pre_state_update' prescription.id as partaurl %}
+{% url 'report:prescription_day_state_update' prescription.id as partburl %}
+{% url 'report:prescription_post_state_update' prescription.id as partcurl %}
+{% url 'prescription:prescription_update' prescription.id as sectiona1url %}
+{% url 'risk:context_update' prescription.id as sectiona2url %}
+{% url 'prescription:prescription_home' prescription.id as overviewurl %}
+{% url 'stakeholder:criticalstakeholder_changelist' prescription.id as criticalstakeholdersurl %}
+{% url 'prescription:prescription_objective_changelist' prescription.id as objectivesurl %}
+{% url 'prescription:prescription_successcriteria_changelist' prescription.id as successcriteriaurl %}
+{% url 'prescription:prescription_priorityjustification_changelist' prescription.id as priorityjustificationurl %}
+{% url 'risk:prescription_complexity_changelist' prescription.id as complexityurl %}
+{% url 'risk:prescription_register_changelist' prescription.id as registerurl %}
+{% url 'implementation:prescription_operationaloverview_update' prescription.id as operationoverviewurl %}
+{% url 'risk:prescription_action_changelist' prescription.id as actionsurl %}
+{% url 'risk:prescription_preburn_action_changelist' prescription.id as preburnactionsurl %}
+{% url 'risk:prescription_dayofburn_action_changelist' prescription.id as dayofburnactionsurl %}
+{% url 'risk:prescription_postburn_action_changelist' prescription.id as postburnactionsurl %}
+{% url 'document:prescription_taggeddocument_list' prescription.id 198 as sectionb3inspectionurl %}
+{% url 'document:prescription_taggeddocument_list' prescription.id 183 as sectionb9url %}
+{% url 'document:prescription_taggeddocument_list' prescription.id 168 as sectionb10url %}
+{% url 'document:prescription_taggeddocument_list' prescription.id 181 as orgstructureurl %}
+{% url 'document:prescription_document_list' prescription.id as documentsurl %}
+{% url 'stakeholder:prescription_notification_changelist' prescription.id as notificationsurl %}
+{% url 'stakeholder:prescription_publiccontact_changelist' prescription.id as publiccontactsurl %}
+{% url 'implementation:prescription_roadsegment_changelist' prescription.id as sectionb3roadsurl %}
+{% url 'implementation:prescription_trailsegment_changelist' prescription.id as sectionb3trailsurl %}
 {% block body %}
 <body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}" style={% page_background %}>
 {% if not is_popup %}
@@ -293,15 +247,15 @@
           </a>
           <div id="second-nav" class="nav-collapse collapse navbar-responsive-collapse">
             <ul class="nav">
-              <li{% if request.path == prescription_list %} class="active"{% endif %}><a href="{{ prescription_list }}{% if request.user.profile.region %}?region__id__exact={{ request.user.profile.region.id }}{% endif %}"><i class="icon-fire"></i> Regional Overview</a></li>
-              <li{% if request.path == prescription_create %} class="active"{% endif %}><a href="{{ prescription_create }}"><i class="icon-plus"></i> Create Prescribed Burn</a></li>
+              <li{% if request.path == prescriptionlisturl %} class="active"{% endif %}><a href="{{ prescriptionlisturl }}{% if request.user.profile.region %}?region__id__exact={{ request.user.profile.region.id }}{% endif %}"><i class="icon-fire"></i> Regional Overview</a></li>
+              <li{% if request.path == prescriptioncreateurl %} class="active"{% endif %}><a href="{{ prescriptioncreateurl }}"><i class="icon-plus"></i> Create Prescribed Burn</a></li>
               <li{% if request.path == "" %} class="active"{% endif %}><a href="{{ endorse_authorise_summary }}"><i class="icon-dashboard"></i> Endorse/Authorise Summary</a></li>
               <li{% if request.path == "" %} class="active"{% endif %}><a href="{{ epfp_review_summary }}"><i class="icon-dashboard"></i> Day of Burn ePFP review</a></li>
               <li{% if request.path == "" %} class="active"{% endif %}><a href="{{ daily_burn_program }}"><i class="icon-dashboard"></i> Daily Burn Program</a></li>
               {% if prescription %}
             </ul>
             <ul class="nav pull-right">
-              <li{% if request.path == overview %} class="active"{% endif %}><a href="{{ overview }}">
+              <li{% if request.path == overviewurl %} class="active"{% endif %}><a href="{{ overviewurl }}">
                   ePFP overview</a></li>
               <li id="summary-dropdown" class="dropdown">
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">
@@ -310,15 +264,15 @@
                   <b class="caret"></b>
                 </a>
                 <ul class="dropdown-menu">
-                  <li{% if request.path == parta %} class="active"{% endif %}><a href="{{ parta }}">Part A Summary</a></li>
-                  <li{% if request.path == sectiona1 %} class="active"{% endif %}><a href="{{ sectiona1 }}">A1 - Summary &amp; Approval</a></li>
-                  <li{% if request.path == sectiona2 %} class="active"{% endif %}><a href="{{ sectiona2 }}">A2 - Context Statement</a></li>
-                  <li{% if request.path == critical_stakeholders %} class="active"{% endif %}><a href="{{ critical_stakeholders }}">A2 - Critical Stakeholders</a></li>
-                  <li{% if request.path == objectives_url %} class="active"{% endif %}><a href="{{ objectives_url }}">A3 - Burn Objectives</a></li>
-                  <li{% if request.path == success_criteria %} class="active"{% endif %}><a href="{{ success_criteria }}">A3 - Success Criteria</a></li>
-                  <li{% if request.path == priority_justification %} class="active"{% endif %}><a href="{{ priority_justification }}">A4 - Priority Justification</a></li>
-                  <li{% if request.path == complexity %} class="active"{% endif %}><a href="{{ complexity }}">A5 - Complexity Analysis</a></li>
-                  <li{% if request.path == register %} class="active"{% endif %}><a href="{{ register }}">A6 - Risk Register</a></li>
+                  <li{% if request.path == partaurl %} class="active"{% endif %}><a href="{{ partaurl }}">Part A Summary</a></li>
+                  <li{% if request.path == sectiona1url %} class="active"{% endif %}><a href="{{ sectiona1url }}">A1 - Summary &amp; Approval</a></li>
+                  <li{% if request.path == sectiona2url %} class="active"{% endif %}><a href="{{ sectiona2url }}">A2 - Context Statement</a></li>
+                  <li{% if request.path == criticalstakeholdersurl %} class="active"{% endif %}><a href="{{ criticalstakeholdersurl }}">A2 - Critical Stakeholders</a></li>
+                  <li{% if request.path == objectivesurl %} class="active"{% endif %}><a href="{{ objectivesurl }}">A3 - Burn Objectives</a></li>
+                  <li{% if request.path == successcriteriaurl %} class="active"{% endif %}><a href="{{ successcriteriaurl }}">A3 - Success Criteria</a></li>
+                  <li{% if request.path == priorityjustificationurl %} class="active"{% endif %}><a href="{{ priorityjustificationurl }}">A4 - Priority Justification</a></li>
+                  <li{% if request.path == complexityurl %} class="active"{% endif %}><a href="{{ complexityurl }}">A5 - Complexity Analysis</a></li>
+                  <li{% if request.path == registerurl %} class="active"{% endif %}><a href="{{ registerurl }}">A6 - Risk Register</a></li>
                 </ul>
               </li>
               <li id="implementation-dropdown" class="dropdown">
@@ -328,23 +282,23 @@
                   <b class="caret"></b>
                 </a>
                 <ul class="dropdown-menu">
-                  <li{% if request.path == partb %} class="active"{% endif %}><a href="{{ partb }}">Part B Summary</a></li>
-                  <li{% if request.get_full_path == operational_overview %} class="active"{% endif %}><a href="{{ operational_overview }}">B1 - Operational Overview</a></li>
-                  <li{% if request.get_full_path == actions %} class="active"{% endif %}><a href="{{ actions }}">B1 - Plan Actions</a></li>
-                  <li{% if request.get_full_path == preburn_actions %} class="active"{% endif %}><a href="{{ preburn_actions }}">B1 - Pre-burn actions</a></li>
-                  <li{% if request.get_full_path == dayofburn_actions %} class="active"{% endif %}><a href="{{ dayofburn_actions }}">B2 - Day of burn actions</a></li>
-                  <li{% if request.path == sectionb3_roads %} class="active"{% endif %}><a href="{{ sectionb3_roads }}">B3 - Roads</a></li>
-                  <li{% if request.path == sectionb3_trails %} class="active"{% endif %}><a href="{{ sectionb3_trails }}">B3 - Tracks and Trails</a></li>
-                  <li{% if request.path == sectionb3_inspection %} class="active"{% endif %}><a href="{{ sectionb3_inspection }}">B3 - Sign Inspection & Surveillance</a></li>
+                  <li{% if request.path == partburl %} class="active"{% endif %}><a href="{{ partburl }}">Part B Summary</a></li>
+                  <li{% if request.get_full_path == operationoverviewurl %} class="active"{% endif %}><a href="{{ operationoverviewurl }}">B1 - Operational Overview</a></li>
+                  <li{% if request.get_full_path == actionsurl %} class="active"{% endif %}><a href="{{ actionsurl }}">B1 - Plan Actions</a></li>
+                  <li{% if request.get_full_path == preburnactionsurl %} class="active"{% endif %}><a href="{{ preburnactionsurl }}">B1 - Pre-burn actions</a></li>
+                  <li{% if request.get_full_path == dayofburnactionsurl %} class="active"{% endif %}><a href="{{ dayofburnactionsurl }}">B2 - Day of burn actions</a></li>
+                  <li{% if request.path == sectionb3roadsurl %} class="active"{% endif %}><a href="{{ sectionb3roadsurl }}">B3 - Roads</a></li>
+                  <li{% if request.path == sectionb3trailsurl %} class="active"{% endif %}><a href="{{ sectionb3trailsurl }}">B3 - Tracks and Trails</a></li>
+                  <li{% if request.path == sectionb3inspectionurl %} class="active"{% endif %}><a href="{{ sectionb3inspectionurl }}">B3 - Sign Inspection & Surveillance</a></li>
                   <li{% if request.path == burning_prescription %} class="active"{% endif %}><a href="{{ burning_prescription }}">B5 - Burning Prescription</a></li>
                   <li{% if request.path == edging_plan %} class="active"{% endif %}><a href="{{ edging_plan }}">B5 - Edging Plan</a></li>
                   <li{% if request.path == lighting_sequence%} class="active"{% endif %}><a href="{{ lighting_sequence }}">B5 - Lighting Sequence</a></li>
                   <li{% if request.path == exclusion_area %} class="active"{% endif %}><a href="{{ exclusion_area }}">B5 - Areas to be Excluded from ignition</a></li>
                   <li{% if request.path == contingency %} class="active"{% endif %}><a href="{{ contingency }}">B6 - Contingency Plan</a></li>
-                  <li{% if request.path == org_structure %} class="active"{% endif %}><a href="{{ org_structure }}">B7 - Organisational Structure</a></li>
+                  <li{% if request.path == orgstructureurl %} class="active"{% endif %}><a href="{{ orgstructureurl }}">B7 - Organisational Structure</a></li>
                   <li{% if request.path == briefing_checklist %} class="active"{% endif %}><a href="{{ briefing_checklist }}" target=_blank>B8 - Briefing Checklist (SMEACS)</a></li>
-                  <li{% if request.path == sectionb9 %} class="active"{% endif %}><a href="{{ sectionb9 }}">B9 - Operations Officer's Day of Burn Checklist</a></li>
-                  <li{% if request.path == sectionb10 %} class="active"{% endif %}><a href="{{ sectionb10 }}">B10 - Fire and Weather Observations</a></li>
+                  <li{% if request.path == sectionb9url %} class="active"{% endif %}><a href="{{ sectionb9url }}">B9 - Operations Officer's Day of Burn Checklist</a></li>
+                  <li{% if request.path == sectionb10url %} class="active"{% endif %}><a href="{{ sectionb10url }}">B10 - Fire and Weather Observations</a></li>
                   <li{% if request.path == area_achievement %} class="active"{% endif %}><a href="{{ area_achievement }}">B11 - DoB achievement update</a></li>
                 </ul>
               </li>
@@ -355,8 +309,8 @@
                   <b class="caret"></b>
                 </a>
                 <ul class="dropdown-menu">
-                  <li{% if request.path == partc %} class="active"{% endif %}><a href="{{ partc }}">Part C Summary</a></li>
-                  <li{% if request.get_full_path == postburn_actions %} class="active"{% endif %}><a href="{{ postburn_actions }}">C1 - Post burn actions</a></li>
+                  <li{% if request.path == partcurl %} class="active"{% endif %}><a href="{{ partcurl }}">Part C Summary</a></li>
+                  <li{% if request.get_full_path == postburnactionsurl %} class="active"{% endif %}><a href="{{ postburnactionsurl }}">C1 - Post burn actions</a></li>
                   <li{% if request.path == evaluation %} class="active"{% endif %}><a href="{{ evaluation }}">C2 - Burn evaluation summary</a></li>
                   <li{% if request.path == proposed_action %} class="active"{% endif %}><a href="{{ proposed_action }}">C3 - Lessons learned</a></li>
                   <li{% if request.path == post_burn_checklist %} class="active"{% endif %}><a href="{{ post_burn_checklist }}">C4 - Post burn checklist</a></li>
@@ -366,9 +320,9 @@
               <li id="document-dropdown" class="dropdown">
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">Part D<b class="caret"></b></a>
                 <ul class="dropdown-menu">
-                  <li{% if request.path == documents %} class="active"{% endif %}><a href="{{ documents }}">Documents</a></li>
-                  <li{% if request.path == notifications %} class="active"{% endif %}><a href="{{ notifications }}">D1 - Notifications</a></li>
-                  <li{% if request.path == public_contacts %} class="active"{% endif %}><a href="{{ public_contacts }}">D2 - Public Contacts</a></li>
+                  <li{% if request.path == documentsurl %} class="active"{% endif %}><a href="{{ documentsurl }}">Documents</a></li>
+                  <li{% if request.path == notificationsurl %} class="active"{% endif %}><a href="{{ notificationsurl }}">D1 - Notifications</a></li>
+                  <li{% if request.path == publiccontactsurl %} class="active"{% endif %}><a href="{{ publiccontactsurl }}">D2 - Public Contacts</a></li>
                 </ul>
               </li>
               {% endif %}

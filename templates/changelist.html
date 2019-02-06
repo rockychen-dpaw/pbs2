@@ -202,6 +202,8 @@
                     {% call_method_escape field "html" "<td{attrs}>{widget}</td>" %}
                 {% endfor %}
             </tr>{% endfor %}`;
+        {% else %}
+        var formTemplate=" ";
         {% endif %}
 
         
@@ -228,6 +230,7 @@
             addText: '',
             deleteText: '<img onclick="deleteForm(event)" src="/static/img/delete.png" style="width:16px;height:16px;"></img>',
             deleteCssClass: 'delete-row' + '-' + '{{ listform.prefix  }}',
+            formTemplate:formTemplate
         });
         $(".{{listform.model_name_lower}}_fs-add").hide()
         {% endif %}
@@ -254,5 +257,7 @@
 {% include "pagination.html" %}
 </div>
 </div>
+{% block post_content%}
+{% endblock %}
 </div>
 {% endblock %}

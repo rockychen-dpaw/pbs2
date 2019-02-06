@@ -126,3 +126,18 @@ def load_module(name,base_path="."):
         if fp:
             fp.close()
 
+def filesize(f):
+    if f:
+        size = f.size
+        if size < 1024:
+            return "{} B".format(size)
+        elif size < 1048576:
+            return "{} K".format(round(size / 1024,2))
+        elif size < 1073741824:
+            return "{} M".format(round(size / 1048576,2))
+        else:
+            return "{} G".format(round(size / 1073741824,2))
+
+    else:
+        return None
+

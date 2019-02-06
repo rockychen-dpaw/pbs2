@@ -75,27 +75,3 @@
     </table>
 {% endblock %}
 
-{% block rightpanel %}
-<div class="span3">
-  <h5>Filter</h5>
-  {% url 'risk:prescription_action_changelist' prescription.id as actionurl %}
-  <ul class="nav nav-list">
-    <li class="nav-header">BY ACTION RELEVANT</li>
-    <li {% if listform.fullpath == actionurl %}class="active"{% endif %}><a href="{{actionurl}}">All</a></li>
-    {% for relevant in relevantlist %}
-    {% setvar actionurl '?relevant=' relevant.0|urlencode as filterurl %}
-    <li  {% if listform.fullpath == filterurl %}class="active"{% endif %}><a href="{{filterurl}}">{{relevant.1}}</a></li>
-    {% endfor %}
-  </ul>
-  <br>
-  <ul class="nav nav-list">
-    <li class="nav-header">BY CATEGORY</li>
-    <li {% if listform.fullpath == actionurl %}class="active"{% endif %}><a href="{{actionurl}}">All</a></li>
-    {% for category in categorylist %}
-    {% setvar actionurl '?category=' category.id|urlencode as filterurl %}
-    <li  {% if listform.fullpath == filterurl %}class="active"{% endif %}><a href="{{filterurl}}">{{category.name}}</a></li>
-    {% endfor %}
-  </ul>
-</div>
-
-{% endblock %}

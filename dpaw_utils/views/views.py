@@ -904,5 +904,6 @@ class OneToManyListUpdateView(OneToManyModelMixin,ListUpdateView):
         if self.listform.is_valid()  and pform_valid:
             return self.form_valid()
         else:
+            print("{}".format(self.listform.errors))
             return self.form_invalid()
 

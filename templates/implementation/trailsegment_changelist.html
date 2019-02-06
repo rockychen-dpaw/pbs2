@@ -1,0 +1,18 @@
+{% extends "../changelist.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<ul class="breadcrumb">
+  <li><a href="{% url 'prescription:prescription_list' %}">{% trans 'Regional Overview' %}</a> <span class="divider">/</span></li>
+  <li><a href="{% url 'prescription:prescription_home' prescription.id %}">{{prescription.burn_id}}</a> <span class="divider">/</span></li>
+  <li><a href="% url 'report:prescription_day_state_update' prescription.id %}">Part B</a> <span class="divider">/</span></li>
+  <li>Section B3 &#x2010;  Identification of tracks and trails associated with the burn plan</li>
+</ul>
+{% endblock %}
+
+{% block post_content %}
+<h1>Diversion Maps
+   <a href="{% url 'document:prescription_taggeddocument_add' prescription.id 151 %}?nexturl={% url 'implementation:prescription_trailsegment_changelist' prescription.id %}" class="pull-right btn btn-info btn-small"><b><i class="icon-plus"></i> Upload Track Trail Diversion Map</b></a>
+</h1>
+{% include "document/includes/document_list.html" with document_type="Track Trail Diversion Map" %}
+{% endblock %}

@@ -12,6 +12,7 @@ from django.template.defaultfilters import date
 from django.utils.safestring import mark_safe
 
 from dpaw_utils.models import (AuditMixin,ModelDictMixin)
+from dpaw_utils import utils
 
 from pbs.prescription.models import Prescription,FuelType,Season
 from pbs.implementation.utils import field_range
@@ -60,7 +61,7 @@ class TrafficControlDiagramManager(models.Manager):
         qs = super(TrafficControlDiagramManager, self).get_queryset().order_by('display_order', 'name')
         return qs
 
-class TrafficControlDiagram(models.Model):
+class TrafficControlDiagram(ModelDictMixin,models.Model):
     """
     """
     name = models.CharField(max_length=64, unique=True)
@@ -88,6 +89,10 @@ class TrafficControlDiagram(models.Model):
     @property
     def modified(self):
         return False
+
+    @property
+    def size(self):
+        return utils.filesize(self.path)
 
     @property
     def filename(self):
@@ -122,7 +127,7 @@ class Way(AuditMixin):
     def __str__(self):
         return self.name
 
-class RoadSegment(Way):
+class RoadSegment(ModelDictMixin,Way):
     road_type = models.TextField(
         verbose_name="Road Type",
         blank=True)
@@ -140,7 +145,7 @@ class RoadSegment(Way):
         verbose_name = "Road"
         verbose_name_plural = "Roads"
 
-class TrailSegment(Way):
+class TrailSegment(ModelDictMixin,Way):
     start = models.TextField(
         blank=True, verbose_name="Start Location")
     start_signage = models.TextField(

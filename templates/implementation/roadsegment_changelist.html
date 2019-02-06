@@ -1,0 +1,27 @@
+{% extends "../changelist.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<ul class="breadcrumb">
+  <li><a href="{% url 'prescription:prescription_list' %}">{% trans 'Regional Overview' %}</a> <span class="divider">/</span></li>
+  <li><a href="{% url 'prescription:prescription_home' prescription.id %}">{{prescription.burn_id}}</a> <span class="divider">/</span></li>
+  <li><a href="% url 'report:prescription_day_state_update' prescription.id %}">Part B</a> <span class="divider">/</span></li>
+  <li>Section B3 &#x2010;  Identification of roads associated with the burn plan</li>
+</ul>
+{% endblock %}
+
+{% block content_title %}
+{{block.super}}
+<p>You can find the standard traffic control diagrams on the <a class="btn btn-small btn-info" href="https://fmsb.dpaw.wa.gov.au/doctrine/manuals" target="_blank"><b>ePFP website</b></a></p>
+{% endblock %}
+
+
+{% block post_content %}
+<h1>Traffic Control Diagrams</h1>
+<h4>Standard</h4>
+{% include "includes/objectlist.html" with includedlistform=trafficdiagramlistform %}
+<h4>Custom
+   <a href="{% url 'document:prescription_taggeddocument_add' prescription.id 199 %}?nexturl={% url 'implementation:prescription_roadsegment_changelist' prescription.id %}" class="pull-right btn btn-info btn-small"><b><i class="icon-plus"></i> Upload Custom Traffic Control Diagram</b></a>
+</h4>
+{% include "document/includes/document_list.html" with document_type="Traffic Diagrams" %}
+{% endblock %}
