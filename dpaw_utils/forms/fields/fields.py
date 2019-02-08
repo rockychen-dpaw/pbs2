@@ -366,25 +366,36 @@ class MultipleField(CompoundField):
     """
     just combine multiple fields
 
-    layout: is used when other option is not chosen
+    view_layout: is used for view
+    edit_layout: is used for editing
     """
-    layout = None
-
     @classmethod
     def init_kwargs(cls,model,field_name,related_field_names,kwargs):
-        if not kwargs.get("layout"):
-            kwargs["layout"] = u"{{0}} {}".format("".join(["<br>{{{}}}".format(i) for i in range(1,len(related_field_names) + 1)]))
+        if not kwargs.get("view_layout"):
+            if kwargs.get("layout"):
+                kwargs["view_layout"] = kwargs.get("layout")
+            else:
+                kwargs["view_layout"] = u"{{0}} {}".format("".join(["<br>{{{}}}".format(i) for i in range(1,len(related_field_names) + 1)]))
+
+        if not kwargs.get("edit_layout"):
+            if kwargs.get("layout"):
+                kwargs["edit_layout"] = kwargs.get("layout")
+            else:
+                kwargs["edit_layout"] = u"{{0}} {}".format("".join(["<br>{{{}}}".format(i) for i in range(1,len(related_field_names) + 1)]))
+
+        if "layout" in kwargs:
+            del kwargs["layout"]
 
         return kwargs
 
     def _view_layout(self,f):
-        return (self.layout,f.field.related_field_names,True)
+        return (self.view_layout,f.field.related_field_names,True)
 
     def _edit_layout(self,f):
         """
         return a tuple(layout,enable related field list) for edit
         """
-        return (self.layout,f.field.related_field_names,True)
+        return (self.edit_layout,f.field.related_field_names,True)
         
 class ConditionalMultipleField(CompoundField):
     """

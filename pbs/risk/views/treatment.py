@@ -10,7 +10,7 @@ from pbs.risk.forms import (TreatmentDetailForm,TreatmentListForm)
 from dpaw_utils import views
 import pbs.forms
 
-class PrescriptionTreatmentReadonlyView(pbs.forms.GetActionMixin,views.RequestActionMixin,views.OneToManyReadonlyView):
+class PrescriptionTreatmentDetailView(pbs.forms.GetActionMixin,views.RequestActionMixin,views.OneToManyDetailView):
     title = "View Treatment"
     pmodel = Prescription
     model = Treatment

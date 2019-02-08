@@ -1,0 +1,17 @@
+{% extends "../deleteconfirm.html" %}
+{% load i18n %}
+{% load admin_urls %}
+
+{% block breadcrumbs %}
+<ul class="breadcrumb">
+  <li><a href="{% url 'prescription:prescription_list' %}">{% trans 'Regional Overview' %}</a> <span class="divider">/</span></li>
+  <li><a href="{% url 'prescription:prescription_home' prescription.id %}">{{ prescription.burn_id }}</a> <span class="divider">/</span></li>
+  <li><a href="{% url 'report:prescription_day_state_update' prescription.id %}">Part B</a> <span class="divider">/</span></li>
+  <li><a href="{% url 'implementation:prescription_burningprescription_list' prescription.id %}">Section B5 &#x2010; Burning prescription</a> <span class="divider">/</span></li>
+  {% if listform|length == 1 %}
+  <li>{{listform.first.instance.fuel_type}}<span class="divider">/</span></li>
+  {% endif %}
+  <li>{% trans 'Delete' %}</li>
+</ul>
+{% endblock %}
+

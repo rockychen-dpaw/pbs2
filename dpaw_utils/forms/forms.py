@@ -12,14 +12,16 @@ from django.template.defaultfilters import safe
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.conf import settings
+from django.core import validators
+import django.db.models.fields
 
 from . import widgets
 from . import fields
 from .boundfield import (BoundField,CompoundBoundField,BoundFormField,BoundFormSetField,BoundFieldIterator)
 from .fields import (CompoundField,FormField,FormSetField,AliasFieldMixin)
 
-from .utils import FieldClassConfigDict,FieldWidgetConfigDict,SubpropertyEnabledDict,ChainDict,Media
-from ..models import DictMixin
+from .utils import FieldClassConfigDict,FieldWidgetConfigDict,SubpropertyEnabledDict,ChainDict,Media,NoneValueKey
+from ..models import DictMixin,AuditMixin
 from dpaw_utils.utils import load_module
 
 class Action(object):
@@ -339,17 +341,21 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
                     
                     else:
                         setattr(attrs['Meta'],item,config)
-
             fields = []
             other_fields = []
+            all_fields = []
             if hasattr(attrs["Meta"],"all_fields") and hasattr(attrs["Meta"],"model"):
+                all_fields = getattr(attrs['Meta'],'all_fields')
                 for field in getattr(attrs['Meta'],'all_fields'):
                     if getattr(attrs['Meta'],'is_editable_dbfield')(field):
                         fields.append(field)
                     else:
                         other_fields.append(field)
-            setattr(attrs['Meta'],"fields",fields)
-            setattr(attrs['Meta'],"other_fields",other_fields)
+            #setattr(attrs['Meta'],"fields",fields)
+            #setattr(attrs['Meta'],"other_fields",other_fields)
+
+            setattr(attrs['Meta'],"fields",[])
+            setattr(attrs['Meta'],"other_fields",all_fields)
 
             setattr(attrs['Meta'],"field_classes",FieldClassConfigDict(attrs['Meta'],attrs['Meta'].field_classes_config))
             setattr(attrs['Meta'],"widgets",FieldWidgetConfigDict(attrs['Meta'],attrs['Meta'].widgets_config))
@@ -376,6 +382,14 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
         formfield_callback = meta.formfield_callback if meta and hasattr(meta,"formfield_callback") else None
 
         model = opts.model
+        #try to add AuditMixin related fields into extra_update_fields.
+        if issubclass(model,AuditMixin):
+            for f in ("modifier","modified"):
+                if f not in opts.extra_update_fields:
+                    if not isinstance(opts.extra_update_fields,list):
+                        opts.extra_update_fields = list(opts.extra_update_fields)
+                    opts.extra_update_fields.append(f)
+
         model_field = None
         field_list = []
         kwargs = {}
@@ -383,118 +397,157 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
         property_name = None
         subproperty_enabled = False
         
-        def get_field_class(opts,field_opts,form_field_name,field_name):
-            try:
-                if field_opts == opts:
-                    return field_opts.field_classes.get_config(field_name,meta.purpose if hasattr(meta,"purpose") else None)
-                else:
-                    try:
-                        return opts.field_classes.get_config(form_field_name,(None,meta.purpose[1]) if hasattr(meta,"purpose") else (None,"view"),False)
-                    except:
-                        return field_opts.field_classes.get_config(field_name,(None,meta.purpose[1]) if hasattr(meta,"purpose") else (None,"view"))
-            except:
-                return None
-
-        def get_widget(opts,field_opts,form_field_name,field_name):
-            try:
-                if field_opts == opts:
-                    return field_opts.widgets.get_config(field_name,meta.purpose if hasattr(meta,"purpose") else None)
-                else:
-                    try:
-                        return opts.widgets.get_config(form_field_name,(None,meta.purpose[1]) if hasattr(meta,"purpose") else (None,"view"),False)
-                    except:
-                        return field_opts.widgets.get_config(field_name,(None,meta.purpose[1]) if hasattr(meta,"purpose") else (None,"view"))
-            except:
-                return None
-
         for field_name in opts.other_fields or []:
-            form_field_name = field_name
-            field_opts = opts
-            if "__" in field_name:
-                property_name = field_name.split("__",1)[0]
-                subproperty_enabled = True
-            else:
-                property_name = field_name
+            model_field = None
+            property_name = None
+            db_field = False
+
             remote_field = None
+            remote_field_name = None
+            remote_field_opts = None
+            remote_model_field = None
+            remote_property_name = None
+
+            editable = False
+
             try:
-                if field_name != property_name:
+                if "__" in field_name:
+                    property_name = field_name.split("__",1)[0]
+                    subproperty_enabled = True
+
                     remote_field = meta.remote_field(field_name)
                     if not remote_field:
                         raise Exception("Not a model field")
+                    elif opts.field_classes.keypurpose(field_name)[1]:
+                        raise Exception("Remote field can't be editable")
                     form_module_name = "{}.forms.{}".format(".".join(remote_field[0].__module__.split(".")[:-1]),remote_field[0].__name__.lower())
                     form_module = load_module(form_module_name,settings.BASE_DIR)
                     try:
                         remote_field_formclass = getattr(form_module,"{}BaseForm".format(remote_field[0].__name__))
-                        field_opts = getattr(remote_field_formclass,"_meta") if hasattr(remote_field_formclass,"_meta") else None
+                        remote_field_opts = getattr(remote_field_formclass,"_meta") if hasattr(remote_field_formclass,"_meta") else None
                     except:
-                        field_opts = object()
+                        remote_field_opts = object()
                     if remote_field[1]:
-                        model_field = remote_field[1]
-                        field_name = model_field.name
+                        #is a remote db field
+                        remote_model_field = remote_field[1]
+                        remote_field_name = remote_model_field.name
+                        remote_property_name = remote_field_name
                         db_field = True
                     else:
-                        model_field = None
+                        remote_model_field = None
                         db_field = False
-                        property_name = remote_field[2]
-                        field_name = "__".join(remote_field[3])
+                        remote_property_name = remote_field[2]
+                        remote_field_name = "__".join(remote_field[3])
 
                 else:
-                    model_field = model._meta.get_field(field_name)
-                    db_field = True
+                    try:
+                        model_field = model._meta.get_field(field_name)
+                        db_field = True
+                    except:
+                        property_name = field_name
+                        raise
             except:
                 #not a model field, check whether it is a property 
                 db_field = False
-                model_field = None
-                if hasattr(model,property_name) and isinstance(getattr(model,property_name),property):
-                    #field is a property
-                    pass
-                else:
-                    field_class = get_field_class(opts,field_opts,form_field_name,field_name)
-
-                    if field_class and (isinstance(field_class,AliasFieldMixin) or issubclass(field_class,AliasFieldMixin)):
-                        #it is a compound field, field itself doesn't need to be a real property or field in model class
-                        pass
-                    else:
-                        #it is a field declared in form
-                        pass
-                        #raise Exception("Unknown field {} ".format(field_name))
 
             kwargs.clear()
+            #try to get configured field_class
+            editable = opts.field_classes.keypurpose(field_name)[1]
+            field_class = None
+            try:
+                field_class = opts.field_classes.get_config(field_name,enable_default_key=False if remote_field else True)
+            except NoneValueKey:
+                pass
+            except:
+                if remote_field:
+                    try:
+                        #is a remote_field, try to get field_class from remote form
+                        field_class = remote_field_opts.field_classes.get_config(remote_field_name,(None,meta.purpose[1]) if hasattr(meta,"purpose") else (None,"view"))
+                    except:
+                        pass
 
-            field_class = get_field_class(opts,field_opts,form_field_name,field_name)
             if field_class and isinstance(field_class,forms.Field):
                 #already configure a form field instance, use it directly
-                form_field = field_opts.field_classes[field_name]
-                field_list.append((form_field_name, formfield))
+                field_list.append((field_name, field_class))
                 continue
 
-            field_widget = get_widget(opts,field_opts,form_field_name,field_name)
-            if field_widget:
-                kwargs['widget'] = field_widget
-            elif not db_field:
-                    raise Exception("Please configure widget for property '{}' in 'widgets' option".format(field_name))
-
-            if field_opts.localized_fields == forms.models.ALL_FIELDS or (field_opts.localized_fields and field_name in field_opts.localized_fields):
-                kwargs['localize'] = True
-
-            if field_opts.labels and field_name in field_opts.labels:
-                kwargs['label'] = safe(field_opts.labels[field_name])
-            elif not db_field:
-                kwargs['label'] = safe(field_name)
-
-            if field_opts.help_texts and field_name in field_opts.help_texts:
-                kwargs['help_text'] = field_opts.help_texts[field_name]
-
-            if field_opts.error_messages and field_name in field_opts.error_messages:
-                kwargs['error_messages'] = field_opts.error_messages[field_name]
-
-            if not db_field:
-                kwargs['required'] = False
+            #if field class is subclass of AliasFieldMixin, try to check whether it is a model field or not.
+            if field_class and issubclass(field_class,AliasFieldMixin):
+                try:
+                    if remote_field:
+                        remote_model_field = remote_field[0]._meta.get_field(field_class.field_name)
+                    else:
+                        model_field = model._meta.get_field(field_class.field_name)
+                    db_field = True
+                except:
+                    pass
 
             if field_class:
                 kwargs['form_class'] = field_class
             elif not db_field :
-                    raise Exception("Please cofigure form field for property '{}' in 'field_classes' option".format(field_name))
+                raise Exception("Please cofigure form field for property '{}' in 'field_classes' option".format(field_name))
+
+            #try to get configured widget
+            field_widget = None
+            try:
+                field_widget = opts.widgets.get_config(field_name,enable_default_key=False if (remote_field or (editable and db_field)) else True)
+            except NoneValueKey:
+                pass
+            except:
+                if remote_field:
+                    try:
+                        #is a remote_field, try to get field_class from remote form
+                        field_widget = remote_field_opts.widgets.get_config(remote_field_name,(None,meta.purpose[1]) if hasattr(meta,"purpose") else (None,"view"))
+                    except:
+                        pass
+
+            if field_widget:
+                kwargs['widget'] = field_widget
+            elif not db_field:
+                raise Exception("Please configure widget for property '{}.{}' in 'widgets' option".format(name,field_name))
+
+            if remote_field:
+                kwargs['localize'] = remote_field_opts.localized_fields == forms.models.ALL_FIELDS or (remote_field_opts.localized_fields and remote_field_name in remote_field_opts.localized_fields)
+            else:
+                kwargs['localize'] = opts.localized_fields == forms.models.ALL_FIELDS or (opts.localized_fields and field_name in opts.localized_fields)
+
+            if remote_field:
+                if remote_field_opts.labels and remote_field_name in remote_field_opts.labels:
+                    kwargs['label'] = safe(remote_field_opts.labels[remote_field_name])
+                elif not db_field:
+                    kwargs['label'] = safe(remote_field_name)
+            else:
+                if opts.labels and field_name in opts.labels:
+                    kwargs['label'] = safe(opts.labels[field_name])
+                elif not db_field:
+                    kwargs['label'] = safe(field_name)
+
+            if remote_field:
+                if remote_field_opts.help_texts and remote_field_name in remote_field_opts.help_texts:
+                    kwargs['help_text'] = remote_field_opts.help_texts[remote_field_name]
+            else:
+                if opts.help_texts and field_name in opts.help_texts:
+                    kwargs['help_text'] = opts.help_texts[field_name]
+
+            if remote_field:
+                if remote_field_opts.error_messages and remote_field_name in remote_field_opts.error_messages:
+                    kwargs['error_messages'] = remote_field_opts.error_messages[remote_field_name]
+            else:
+                if opts.error_messages and field_name in opts.error_messages:
+                    kwargs['error_messages'] = opts.error_messages[field_name]
+
+            if db_field and editable:
+                field = remote_model_field if remote_field else model_field
+                if isinstance(field,django.db.models.fields.IntegerField):
+                    for validator in field.validators or []:
+                        if isinstance(validator,validators.MinValueValidator):
+                            kwargs["min_value"] = validator.limit_value
+                        elif isinstance(validator,validators.MaxValueValidator):
+                            kwargs["max_value"] = validator.limit_value
+                print("{} {}.{}".format(field_class,name,field_name))
+
+            if not db_field:
+                kwargs['required'] = False
 
             if formfield_callback is None:
                 if db_field:
@@ -503,10 +556,12 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
                     formfield = kwargs.pop('form_class')(**kwargs)
             elif not callable(formfield_callback):
                 raise TypeError('formfield_callback must be a function or callable')
+            elif remote_field:
+                formfield = formfield_callback(remote_model_field, **kwargs)
             else:
                 formfield = formfield_callback(model_field, **kwargs)
 
-            field_list.append((form_field_name, formfield))
+            field_list.append((field_name, formfield))
 
         setattr(opts,'subproperty_enabled',subproperty_enabled)
 
@@ -623,6 +678,13 @@ class ModelFormMetaMixin(object):
 
         @classmethod
         def remote_field(cls,field_name):
+            """
+            return None if it is not a remote field; otherwise return a array
+             0: innermost remote model
+             1: remote field if it is a remote db field; otherwise it is None
+             2: property name if it is a remote field but it is not a remote db field; otherwise it is None
+             3: field names including property name if it is a remote field but it is not a remote db field; otherwise it is None
+            """
             if "__" not in field_name:
                 return None
             
@@ -644,7 +706,7 @@ class ModelFormMetaMixin(object):
                 elif index == len(field_name) - 1:
                     return (remote_model,None,field_name[index],None)
                 else:
-                    return (remote_model,None,field_name[index],"".join(field_name[index + 1:]))
+                    return (remote_model,None,field_name[index],field_name[index:])
 
         @classmethod
         def is_editable_dbfield(cls,field_name):

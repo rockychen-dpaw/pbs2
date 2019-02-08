@@ -47,6 +47,9 @@ class Media(forms.Media):
             combined._statements = self._statements
         return combined
 
+class NoneValueKey(KeyError):
+    pass
+
 class FieldClassConfigDict(dict):
     """
     Try to get the value of the key using the following logic
@@ -132,8 +135,10 @@ class FieldClassConfigDict(dict):
             try:
                 value = self.data[key]
                 if value is None:
-                    raise KeyError(name)
+                    raise NoneValueKey(name)
                 return value
+            except NoneValueKey:
+                raise
             except:
                 pass
         raise KeyError(name)
@@ -151,7 +156,7 @@ class FieldWidgetConfigDict(FieldClassConfigDict):
     def search_keys(self,name,purpose=None,enable_default_key=True):
         keypurpose,editable = self.keypurpose(name,purpose)
         if isinstance(keypurpose,str):
-            if editable and self._meta_class.is_dbfield(name) or not enable_default_key:
+            if (editable and self._meta_class.is_dbfield(name)) or not enable_default_key:
                 return ("{}.{}".format(name,keypurpose),name)
             else:
                 return ("{}.{}".format(name,keypurpose),"{}.{}".format(self._default_key_name,keypurpose),self._default_key_name)

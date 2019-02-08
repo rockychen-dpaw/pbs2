@@ -125,7 +125,7 @@ class BoundField(forms.boundfield.BoundField):
             attrs = {'style':'display:none'}
         html = super(BoundField,self).as_widget(widget,attrs,only_initial)
         if not self.is_display and self.name in self.form.errors:
-            html =  "<div class=\"error\">{}<p class=\"text-error\"><i class=\"icon-warning-sign\"></i> {}</p></div>".format(html,"<br>".join(self.form.errors[self.name]))
+            html =  "<table class=\"error\" style=\"display:inline;\"><tr><td class=\"error\">{}<p class=\"text-error\" style=\"margin:0px\"><i class=\"icon-warning-sign\"></i> {}</p></td></tr></table>".format(html,"<br>".join(self.form.errors[self.name]))
             pass
         return html
 

@@ -1,6 +1,6 @@
 from .views import (RequestActionMixin,UrlpatternsMixin,AjaxRequestMixin,ParentObjectMixin,SendDataThroughUrlMixin,
         CreateView,OneToManyCreateView,
-        ReadonlyView,OneToOneReadonlyView,OneToManyReadonlyView,
+        DetailView,OneToOneDetailView,OneToManyDetailView,
         UpdateView,OneToOneUpdateView,OneToManyUpdateView,
         ListView,OneToManyListView,ManyToManyListView,
         ListUpdateView,OneToManyListUpdateView,)

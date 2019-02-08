@@ -379,6 +379,8 @@ class UrlpatternsMixin(object):
             urlpatterns=[path((cls.urlpattern or '{}/add/').format(model_name), cls.as_view(),name=(cls.urlname or '{}_create').format(model_name))]
         elif issubclass(cls,django_edit_view.UpdateView):
             urlpatterns=[path((cls.urlpattern or '{}/<int:pk>/').format(model_name), cls.as_view(),name=(cls.urlname or '{}_update').format(model_name))]
+        elif issubclass(cls,django_edit_view.UpdateView):
+            urlpatterns=[path((cls.urlpattern or '{}/<int:pk>/').format(model_name), cls.as_view(),name=(cls.urlname or '{}_update').format(model_name))]
         elif issubclass(cls,django_edit_view.DeleteView):
             urlpatterns=[path((cls.urlpattern or '{}/<int:pk>/delete/').format(model_name), cls.as_view(),name=(cls.urlname or '{}_delete').format(model_name))]
         elif issubclass(cls,django_list_view.ListView):
@@ -481,16 +483,16 @@ class CreateView(NextUrlMixin,SuccessUrlMixin,UrlpatternsMixin,FormMixin,django_
         context_data["title"] = self.title or "Add {}".format(self.model._meta.verbose_name)
         return context_data
 
-class ReadonlyView(UrlpatternsMixin,SuccessUrlMixin,FormMixin,ModelMixin,django_edit_view.UpdateView):
+class DetailView(UrlpatternsMixin,SuccessUrlMixin,FormMixin,ModelMixin,django_edit_view.UpdateView):
     title = None
 
     def get_form_kwargs(self):
-        kwargs = super(ReadonlyView,self).get_form_kwargs()
+        kwargs = super(DetailView,self).get_form_kwargs()
         kwargs['request'] = self.request
         return kwargs
 
     def get_context_data(self,**kwargs):
-        context_data = super(ReadonlyView,self).get_context_data(**kwargs)
+        context_data = super(DetailView,self).get_context_data(**kwargs)
         context_data["title"] = self.title or self.model._meta.verbose_name
         return context_data
 
@@ -534,7 +536,7 @@ class UpdateView(UrlpatternsMixin,SuccessUrlMixin,FormMixin,ModelMixin,django_ed
 class OneToOneUpdateView(OneToOneModelMixin,UpdateView):
     pass
 
-class OneToOneReadonlyView(OneToOneModelMixin,ReadonlyView):
+class OneToOneDetailView(OneToOneModelMixin,DetailView):
     pass
 
 class OneToManyModelMixin(ParentObjectMixin):
@@ -612,7 +614,7 @@ class OneToManyModelMixin(ParentObjectMixin):
 class OneToManyUpdateView(OneToManyModelMixin,UpdateView):
     pass
 
-class OneToManyReadonlyView(OneToManyModelMixin,ReadonlyView):
+class OneToManyDetailView(OneToManyModelMixin,DetailView):
     pass
 
 class OneToManyCreateView(OneToManyModelMixin,CreateView):

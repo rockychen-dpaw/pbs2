@@ -129,6 +129,7 @@
 {% url 'stakeholder:prescription_publiccontact_changelist' prescription.id as publiccontactsurl %}
 {% url 'implementation:prescription_roadsegment_changelist' prescription.id as sectionb3roadsurl %}
 {% url 'implementation:prescription_trailsegment_changelist' prescription.id as sectionb3trailsurl %}
+{% url 'implementation:prescription_burningprescription_list' prescription.id as burningprescriptionurl %}
 {% block body %}
 <body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}" style={% page_background %}>
 {% if not is_popup %}
@@ -290,7 +291,7 @@
                   <li{% if request.path == sectionb3roadsurl %} class="active"{% endif %}><a href="{{ sectionb3roadsurl }}">B3 - Roads</a></li>
                   <li{% if request.path == sectionb3trailsurl %} class="active"{% endif %}><a href="{{ sectionb3trailsurl }}">B3 - Tracks and Trails</a></li>
                   <li{% if request.path == sectionb3inspectionurl %} class="active"{% endif %}><a href="{{ sectionb3inspectionurl }}">B3 - Sign Inspection & Surveillance</a></li>
-                  <li{% if request.path == burning_prescription %} class="active"{% endif %}><a href="{{ burning_prescription }}">B5 - Burning Prescription</a></li>
+                  <li{% if request.path == burningprescriptionurl %} class="active"{% endif %}><a href="{{ burningprescriptionurl }}">B5 - Burning Prescription</a></li>
                   <li{% if request.path == edging_plan %} class="active"{% endif %}><a href="{{ edging_plan }}">B5 - Edging Plan</a></li>
                   <li{% if request.path == lighting_sequence%} class="active"{% endif %}><a href="{{ lighting_sequence }}">B5 - Lighting Sequence</a></li>
                   <li{% if request.path == exclusion_area %} class="active"{% endif %}><a href="{{ exclusion_area }}">B5 - Areas to be Excluded from ignition</a></li>

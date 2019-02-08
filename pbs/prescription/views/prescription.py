@@ -13,7 +13,7 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from django.template import RequestContext
 
-from dpaw_utils.views import (RequestActionMixin,CreateView,ListView,UpdateView,ReadonlyView)
+from dpaw_utils.views import (RequestActionMixin,CreateView,ListView,UpdateView,DetailView)
 
 from pbs.report.models import Evaluation
 from pbs import mutex, SemaphoreException
@@ -28,7 +28,7 @@ class PrescriptionCreateView(CreateView):
     form_class = PrescriptionCreateForm
     template_name_suffix = "_create"
 
-class PrescriptionHomeView(pbs.forms.GetActionMixin,RequestActionMixin,ReadonlyView):
+class PrescriptionHomeView(pbs.forms.GetActionMixin,RequestActionMixin,DetailView):
     urlname = "{}_home"
     model = Prescription
     form_class = PrescriptionViewForm

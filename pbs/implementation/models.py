@@ -185,7 +185,7 @@ class SignInspection(AuditMixin):
         verbose_name = "Sign Inspection"
         verbose_name_plural = "Sign Inspections"
 
-class BurningPrescription(AuditMixin):
+class BurningPrescription(ModelDictMixin,AuditMixin):
     prescription = models.ForeignKey(
         Prescription, help_text="Prescription this fuel schedule belongs to.", on_delete=models.PROTECT)
     # NOTE: the fuel_type field will be deprecated in favour of a reference to
@@ -280,66 +280,6 @@ class BurningPrescription(AuditMixin):
         verbose_name="Grassland Curing % Max",
         validators=[MinValueValidator(0), MaxValueValidator(200)],
         blank=True, null=True)
-
-    def area(self):
-        return field_range(self.min_area, self.max_area, True)
-    area.short_description = "Area to be Burnt (%)"
-    area.admin_order_field = "area_max"
-
-    def ros(self):
-        return field_range(self.ros_min, self.ros_max)
-    ros.short_description = mark_safe(
-        '<abbr title="Rate of Spread">ROS</abbr> Range')
-    ros.admin_order_field = "ros_max"
-
-    def ffdi(self):
-        return field_range(self.ffdi_min, self.ffdi_max)
-    ffdi.short_description = mark_safe(
-        '<abbr title="Forecast Fire Danger Index">FFDI</abbr> Range')
-    ffdi.admin_order_field = "ffdi_max"
-
-    def gfdi(self):
-        return field_range(self.gfdi_min, self.gfdi_max)
-    gfdi.short_description = mark_safe(
-        '<abbr title="Global Fire Danger Index">GFDI</abbr> Range')
-    gfdi.admin_order_field = "gfdi_max"
-
-    def temp(self):
-        return field_range(self.temp_min, self.temp_max)
-    temp.short_description = "Temperature Range"
-    temp.admin_order_field = "temp_max"
-
-    def rh(self):
-        return field_range(self.rh_min, self.rh_max, True)
-    rh.short_description = mark_safe(
-        '<abbr title="Relative Humidity">RH</abbr> Range (%)')
-    temp.admin_order_field = "temp_max"
-
-    sdi.short_description = mark_safe(
-        '<abbr title="Soil Dryness Index">SDI</abbr> Range')
-
-    def smc(self):
-        return field_range(self.smc_min, self.smc_max)
-    smc.short_description = mark_safe(
-        '<abbr title="Surface Moisture Content">SMC</abbr> Range')
-    smc.admin_order_field = "smc_max"
-
-    def pmc(self):
-        return field_range(self.pmc_min, self.pmc_max)
-    pmc.short_description = mark_safe(
-        '<abbr title="Profile Moisture Content">PMC</abbr> Range')
-    pmc.admin_order_field = "pmc_max"
-
-    def wind(self):
-        return field_range(self.wind_min, self.wind_max)
-    wind.short_description = "Wind Speed Range (km/h)"
-    wind.admin_order_field = "wind_max"
-
-    def grassland_curing(self):
-        return field_range(self.grassland_curing_min, self.grassland_curing_max)
-    grassland_curing.short_description = mark_safe(
-        '<abbr title="Grassland Curing Percent">GLC</abbr> Range')
-    grassland_curing.admin_order_field = "grassland_curing_max"
 
     def clean_sdi(self):
         if self.sdi == '':

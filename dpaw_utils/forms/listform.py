@@ -330,6 +330,8 @@ class ListForm(forms.ActionMixin,forms.RequestUrlMixin,forms.ModelFormMetaMixin,
 
     def __getitem__(self, name):
         """Return a BoundField with the given name."""
+        #if name == "planning_status":
+        #    import ipdb;ipdb.set_trace()
         try:
             field = self.fields[name]
         except KeyError:
