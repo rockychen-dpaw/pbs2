@@ -10,6 +10,7 @@ from django.db import models
 from django.utils.html import mark_safe
 from django.utils.encoding import force_text
 from django.utils.http import urlencode
+from django.template import (Template,Context)
 
 from ..utils import hashvalue,JSONEncoder,Media
 
@@ -61,6 +62,10 @@ class TextDisplay(DisplayWidget):
     def render(self,name,value,attrs=None,renderer=None):
         return to_str(value)
 
+class TextareaDisplay(DisplayWidget):
+    def render(self,name,value,attrs=None,renderer=None):
+        return "<pre>{}</pre>".format(to_str(value))
+
 class FinancialYearDisplay(DisplayWidget):
     def render(self,name,value,attrs=None,renderer=None):
         value = int(value)
@@ -102,13 +107,19 @@ class Hyperlink(DisplayWidget):
     template = None
     def __init__(self,**kwargs):
         super(Hyperlink,self).__init__(**kwargs)
-        self.widget = self.widget_class(**kwargs)
+        self.widget = self.widget_class(**kwargs) if self.widget_class else None
 
     def get_url(self,form,name):
         raise NotImplemented("Not implemented")
 
     def prepare_initial_data(self,form,name):
-        value = form.initial.get(name)
+        if self.widget:
+            value = form.initial.get(name)
+            if value is None:
+                return None
+        else:
+            value = None
+
         url = self.get_url(form,name)
 
         if url and self.querystring:
@@ -130,22 +141,27 @@ class Hyperlink(DisplayWidget):
             else:
                 url = "{}?{}".format(url,self.querystring)
 
-        return (value,url)
+        return (value,url) if self.widget else url
 
     def render(self,name,value,attrs=None,renderer=None):
-        if value :
-            if self.template:
-                if callable(self.template):
-                    return self.template(value[0]).format(url=value[1],widget=self.widget.render(name,value[0],attrs,renderer))
+        if self.widget:
+            if value :
+                if self.template:
+                    if callable(self.template):
+                        return self.template(value[0]).format(url=value[1],widget=self.widget.render(name,value[0],attrs,renderer))
+                    else:
+                        return self.template.format(url=value[1],widget=self.widget.render(name,value[0],attrs,renderer))
+                elif value[1]:
+                    return "<a href='{}'>{}</a>".format(value[1],self.widget.render(name,value[0],attrs,renderer))
                 else:
-                    return self.template.format(url=value[1],widget=self.widget.render(name,value[0],attrs,renderer))
-            elif value[1]:
-                return "<a href='{}'>{}</a>".format(value[1],self.widget.render(name,value[0],attrs,renderer))
+                    return self.widget.render(name,value[0],attrs,renderer)
             else:
-                return self.widget.render(name,value[0],attrs,renderer)
+                return ""
         else:
-            return ""
-
+            if callable(self.template):
+                return self.template(value[0]).format(url=value)
+            else:
+                return self.template.format(url=value)
 
 class UrlnameHyperlink(Hyperlink):
     def get_url(self,form,name):
@@ -509,11 +525,11 @@ def ChoiceFieldRendererFactory(outer_html = None,inner_html = None,layout = None
 
 def DisplayWidgetFactory(widget_class):
     """
-    Use other widget as display widget.
+    Use editable widget as display widget.
     """
     global widget_class_id
 
-    key = hashvalue("DisplayWidget<{}>".format(widget_class.__module__,widget_class.__name__))
+    key = hashvalue("DisplayWidget<{}.{}>".format(widget_class.__module__,widget_class.__name__))
     cls = widget_classes.get(key)
     if not cls:
         widget_class_id += 1
@@ -680,6 +696,158 @@ def AjaxWidgetFactory(widget,url_name,ids,data_func=None,method="post",editable=
         else:
             cls = type(class_name,(AjaxWidget,DisplayMixin),{"widget":widget,"media":media,"url_name":url_name,"ids":ids,"data_func":data_func,"method":method,"ajax_attrs":attrs})
 
+        widget_classes[key] = cls
+    return cls
+
+class ListDisplay(DisplayWidget):
+    widget=None
+    template=None
+    def render(self,name,value,attrs=None,renderer=None):
+        if value:
+            return mark_safe(self.template.render(Context({"widgets":[self.widget.render(name,val,attrs,renderer) for val in value]})))
+        else:
+            return ""
+
+
+def ListDisplayFactory(widget,template=None):
+    """
+    widget: can be widget class or widget instance
+    """
+    global widget_class_id
+
+    if isinstance(widget,forms.Widget):
+        key = hashvalue("ListDisplay<{}{}>".format(id(widget),template if self.template else ""))
+        widget_class = widget.__class__
+        widget = widget
+    else:
+        key = hashvalue("ListDisplay<{}.{}{}>".format(widget.__module__,widget.__name__,template if template else ""))
+        widget_class = widget
+        widget = widget_class()
+    if not template:
+        template = """
+        <ul style="list-style-type:square">
+            {% for widget in widgets %}
+             <li>{{widget}}</li>
+            {% endfor %}
+        </ul>
+        """
+    cls = widget_classes.get(key)
+    if not cls:
+        widget_class_id += 1
+        class_name = "{}List_{}".format(widget_class.__name__,widget_class_id)
+        cls = type(class_name,(ListDisplay,),{"template":Template(template),"widget":widget})
+        widget_classes[key] = cls
+    return cls
+
+class ModelListDisplay(DisplayWidget):
+    template=None
+    listform_class=None
+    fields=None
+
+    def prepare_initial_data(self,form,name):
+        value = form.initial.get(name)
+        return (value,form)
+    def render(self,name,value,attrs=None,renderer=None):
+        if value[0]:
+            return mark_safe(self.template.render(Context({"listform":self.listform_class(request=value[1].request,requesturl=value[1].requesturl,instance_list = value[0])})))
+        else:
+            return ""
+
+
+def ModelListDisplayFactory(listform_class,template=None,header=False,styles={},use_table=None,title=None):
+    """
+    widget: can be widget class or widget instance
+    """
+    global widget_class_id
+
+    if not template:
+        form = listform_class()
+        if use_table or header or len(listform_class._meta.ordered_fields) > 1:
+            for key in ("table","thead","thead-tr","thead-th","tbody","tbody-tr","tbody-td","title"):
+                if key not in styles:
+                    styles["{}_style".format(key)] = ""
+                else:
+                    if key in ["thead-th","tbody-td"]:
+                        styles["{}_style".format(key)] = styles[key]
+                    else:
+                        styles["{}_style".format(key)] = "style='{}'".format(styles[key])
+                    del styles[key]
+
+            if title:
+                table_title = "<caption {1}>{0}</caption>".format(title,styles["title_style"])
+            else:
+                table_title = ""
+            table_header = ""
+            if header:
+                table_header = Template("""
+                <thead {{thead_style}}>
+                  <tr {{tr_style}}>
+                      {% for header in headers %}
+                      {{header}}
+                      {% endfor %}
+                  </tr>
+                </thead>
+                """).render(Context({
+                    "headers":[field.html_header("<th{attrs}><div class=\"text\"> {label}</div></th>",styles["thead-th_style"]) for field in form.boundfields],
+                    "thead_style":styles["thead_style"],
+                    "tr":styles["thead-tr_style"],
+                }))
+            else:
+                table_header = Template("""
+                <thead {{thead_style}}>
+                  <tr {{tr_style}}>
+                      {% for header in headers %}
+                      {{header}}
+                      {% endfor %}
+                  </tr>
+                </thead>
+                """).render(Context({
+                    "headers":[field.html_header("<th{attrs}><div class=\"text\"> </div></th>",styles["thead-th_style"]) for field in form.boundfields],
+                    "thead_style":styles["thead_style"],
+                    "tr":styles["thead-tr_style"],
+                }))
+            template = """
+            {{% load pbs_utils %}}
+            <table {table_style}>
+                {title}
+                {header}
+              <tbody {tbody_style}>
+                {{% for dataform in listform %}}
+                <tr {tbody-tr_style}>
+                    {{% for field in dataform %}}
+                        {{% call_method field "html" "<td{{attrs}}>{{widget}}</td>" "{tbody-td_style}"%}}
+                    {{% endfor %}}
+                </tr>
+                {{% endfor %}}
+                </tr>
+              </tbody>
+            </table>
+            """.format(header = table_header,title=table_title,**styles)
+        else:
+            for key in ("ul","li"):
+                if key not in styles:
+                    styles["{}_style".format(key)] = ""
+                else:
+                    styles["{}_style".format(key)] = styles[key]
+
+            template = """
+            {{% load pbs_utils %}}
+            <ul style="list-style-type:square;{ul_style}">
+            {{% for dataform in listform %}}
+                {{% for field in dataform %}}
+                    {{% call_method field "html" "<li{{attrs}}>{{widget}}</li>" "{li_style}" %}}
+                {{% endfor %}}
+            {{% endfor %}}
+            </ul>
+            """.format(**styles)
+    key = hashvalue("ModelListDisplay<{}.{}{}>".format(listform_class.__module__,listform_class.__name__,template if template else ""))
+    print("{}={}".format(listform_class,key))
+    cls = widget_classes.get(key)
+    if not cls:
+        widget_class_id += 1
+        class_name = "{}List_{}".format(listform_class.__name__,widget_class_id)
+        fields = [(f,form.base_fields[f]) for f in form._meta.ordered_fields]
+        cls = type(class_name,(ModelListDisplay,),{"template":Template(template),"listform_class":listform_class})
         widget_classes[key] = cls
     return cls
 

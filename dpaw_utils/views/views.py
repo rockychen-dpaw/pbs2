@@ -161,12 +161,12 @@ class RequestActionMixin(AjaxRequestMixin):
             if "action" in kwargs:
                 self.action = kwargs["action"]
             elif request.method == "GET":
-                if "action" in request.GET:
-                    self.action = request.GET["action"]
+                if "__action" in request.GET:
+                    self.action = request.GET["__action"]
                     self.action = self.action if self.action and self.action != self.default_get_action else None
             else:
-                if "action" in request.POST:
-                    self.action = request.POST["action"]
+                if "__action" in request.POST:
+                    self.action = request.POST["__action"]
                     self.action = self.action if self.action and self.action != self.default_post_action else None
 
             if self.action :
@@ -555,7 +555,7 @@ class OneToManyModelMixin(ParentObjectMixin):
 
         return super(OneToManyModelMixin,self).get_queryset()
 
-    def deleteconfirm_get(self):
+    def get_deleteconfirm_context(self):
         object_list = self.get_queryset_4_selected()
         context = {
             'title':"Delete {}".format(self.model._meta.verbose_name if len(object_list) < 2 else self.model._meta.verbose_name_plural),
@@ -569,7 +569,10 @@ class OneToManyModelMixin(ParentObjectMixin):
         }
         if self.context_pobject_name:
             context[self.context_pobject_name] = self.pobject
-        return self.render_to_response(context)
+        return context
+
+    def deleteconfirm_get(self):
+        return self.render_to_response(self.get_deleteconfirm_context())
 
     def deleteconfirm_post(self):
         return self.deleteconfirm_get()

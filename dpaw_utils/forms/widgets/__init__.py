@@ -1,5 +1,5 @@
 from django.forms.widgets import *
-from .widgets import (DisplayWidget,DisplayMixin,TextDisplay,FinancialYearDisplay,DmsCoordinateDisplay,
+from .widgets import (DisplayWidget,DisplayMixin,TextDisplay,FinancialYearDisplay,DmsCoordinateDisplay,TextareaDisplay,ListDisplayFactory,ModelListDisplayFactory,
         DatetimeDisplay,Hyperlink,HyperlinkFactory,TemplateDisplay,
         DatetimeInput,DateInput,TemplateWidgetFactory,SwitchWidgetFactory,ChoiceWidgetFactory,SelectableSelect,
         DisplayWidgetFactory,ChoiceFieldRendererFactory,HtmlTag,ImgBooleanDisplay,TextBooleanDisplay,DropdownMenuSelectMultiple,

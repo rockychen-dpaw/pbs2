@@ -130,6 +130,10 @@
 {% url 'implementation:prescription_roadsegment_changelist' prescription.id as sectionb3roadsurl %}
 {% url 'implementation:prescription_trailsegment_changelist' prescription.id as sectionb3trailsurl %}
 {% url 'implementation:prescription_burningprescription_list' prescription.id as burningprescriptionurl %}
+{% url 'implementation:prescription_edgingplan_list' prescription.id as edgingplanurl %}
+{% url 'implementation:prescription_exclusionarea_changelist' prescription.id as exclusionareaurl %}
+{% url 'implementation:prescription_lightingsequence_list' prescription.id as lightingsequenceurl %}
+{% url 'risk:prescription_contingency_list' prescription.id as contingencyurl %}
 {% block body %}
 <body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}" style={% page_background %}>
 {% if not is_popup %}
@@ -292,10 +296,10 @@
                   <li{% if request.path == sectionb3trailsurl %} class="active"{% endif %}><a href="{{ sectionb3trailsurl }}">B3 - Tracks and Trails</a></li>
                   <li{% if request.path == sectionb3inspectionurl %} class="active"{% endif %}><a href="{{ sectionb3inspectionurl }}">B3 - Sign Inspection & Surveillance</a></li>
                   <li{% if request.path == burningprescriptionurl %} class="active"{% endif %}><a href="{{ burningprescriptionurl }}">B5 - Burning Prescription</a></li>
-                  <li{% if request.path == edging_plan %} class="active"{% endif %}><a href="{{ edging_plan }}">B5 - Edging Plan</a></li>
-                  <li{% if request.path == lighting_sequence%} class="active"{% endif %}><a href="{{ lighting_sequence }}">B5 - Lighting Sequence</a></li>
-                  <li{% if request.path == exclusion_area %} class="active"{% endif %}><a href="{{ exclusion_area }}">B5 - Areas to be Excluded from ignition</a></li>
-                  <li{% if request.path == contingency %} class="active"{% endif %}><a href="{{ contingency }}">B6 - Contingency Plan</a></li>
+                  <li{% if request.path == edgingplanurl %} class="active"{% endif %}><a href="{{ edgingplanurl }}">B5 - Edging Plan</a></li>
+                  <li{% if request.path == lightingsequenceurl%} class="active"{% endif %}><a href="{{ lightingsequenceurl }}">B5 - Lighting Sequence</a></li>
+                  <li{% if request.path == exclusionareaurl %} class="active"{% endif %}><a href="{{ exclusionareaurl }}">B5 - Areas to be Excluded from ignition</a></li>
+                  <li{% if request.path == contingencyurl %} class="active"{% endif %}><a href="{{ contingencyurl }}">B6 - Contingency Plan</a></li>
                   <li{% if request.path == orgstructureurl %} class="active"{% endif %}><a href="{{ orgstructureurl }}">B7 - Organisational Structure</a></li>
                   <li{% if request.path == briefing_checklist %} class="active"{% endif %}><a href="{{ briefing_checklist }}" target=_blank>B8 - Briefing Checklist (SMEACS)</a></li>
                   <li{% if request.path == sectionb9url %} class="active"{% endif %}><a href="{{ sectionb9url }}">B9 - Operations Officer's Day of Burn Checklist</a></li>

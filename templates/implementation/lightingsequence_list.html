@@ -1,0 +1,23 @@
+{% extends "../list.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<ul class="breadcrumb">
+  <li><a href="{% url 'prescription:prescription_list' %}">{% trans 'Regional Overview' %}</a> <span class="divider">/</span></li>
+  <li><a href="{% url 'prescription:prescription_home' prescription.id %}">{{prescription.burn_id}}</a> <span class="divider">/</span></li>
+  <li><a href="% url 'report:prescription_day_state_update' prescription.id %}">Part B</a> <span class="divider">/</span></li>
+  <li>Section B5 &#x2010;  Lighting sequence</li>
+</ul>
+{% endblock %}
+
+{% block content_title %}
+<h1>{{title}}
+    <div class="pull-right">
+        <a class="btn btn-small btn-info" href="{% url 'implementation:prescription_lightingsequence_create' prescription.id %}">
+          <i class="icon-plus icon-white"></i>
+          Create Lighting Sequence
+        </a>
+    </div>
+</h1>
+{% endblock %}
+

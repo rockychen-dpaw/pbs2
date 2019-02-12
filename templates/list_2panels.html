@@ -161,7 +161,7 @@
 {% if listform.has_actions %}
     <div class="actions">
         <label><span class="action-label">Action:</span> 
-        <select name="action" id="listform_action">
+        <select name="__action" id="listform_action">
             <option value="" selected="selected">---------</option>
             {% for action in listform.actions %}
                 {{action.widget.html}}

@@ -40,9 +40,9 @@ class Action(object):
             default_attrs=[("value",self.action)]
         elif tag == "button":
             if "onclick" in self.tag_attrs:
-                default_attrs=[("class","btn btn-primary"),("value",self.action),("name","action")]
+                default_attrs=[("class","btn btn-primary"),("value",self.action),("name","__action")]
             else:
-                default_attrs=[("class","btn btn-primary"),("type","submit"),("value",self.action),("name","action")]
+                default_attrs=[("class","btn btn-primary"),("type","submit"),("value",self.action),("name","__action")]
 
         for k,v in default_attrs:
             if k not in self.tag_attrs:
@@ -285,7 +285,7 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
                 if config:
                     setattr(attrs["Meta"],"fields",config)
 
-            for item in ("all_fields","extra_update_fields","ordered_fields",'purpose'):
+            for item in ("all_fields","extra_update_fields","ordered_fields",'purpose','model'):
                 if not hasattr(attrs['Meta'],item):
                     config = BaseModelFormMetaclass.meta_item_from_base(bases,item)
                     if config:
@@ -396,6 +396,7 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
         db_field = True
         property_name = None
         subproperty_enabled = False
+        form_declared = False
         
         for field_name in opts.other_fields or []:
             model_field = None
@@ -409,6 +410,8 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
             remote_property_name = None
 
             editable = False
+
+            form_declared = False
 
             try:
                 if "__" in field_name:
@@ -448,7 +451,13 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
                         raise
             except:
                 #not a model field, check whether it is a property 
+                if remote_field:
+                    raise
                 db_field = False
+                if not hasattr(model,property_name) or not isinstance(getattr(model,property_name),property):
+                    property_name = None
+                    form_declared = True
+                
 
             kwargs.clear()
             #try to get configured field_class
@@ -469,6 +478,7 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
             if field_class and isinstance(field_class,forms.Field):
                 #already configure a form field instance, use it directly
                 field_list.append((field_name, field_class))
+                field_class.form_declared = form_declared
                 continue
 
             #if field class is subclass of AliasFieldMixin, try to check whether it is a model field or not.
@@ -544,7 +554,6 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
                             kwargs["min_value"] = validator.limit_value
                         elif isinstance(validator,validators.MaxValueValidator):
                             kwargs["max_value"] = validator.limit_value
-                print("{} {}.{}".format(field_class,name,field_name))
 
             if not db_field:
                 kwargs['required'] = False
@@ -562,6 +571,7 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
                 formfield = formfield_callback(model_field, **kwargs)
 
             field_list.append((field_name, formfield))
+            formfield.form_declared = form_declared
 
         setattr(opts,'subproperty_enabled',subproperty_enabled)
 

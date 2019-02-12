@@ -10,6 +10,14 @@
 </ul>
 {% endblock %}
 
+{% block fieldstatements %}
+  <script type="text/javascript">
+    {% for statement in treatmentlistform.media.render_statements %}
+    {{statement}}
+    {% endfor %}
+  </script>
+{% endblock %}
+
 {% block content_title %}
 <div class="row">
     <div class="span12" >

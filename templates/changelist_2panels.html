@@ -142,7 +142,7 @@
 {% if listform.has_actions %}
     <div class="actions">
         <label><span class="action-label">Action:</span> 
-        <select name="action">
+        <select name="__action">
             <option value="" selected="selected">---------</option>
             {% for action in listform.actions %}
                 {{action.widget.html}}
@@ -208,7 +208,7 @@
 
         
         {% if listform.can_add and listform.can_delete %}
-        $('#{{listform.model_name_lower}}_result_list tbody tr').formset({
+        $('#{{listform.model_name_lower}}_result_list > tbody > tr').formset({
             prefix: '{{ listform.prefix }}',
             formCssClass: '{{listform.model_name_lower}}_fs',
             addText: '<i class="icon-plus"></i> Add Another {{ modelname  }}',
@@ -217,14 +217,14 @@
             formTemplate:formTemplate
         });
         {% elif listform.can_add %}
-        $('#{{listform.model_name_lower}}_result_list tbody tr').formset({
+        $('#{{listform.model_name_lower}}_result_list > tbody > tr').formset({
             prefix: '{{ listform.prefix }}',
             formCssClass: '{{listform.model_name_lower}}_fs',
             addText: '<i class="icon-plus"></i> Add Another {{ modelname  }}',
             formTemplate:formTemplate
         });
         {% elif listform.can_delete %}
-        $('#{{listform.model_name_lower}}_result_list tbody tr').formset({
+        $('#{{listform.model_name_lower}}_result_list > tbody > tr').formset({
             prefix: '{{ listform.prefix }}',
             formCssClass: '{{listform.model_name_lower}}_fs',
             addText: '',

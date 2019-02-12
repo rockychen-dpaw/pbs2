@@ -292,7 +292,7 @@ class BurningPrescription(ModelDictMixin,AuditMixin):
         verbose_name = "Burning Prescription"
         verbose_name_plural = "Burning Prescriptions"
 
-class EdgingPlan(AuditMixin):
+class EdgingPlan(ModelDictMixin,AuditMixin):
     prescription = models.ForeignKey(
         Prescription, help_text="Prescription this edging plan belongs to.", on_delete=models.PROTECT)
     location = models.TextField(
@@ -333,33 +333,6 @@ class EdgingPlan(AuditMixin):
     grassland_curing_max = models.PositiveIntegerField(
         verbose_name="Grassland Curing % Max", blank=True, null=True)
 
-    def ffdi(self):
-        return field_range(self.ffdi_min, self.ffdi_max)
-    ffdi.short_description = mark_safe(
-        '<abbr title="Forecast Fire Danger Index">FFDI</abbr> Range')
-    ffdi.admin_order_field = 'ffdi_min'
-
-    def gfdi(self):
-        return field_range(self.gfdi_min, self.gfdi_max)
-    gfdi.short_description = mark_safe(
-        '<abbr title="Grassland Fire Danger Index">FFDI</abbr> Range')
-    gfdi.admin_order_field = "gfdi_max"
-
-    def wind(self):
-        return "%d-%d" % (self.wind_min, self.wind_max)
-    wind.short_description = "Wind Speed Range (km/h)"
-
-    def grassland_curing(self):
-        return field_range(self.grassland_curing_min, self.grassland_curing_max)
-    grassland_curing.short_description = mark_safe(
-        '<abbr title="Grassland Curing Percent</abbr> Range')
-    grassland_curing.admin_order_field = "grassland_curing_max"
-
-    def ros(self):
-        return field_range(self.ros_min, self.ros_max)
-    ros.short_description = mark_safe(
-        '<abbr title="Rate of Spread">ROS</abbr> Range')
-
     def clean_sdi(self):
         if self.sdi == '':
             self.sdi = "N/A"
@@ -372,7 +345,7 @@ class EdgingPlan(AuditMixin):
         verbose_name_plural = "Edging Plans"
         ordering = ['created']
 
-class LightingSequence(AuditMixin):
+class LightingSequence(ModelDictMixin,AuditMixin):
     prescription = models.ForeignKey(
         Prescription,
         help_text="Prescription this lighting sequence belongs to.", on_delete=models.PROTECT)
@@ -495,7 +468,7 @@ class LightingSequence(AuditMixin):
         verbose_name_plural = "Lighting Sequences"
         ordering = ['id']
 
-class ExclusionArea(AuditMixin):
+class ExclusionArea(ModelDictMixin,AuditMixin):
     prescription = models.ForeignKey(
         Prescription, help_text="Prescription this exclusion area belongs to.", on_delete=models.PROTECT)
     description = models.TextField()

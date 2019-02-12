@@ -25,7 +25,7 @@ class PrescriptionBurningPrescriptionCreateView(pbs.forms.GetActionMixin,views.O
         return urls.reverse("implementation:prescription_burningprescription_list",args=(self.pobject.id,))
 
 class PrescriptionBurningPrescriptionUpdateView(pbs.forms.GetActionMixin,views.OneToManyUpdateView):
-    title = "Update Burning Prescription"
+    title = "Change Burning Prescription"
     pmodel = Prescription
     model = BurningPrescription
     form_class = BurningPrescriptionUpdateForm
@@ -49,7 +49,7 @@ class PrescriptionBurningPrescriptionListView(pbs.forms.GetActionMixin,views.One
     urlpattern = "prescription/<int:ppk>/burningprescription/"
     urlname = "prescription_burningprescription_list"
     template_name_suffix = "_list"
-    default_order = ("fuel_type__name",)
+    default_order = ("fuel_type__name","id")
 
     def _get_success_url(self):
         return urls.reverse("implementation:prescription_burningprescription_list",args=(self.pobject.id,))

@@ -486,7 +486,7 @@ class Treatment(ModelDictMixin,AuditMixin):
     class Meta:
         base_manager_name = "objects"
 
-class Contingency(AuditMixin):
+class Contingency(ModelDictMixin,AuditMixin):
     '''This model is intended to replace the Contingency model, above.
     The Contingency model should be manually migrated by users to the new
     version.
@@ -513,24 +513,42 @@ class Contingency(AuditMixin):
     contact_number = models.TextField(blank=True, null=True)
 
     @property
-    def subitems(self):
-        subitems = []
+    def old_notifications(self):
+        if not self.notify_name and not self.location and not self.organisation and not self.contact_number:
+            return None
+
+        notifications = []
         notify_name = self.notify_name or ""
         organisation = self.organisation or ""
         location = self.location or ""
         contact_number = self.contact_number or ""
         for key, value in {
-            "notify_name": notify_name.split("\n"),
+            "name": notify_name.split("\n"),
             "organisation": organisation.split("\n"),
             "location": location.split("\n"),
             "contact_number": contact_number.split("\n")
-        }.iteritems():
+        }.items():
             for index, item in enumerate(value):
-                if index < len(subitems):
-                    subitems[index].update({key: item})
-                else:
-                    subitems.append({key: item})
-        return subitems
+                if not item: continue
+                if index >= len(notifications):
+                    notifications.append(ContingencyNotification())
+                setattr(notifications[index],key,item)
+        return notifications
+
+    @property
+    def old_actions(self):
+        if self.action:
+            return [ContingencyAction(action=a) for a in self.action.split("\n") if a and a.strip()]
+        else:
+            return None
+
+    @property
+    def actions(self):
+        return ContingencyAction.objects.filter(contingency=self)
+
+    @property
+    def notifications(self):
+        return ContingencyNotification.objects.filter(contingency=self)
 
     def __str__(self):
         return self.description
@@ -540,14 +558,14 @@ class Contingency(AuditMixin):
         verbose_name = "Contingency"
         verbose_name_plural = "Contingencies"
 
-class ContingencyAction(AuditMixin):
+class ContingencyAction(ModelDictMixin,AuditMixin):
     contingency = models.ForeignKey(Contingency, related_name='actions', on_delete=models.PROTECT)
     action = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.action
 
-class ContingencyNotification(AuditMixin):
+class ContingencyNotification(ModelDictMixin,AuditMixin):
     contingency = models.ForeignKey(Contingency, related_name='notifications', on_delete=models.PROTECT)
     name = models.CharField(max_length=100, verbose_name='Notify (Name)',
         blank=True, null=True)

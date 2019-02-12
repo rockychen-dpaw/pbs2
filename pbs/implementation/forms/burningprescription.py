@@ -7,7 +7,7 @@ class BurningPrescriptionCleanMixin(object):
     def clean_max_area(self):
         max_value = self.cleaned_data.get("max_area")
         min_value = self.cleaned_data.get("min_area")
-        if min_value and max_value:
+        if min_value is not None and max_value is not None:
             if min_value > max_value:
                 raise forms.ValidationError("Must greater than or equal to min area")
         return max_value
@@ -15,7 +15,7 @@ class BurningPrescriptionCleanMixin(object):
     def clean_ros_max(self):
         max_value = self.cleaned_data.get("ros_max")
         min_value = self.cleaned_data.get("ros_min")
-        if min_value and max_value:
+        if min_value is not None and max_value is not None:
             if min_value > max_value:
                 raise forms.ValidationError("Must greater than or equal to min ROS")
         return max_value
@@ -23,7 +23,7 @@ class BurningPrescriptionCleanMixin(object):
     def clean_ffdi_max(self):
         max_value = self.cleaned_data.get("ffdi_max")
         min_value = self.cleaned_data.get("ffdi_min")
-        if min_value and max_value:
+        if min_value is not None and max_value is not None:
             if min_value > max_value:
                 raise forms.ValidationError("Must greater than or equal to min FFDI")
         return max_value
@@ -31,7 +31,7 @@ class BurningPrescriptionCleanMixin(object):
     def clean_grassland_curing_max(self):
         max_value = self.cleaned_data.get("grassland_curing_max")
         min_value = self.cleaned_data.get("grassland_curing_min")
-        if min_value and max_value:
+        if min_value is not None and max_value is not None:
             if min_value > max_value:
                 raise forms.ValidationError("Must greater than or equal to min grassland curing")
         return max_value
@@ -39,7 +39,7 @@ class BurningPrescriptionCleanMixin(object):
     def clean_gfdi_max(self):
         max_value = self.cleaned_data.get("gfdi_max")
         min_value = self.cleaned_data.get("gfdi_min")
-        if min_value and max_value:
+        if min_value is not None and max_value is not None:
             if min_value > max_value:
                 raise forms.ValidationError("Must greater than or equal to min GFDI")
         return max_value
@@ -47,7 +47,7 @@ class BurningPrescriptionCleanMixin(object):
     def clean_temp_max(self):
         max_value = self.cleaned_data.get("temp_max")
         min_value = self.cleaned_data.get("temp_min")
-        if min_value and max_value:
+        if min_value is not None and max_value is not None:
             if min_value > max_value:
                 raise forms.ValidationError("Must greater than or equal to min temperature")
         return max_value
@@ -55,7 +55,7 @@ class BurningPrescriptionCleanMixin(object):
     def clean_rh_max(self):
         max_value = self.cleaned_data.get("rh_max")
         min_value = self.cleaned_data.get("rh_min")
-        if min_value and max_value:
+        if min_value is not None and max_value is not None:
             if min_value > max_value:
                 raise forms.ValidationError("Must greater than or equal to min RH")
         return max_value
@@ -63,7 +63,7 @@ class BurningPrescriptionCleanMixin(object):
     def clean_smc_max(self):
         max_value = self.cleaned_data.get("smc_max")
         min_value = self.cleaned_data.get("smc_min")
-        if min_value and max_value:
+        if min_value is not None and max_value is not None:
             if min_value > max_value:
                 raise forms.ValidationError("Must greater than or equal to min SMC")
         return max_value
@@ -71,7 +71,7 @@ class BurningPrescriptionCleanMixin(object):
     def clean_pmc_max(self):
         max_value = self.cleaned_data.get("pmc_max")
         min_value = self.cleaned_data.get("pmc_min")
-        if min_value and max_value:
+        if min_value is not None and max_value is not None:
             if min_value > max_value:
                 raise forms.ValidationError("Must greater than or equal to min PMC")
         return max_value
@@ -79,7 +79,7 @@ class BurningPrescriptionCleanMixin(object):
     def clean_wind_max(self):
         max_value = self.cleaned_data.get("wind_max")
         min_value = self.cleaned_data.get("wind_min")
-        if min_value and max_value:
+        if min_value is not None and max_value is not None:
             if min_value > max_value:
                 raise forms.ValidationError("Must greater than or equal to min wind speed")
         return max_value
@@ -116,7 +116,7 @@ class BurningPrescriptionConfigMixin(object):
         widgets_config = {
             "__default__.view":forms.widgets.TextDisplay(),
             "__default__.edit":forms.widgets.TextInput(),
-            "fuel_type.view":forms.widgets.HyperlinkFactory("fuel_type","implementation:prescription_burningprescription_update",ids=[("id","pk"),("prescription","ppk")]),
+            "fuel_type.list":forms.widgets.HyperlinkFactory("fuel_type","implementation:prescription_burningprescription_update",ids=[("id","pk"),("prescription","ppk")]),
             'sdi.edit':forms.widgets.Textarea(attrs={"class":"vTextField","style":"height:53px"}),
             'wind_dir.edit':forms.widgets.Textarea(attrs={"class":"vTextField","style":"height:53px"}),
             "delete.view":forms.widgets.HyperlinkFactory("id","implementation:prescription_burningprescription_delete_confirm",ids=[("id","pk"),("prescription","ppk")],querystring="nexturl={nexturl}",parameters=[("request_full_path","nexturl")],template="<img title='Delete' onclick='window.location=\"{url}\"' src='/static/img/delete.png' style='width:16px;height:16px;cursor:pointer'>")
@@ -145,6 +145,15 @@ class BurningPrescriptionCreateForm(BurningPrescriptionBaseForm):
 
 class BurningPrescriptionUpdateForm(BurningPrescriptionCreateForm):
     pass
+    class Meta:
+        model = BurningPrescription
+        purpose = ("edit","view")
+        all_fields = ("fuel_type","scorch","min_area","max_area","ros_min","ros_max","ffdi_min","ffdi_max","grassland_curing_min","grassland_curing_max","gfdi_min","gfdi_max",
+                "temp_min","temp_max","rh_min","rh_max","sdi","smc_min","smc_max","pmc_min","pmc_max","wind_min","wind_max","wind_dir")
+        editable_fields = ("fuel_type","scorch","min_area","max_area","ros_min","ros_max","ffdi_min","ffdi_max","grassland_curing_min","grassland_curing_max","gfdi_min","gfdi_max",
+                "temp_min","temp_max","rh_min","rh_max","sdi","smc_min","smc_max","pmc_min","pmc_max","wind_min","wind_max","wind_dir")
+        ordered_fields = ("fuel_type","scorch","min_area","ros_min","ffdi_min","grassland_curing_min","gfdi_min","temp_min","rh_min","sdi","smc_min","pmc_min","wind_min","wind_dir")
+
 
 class BurningPrescriptionBaseListForm(BurningPrescriptionConfigMixin,forms.ListForm):
     class Meta:

@@ -182,18 +182,23 @@ class ToggleableFieldIterator(collections.Iterable):
             raise StopIteration()
 
 
-class ListForm(forms.ActionMixin,forms.RequestUrlMixin,forms.ModelFormMetaMixin,django_forms.models.BaseModelForm,collections.Iterable,metaclass=ListModelFormMetaclass):
+class ListForm(forms.ActionMixin,forms.RequestUrlMixin,forms.ModelFormMetaMixin,django_forms.BaseForm,collections.Iterable,metaclass=ListModelFormMetaclass):
     """
     Use a form to display list data 
+    used to display only
     """
 
-    def __init__(self,data_list=None,instance_list=None,**kwargs):
-        if "data" in kwargs:
-            del kwargs["data"]
+    def __init__(self,instance_list=None,**kwargs):
+        kwargs["data"] = None
+        #ListForm is readonly, no need to create its own fields; set base_fields to None to prevent base form from deep copying base_fields.
+        self.base_fields = []
 
-        super(ListForm,self).__init__(**kwargs)
 
-        self.data_list = data_list
+        super().__init__(**kwargs)
+        #restore the base_fields and also set base_fields to fields
+        self.base_fields = self.__class__.base_fields
+        self.fields = self.base_fields
+
         self.instance_list = instance_list
         #set index to one position before the start position. because we need to call next() before getting the first data 
         self.index = None
@@ -271,34 +276,11 @@ class ListForm(forms.ActionMixin,forms.RequestUrlMixin,forms.ModelFormMetaMixin,
         pass
 
     @property
-    def data(self):
-        if self.index < 0:
-            return None
-        elif self.data_list and self.index < len(self.data_list):
-            return self.data_list[self.index]
-        else:
-            return None
-
-    @data.setter
-    def data(self,value):
-        pass
-
-    @property
-    def is_bound(self):
-        return self.data_list is not None
-
-    @is_bound.setter
-    def is_bound(self,value):
-        pass
-
-    @property
     def toggleable_fields(self):
         return self._meta.toggleable_fields
     
     def __len__(self):
-        if self.data_list:
-            return len(self.data_list)
-        elif self.instance_list:
+        if self.instance_list:
             return len(self.instance_list)
         else:
             return 0
@@ -314,12 +296,7 @@ class ListForm(forms.ActionMixin,forms.RequestUrlMixin,forms.ModelFormMetaMixin,
 
     def __next__(self):
         self.index += 1
-        if self.data_list:
-            if self.index < len(self.data_list):
-                return self.dataform
-            else:
-                raise StopIteration()
-        elif self.instance_list:
+        if self.instance_list:
             if self.index < len(self.instance_list):
                 return self.dataform
             else:

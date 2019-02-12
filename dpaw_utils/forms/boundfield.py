@@ -110,7 +110,7 @@ class BoundField(forms.boundfield.BoundField):
             data = self.field.bound_data(
                 self.data, self.form.initial.get(self.name, self.field.initial)
             )
-        if isinstance(data,models.Model) and self.is_display:
+        if self.is_display and (isinstance(data,models.Model) or isinstance(data,models.query.QuerySet) or (isinstance(data,(list,tuple)) and data and isinstance(data[0],models.Model))):
             return data
         else:
             return self.field.prepare_value(data)
@@ -258,7 +258,7 @@ class ListBoundFieldMixin(object):
         return mark_safe(template.format(name=self.name,label=label,activeclass=activeclass))
 
 
-    def html_header(self,template):
+    def html_header(self,template,style=""):
         label = (conditional_escape(self.label) or '') if self.label else ''
 
         if self.is_hidden:
@@ -280,17 +280,22 @@ class ListBoundFieldMixin(object):
                 attrs = " onclick=\"document.location='{}'\" class=\"{}\"".format(self.form.querystring(ordering="{}{}".format("-" if sorting_status == 'asc' else '',self.name)),sorting_class)
 
         if self.form._meta.widths and self.form_field_name in self.form._meta.widths:
-            attrs = "{} style='width:{};'".format(attrs,self.form._meta.widths[self.form_field_name])
+            attrs = "{} style='width:{};{}'".format(attrs,self.form._meta.widths[self.form_field_name],style)
 
         return mark_safe(template.format(label=label,attrs=attrs))
 
-    def html(self,template):
+    def html(self,template,style=""):
         if self.is_hidden:
             attrs = " style='display:none'"
         elif hasattr(self.field,"css_classes"):
             attrs = " class=\"{}\"".format(" ".join(self.field.css_classes))
         else:
             attrs = ""
+        if style:
+            if attrs:
+                attrs = "{} style='{}'".format(attrs,style)
+            else:
+                attrs = " style='{}'".format(style)
 
         return mark_safe(template.format(attrs=attrs,widget=self.as_widget()))
 
