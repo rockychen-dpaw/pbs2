@@ -20,3 +20,5 @@ git+git://github.com/carltongibson/django-filter@master
 django-downloadview==1.9
 
 django-smart-selects==1.5.4
+
+django_select2==6.3.1

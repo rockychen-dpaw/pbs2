@@ -34,10 +34,9 @@ class PrescriptionRegionalObjectivesUpdateView(pbs.forms.GetActionMixin,views.Ma
     def _get_success_url(self):
         return urls.reverse("risk:context_update",args=(self.pobject.id,))
 
-    def get_context_data(self,**kwargs):
-        context_data = super().get_context_data(**kwargs)
+    def update_context_data(self,context):
+        super().update_context_data(context)
         qs = self.model.objects.filter(region=self.pobject.region.id).exclude(prescription=self.pobject)
-        context_data["unselectedlistform"] = self.get_listform_class()(instance_list=qs,request=self.request,requesturl = self.requesturl)
-        context_data["object_list_length"] = len(qs) + len(self.object_list)
-        return context_data
+        context["unselectedlistform"] = self.get_listform_class()(instance_list=qs,request=self.request,requesturl = self.requesturl)
+        context["object_list_length"] = len(qs) + len(self.object_list)
 

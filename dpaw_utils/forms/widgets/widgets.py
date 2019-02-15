@@ -57,6 +57,9 @@ class Markdownify(DisplayWidget):
         extensions = ["nl2br"]
         return mark_safe(markdown.markdown(force_text(value), extensions=extensions,output_format='html'))
 
+class HtmlString(DisplayWidget):
+    def render(self,name,value,attrs=None,renderer=None):
+        return to_str(value)
 
 class TextDisplay(DisplayWidget):
     def render(self,name,value,attrs=None,renderer=None):

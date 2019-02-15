@@ -5,19 +5,11 @@
 
 {% block content %}
 <div>
-{% if form.errors %}
-    <p class="errornote alert alert-block alert-error fade in">
-    {% blocktrans count counter=errors|length %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
-    </p>
-{% endif %}
+
+{% include "includes/formerrors.html" %}
+
 <div class="row">
 <div class="span12">
-<div id="id_pageerrors"><span id="id__all__">
-    {% if form.non_field_errors %}
-        {% include "display_errors.html" with errors=form.non_field_errors %}
-    {% endif %}
-</span></div>
-
 <form action="" method="post" autocomplete="off" enctype="multipart/form-data">{% csrf_token %}
     {% if nexturl %}
     <input type="hidden" name="nexturl" value="{{nexturl}}">

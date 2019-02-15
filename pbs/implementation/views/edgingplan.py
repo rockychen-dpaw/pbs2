@@ -72,9 +72,7 @@ class PrescriptionEdgingPlanListView(pbs.forms.GetActionMixin,views.OneToManyLis
         import ipdb;ipdb.set_trace()
         return super().post(*args,**kwargs)
 
-    def get_context_data(self,**kwargs):
-        context = super().get_context_data(**kwargs)
-
-        return context
+    def update_context_data(self,context):
+        super().update_context_data(context)
     """
 

@@ -17,7 +17,7 @@ import django.db.models.fields
 
 from . import widgets
 from . import fields
-from .boundfield import (BoundField,CompoundBoundField,BoundFormField,BoundFormSetField,BoundFieldIterator)
+from . import boundfield
 from .fields import (CompoundField,FormField,FormSetField,AliasFieldMixin)
 
 from .utils import FieldClassConfigDict,FieldWidgetConfigDict,SubpropertyEnabledDict,ChainDict,Media,NoneValueKey
@@ -294,7 +294,7 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
             if hasattr(attrs['Meta'],"all_fields") and not hasattr(attrs['Meta'],"ordered_fields"):
                 setattr(attrs['Meta'],"ordered_fields",getattr(attrs['Meta'],'all_fields'))
 
-            for item in ("editable_fields","widths"):
+            for item in ("editable_fields","widths","listfooter_fields"):
                 if not hasattr(attrs['Meta'],item):
                     config = BaseModelFormMetaclass.meta_item_from_base(bases,item)
                     if config:
@@ -367,7 +367,7 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
             return new_class
 
 
-        for item in ("other_fields","ordered_fields","field_classes_config","widgets_config","widths","editable_fields","purpose"):
+        for item in ("other_fields","ordered_fields","field_classes_config","widgets_config","widths","editable_fields","purpose","listfooter_fields"):
             if hasattr(meta,item) :
                 setattr(opts,item,getattr(meta,item))
             else:
@@ -495,7 +495,7 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
             if field_class:
                 kwargs['form_class'] = field_class
             elif not db_field :
-                raise Exception("Please cofigure form field for property '{}' in 'field_classes' option".format(field_name))
+                raise Exception("Please cofigure form field for property '{}' in 'field_classs_config' option".format(field_name))
 
             #try to get configured widget
             field_widget = None
@@ -514,7 +514,7 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
             if field_widget:
                 kwargs['widget'] = field_widget
             elif not db_field:
-                raise Exception("Please configure widget for property '{}.{}' in 'widgets' option".format(name,field_name))
+                raise Exception("Please configure widget for property '{}.{}' in 'widgets_config' option".format(name,field_name))
 
             if remote_field:
                 kwargs['localize'] = remote_field_opts.localized_fields == forms.models.ALL_FIELDS or (remote_field_opts.localized_fields and remote_field_name in remote_field_opts.localized_fields)
@@ -579,6 +579,70 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
             field_list = OrderedDict(field_list)
             new_class.base_fields.update(field_list)
 
+        #######delcare footer fields
+        listfooter = []
+        listfooter_fields = {}
+        row_field_list = None
+        for row in opts.listfooter_fields or []:
+            if not row:
+                continue
+            row_field_list = []
+            listfooter.append(row_field_list)
+            for column in row:
+                if not column:
+                    row_field_list.append((None,1))
+                    continue
+                elif isinstance(column,str):
+                    field_name = column
+                    colspan = 1
+                else:
+                    field_name = column[0]
+                    colspan = column[1]
+                    if colspan == 0:
+                        row_field_list.append((None,0))
+                        continue
+
+                kwargs.clear()
+                #try to get configured field_class
+                field_class = opts.field_classes.get_config(field_name)
+    
+                if field_class and isinstance(field_class,forms.Field):
+                    #already configure a form field instance, use it directly
+                    field_class.form_declared = True
+                    row_field_list.append((field_name, colspan))
+                    listfooter_fields[field_name] = field_class
+                    continue
+                elif field_class:
+                    kwargs['form_class'] = field_class
+                else :
+                    raise Exception("Please cofigure form footer field '{}' in 'field_classes_config' option".format(field_name))
+    
+                #try to get configured widget
+                field_widget = opts.widgets.get_config(field_name)
+    
+                if field_widget:
+                    kwargs['widget'] = field_widget
+                else:
+                    raise Exception("Please configure widget for footer field '{}.{}' in 'widgets_config' option".format(name,field_name))
+    
+                kwargs['localize'] = False
+    
+                kwargs['label'] = ""
+                kwargs['help_text'] = ""
+                kwargs['error_messages'] = ""
+    
+                kwargs['required'] = False
+    
+                formfield = formfield_callback(None, **kwargs)
+    
+                formfield.form_declared = True
+                row_field_list.append((field_name, colspan))
+                listfooter_fields[field_name] = field_class
+
+        new_class.listfooter_fields = listfooter_fields
+        new_class.listfooter = listfooter
+
+        ##################
         #add '*' for required field
         if not hasattr(meta,"field_required_flag") or getattr(meta,"field_required_flag"):
             for field in new_class.base_fields.values():
@@ -604,6 +668,7 @@ class BaseModelFormMetaclass(forms.models.ModelFormMetaclass):
                 media += field.widget.media
 
         setattr(opts,"media",media)
+        setattr(new_class,"media",media)
 
         update_db_fields = list(opts.extra_update_fields)
         update_model_properties = ([],[])
@@ -816,10 +881,6 @@ class ModelForm(ActionMixin,RequestMixin,ModelFormMetaMixin,forms.models.BaseMod
         return self._meta.update_db_fields
 
     @property
-    def media(self):
-        return self._meta.media
-
-    @property
     def model_verbose_name(self):
         return self._meta.model._meta.verbose_name;
 
@@ -829,7 +890,7 @@ class ModelForm(ActionMixin,RequestMixin,ModelFormMetaMixin,forms.models.BaseMod
 
     @property
     def boundfields(self):
-        return BoundFieldIterator(self)
+        return boundfield.BoundFieldIterator(self)
 
     def is_editable(self,name):
         return self.editable_fieldnames is None or name in self.editable_fieldnames
@@ -986,22 +1047,29 @@ class ModelForm(ActionMixin,RequestMixin,ModelFormMetaMixin,forms.models.BaseMod
         try:
             field = self.all_fields[name]
         except KeyError:
-            raise KeyError(
-                "Key '%s' not found in '%s'. Choices are: %s." % (
-                    name,
-                    self.__class__.__name__,
-                    ', '.join(sorted(f for f in self.fields)),
+            try:
+                field = self.listfooter_fields[name]
+            except:
+                raise KeyError(
+                    "Key '%s' not found in '%s'. Choices are: %s." % (
+                        name,
+                        self.__class__.__name__,
+                        ', '.join(sorted([f for f in self.fields] + [f for f in self.listfooter_fields])),
+                    )
                 )
-            )
         if name not in self._bound_fields_cache:
             if isinstance(field,fields.CompoundField):
-                self._bound_fields_cache[name] = CompoundBoundField(self,field,name)
+                self._bound_fields_cache[name] = boundfield.CompoundBoundField(self,field,name)
             elif isinstance(field,fields.FormField):
-                self._bound_fields_cache[name] = BoundFormField(self,field,name)
+                self._bound_fields_cache[name] = boundfield.BoundFormField(self,field,name)
             elif isinstance(field,fields.FormSetField):
-                self._bound_fields_cache[name] = BoundFormSetField(self,field,name)
+                self._bound_fields_cache[name] = boundfield.BoundFormSetField(self,field,name)
+            elif isinstance(field,fields.AggregateField):
+                self._bound_fields_cache[name] = boundfield.AggregateBoundField(self,field,name)
+            elif isinstance(field,fields.HtmlStringField):
+                self._bound_fields_cache[name] = boundfield.HtmlStringBoundField(self,field,name)
             else:
-                self._bound_fields_cache[name] = BoundField(self,field,name)
+                self._bound_fields_cache[name] = boundfield.BoundField(self,field,name)
         return self._bound_fields_cache[name]
     
             

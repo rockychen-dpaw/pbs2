@@ -35,10 +35,9 @@ class BurnImplementationStateUpdateView(AjaxRequestMixin,OneToOneUpdateView):
             kwargs["editable_fields"] = [submit_field]
         return kwargs
 
-    def get_context_data(self,**kwargs):
-        context_data = super(BurnImplementationStateUpdateView,self).get_context_data(**kwargs)
-        context_data["download_pdf"] = urls.reverse("prescription:prescription_download",kwargs={"pk":self.pobject.id})
-        return context_data
+    def update_context_data(self,context):
+        super(BurnImplementationStateUpdateView,self).update_context_data(context)
+        context["download_pdf"] = urls.reverse("prescription:prescription_download",kwargs={"pk":self.pobject.id})
 
     def post_ajax(self,request,ppk,*args,**kwargs):
         form = self.get_form_class()(**self.get_form_kwargs())

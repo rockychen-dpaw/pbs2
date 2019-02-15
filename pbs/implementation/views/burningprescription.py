@@ -51,6 +51,9 @@ class PrescriptionBurningPrescriptionListView(pbs.forms.GetActionMixin,views.One
     template_name_suffix = "_list"
     default_order = ("fuel_type__name","id")
 
+    def get_mediaforms(self):
+        return (self.get_listform_class(),TreatmentListForm)
+
     def _get_success_url(self):
         return urls.reverse("implementation:prescription_burningprescription_list",args=(self.pobject.id,))
 
@@ -73,11 +76,9 @@ class PrescriptionBurningPrescriptionListView(pbs.forms.GetActionMixin,views.One
         return super().post(*args,**kwargs)
     """
 
-    def get_context_data(self,**kwargs):
-        context = super().get_context_data(**kwargs)
+    def update_context_data(self,context):
+        super().update_context_data(context)
         context["treatmentlistform"] = TreatmentListForm(instance_list=Treatment.objects.filter(register__prescription = self.pobject),request=self.request,requesturl = self.requesturl)
         context["documents_165"] = self.pobject.document_set.filter(tag__id=165)
         context["documents_167"] = self.pobject.document_set.filter(tag__id=167)
-
-        return context
 

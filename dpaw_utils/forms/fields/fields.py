@@ -96,6 +96,12 @@ def AliasFieldFactory(model,field_name,field_class=None,field_params=None):
             field_classes[class_key] = type(class_name,(AliasFieldMixin,field_class),{"field_name":field_name})
     return field_classes[class_key]
 
+class HtmlStringField(forms.Field):
+    def __init__(self,html,*args,**kwargs):
+        kwargs["widget"] = widgets.HtmlString
+        super(HtmlStringField,self).__init__(*args,**kwargs)
+        self.html = html
+
 class CompoundField(AliasFieldMixin,FieldParametersMixin):
     """
     A base class of compund field which consists of multiple form fields

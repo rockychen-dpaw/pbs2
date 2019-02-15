@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'reversion',
     'django_filters',
+    'django_select2',
     'guardian',
 
     'smart_selects',
@@ -248,6 +249,10 @@ if DEBUG:
 
 #used by smart selector
 JQUERY_URL = False
+
+#used by django_select2
+SELECT2_JS = "js/select2.min.js"
+SELECT2_CSS = "css/select2.min.css"
 
 ENV_TYPE = env('ENV_TYPE') or None
 if not ENV_TYPE:

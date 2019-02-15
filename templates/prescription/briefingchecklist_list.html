@@ -1,20 +1,30 @@
-{% extends "../changelist_2panels.html" %}
+{% extends "../list.html" %}
 {% load i18n %}
 {% load pbs_utils %}
 
 {% block content_title %}
-{{block.super}}
-<div class="span9">
-<p id="max_complexity">Maximum rating: <strong>{{prescriptionform.maximum_complexity}}</strong></p>
+<div class="row">
+    <div class="span12" >
+	<h1>Checklist Report
+            <span class="pull-right">
+	    <a class="btn btn-small btn-info" href=""><i class="icon-download-alt"></i> Download the Briefing Checklist template</a>
+           <a href="{% url 'document:prescription_taggeddocument_add' prescription.id 182 %}?nexturl={% url 'prescription:prescription_briefingchecklist_list' prescription.id %}" class="btn btn-info btn-small"><b><i class="icon-plus"></i> Upload Briefing Checklist</b></a>
+            </span>
+        </h1>
+        {% include "document/includes/document_list.html" with document_type="Briefing Checklist" %}
+    </div>
 </div>
+{{block.super}}
 {% endblock %}
+
+
 {% block breadcrumbs %}
 
 <ul class="breadcrumb">
   <li><a href="{% url 'prescription:prescription_list' %}">{% trans 'Regional Overview' %}</a> <span class="divider">/</span></li>
   <li><a href="{% url 'prescription:prescription_home' prescription.id %}">{{ prescription.burn_id }}</a> <span class="divider">/</span></li>
-  <li><a href="% url 'report:prescription_pre_state_update' object.id %}">Part A</a> <span class="divider">/</span></li>
-  <li>Section A5 &#x2010; Prescribed Burn Complexity Analysis Summary</li>
+  <li><a href="% url 'report:prescription_day_state_update' prescription.id %}">Part B</a> <span class="divider">/</span></li>
+  <li>Section B8 &#x2010; Briefing Checklist</li>
 </ul>
 
 {% endblock %}
@@ -26,7 +36,7 @@
         <thead>
             <tr>
                 {% for field in listform.boundfields %}
-                {% if field.name != 'factor' %}
+                {% if field.name != 'smeac' %}
                 {% call_method field "html_header" "<th{attrs}><div class=\"text\"> {label}</div></th>"%}
                 {% endif %}
                 {% endfor %}
@@ -34,17 +44,17 @@
         </thead>
         <tbody>
             {% for form in listform %}
-            {% if factor != form.factor.value %}
+            {% if smeac != form.smeac.value %}
             <tr>
-                <td colspan="{{listform.boundfieldlength}}">{{form.factor}}</td>
+                <th colspan="{{listform.boundfieldlength}}">{{form.smeac}}</th>
             </tr>
-            {% setvar form.factor.value as factor %}
+            {% setvar form.smeac.value as smeac %}
             {% endif %}
             <tr> 
                 {% for field in form.boundfields %}
-                    {% if field.name == 'sub_factor' %}
+                    {% if field.name == 'title' %}
                     {% call_method field "html" "<td{attrs} style='padding-left:30px'>{widget}</td>"%}
-                    {% elif field.name != 'factor'%}
+                    {% elif field.name != 'smeac' %}
                     {% call_method field "html" "<td{attrs}>{widget}</td>"%}
                     {% endif %}
                 {% endfor %}
@@ -56,18 +66,3 @@
 
 {% endblock %}
 
-{% block rightpanel %}
-<div class="span3">
-  <h5>Filter</h5>
-  <ul class="nav nav-list">
-    <li class="nav-header">By factor</li>
-    {% url 'risk:prescription_complexity_changelist' prescription.id as complexityurl %}
-    <li {% if listform.fullpath == complexityurl %}class="active"{% endif %}><a href="{{complexityurl}}">All</a></li>
-    {% for factor in factorlist %}
-    {% setvar complexityurl '?factor=' factor|urlencode as filterurl %}
-    <li  {% if listform.fullpath == filterurl %}class="active"{% endif %}><a href="{{filterurl}}">{{factor}}</a></li>
-    {% endfor %}
-  </ul>
-</div>
-
-{% endblock %}

@@ -87,12 +87,10 @@ class PrescriptionActionsUpdateView(pbs.forms.GetActionMixin,views.OneToManyList
         else:
             return super().get_listform_class()
 
-    def get_context_data(self,**kwargs):
-        context = super().get_context_data(**kwargs)
+    def update_context_data(self,context):
+        super().update_context_data(context)
         context["relevantlist"] = ((True,"Yes"),(False,"No"))
         context["categorylist"] = categorylist
-
-        return context
 
 
 class PrescriptionPreBurnActionsUpdateView(pbs.forms.GetActionMixin,views.OneToManyListUpdateView):
@@ -115,11 +113,9 @@ class PrescriptionPreBurnActionsUpdateView(pbs.forms.GetActionMixin,views.OneToM
     def _get_success_url(self):
         return urls.reverse("risk:prescription_preburn_action_changelist",args=(self.pobject.id,))
 
-    def get_context_data(self,**kwargs):
-        context = super().get_context_data(**kwargs)
+    def update_context_data(self,context):
+        super().update_context_data(context)
         context["documents"] = self.pobject.document_set.filter(tag__id=171)
-
-        return context
 
 class PrescriptionDayOfBurnActionsUpdateView(pbs.forms.GetActionMixin,views.OneToManyListUpdateView):
     title = "Day of Burn Actions"
@@ -133,6 +129,8 @@ class PrescriptionDayOfBurnActionsUpdateView(pbs.forms.GetActionMixin,views.OneT
     default_order = ("risk__category__name","risk__name","index")
     template_name_suffix = "_dayofburn_changelist"
 
+    def get_mediaforms(self):
+        return (self.get_listform_class(),TreatmentListForm)
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -141,12 +139,10 @@ class PrescriptionDayOfBurnActionsUpdateView(pbs.forms.GetActionMixin,views.OneT
     def _get_success_url(self):
         return urls.reverse("risk:prescription_dayofburn_action_changelist",args=(self.pobject.id,))
 
-    def get_context_data(self,**kwargs):
-        context = super().get_context_data(**kwargs)
+    def update_context_data(self,context):
+        super().update_context_data(context)
         context["documents"] = self.pobject.document_set.filter(tag__id=184)
         context["treatmentlistform"] = TreatmentListForm(instance_list=Treatment.objects.filter(register__prescription = self.pobject),request=self.request,requesturl = self.requesturl)
-
-        return context
 
 class PrescriptionPostBurnActionsUpdateView(pbs.forms.GetActionMixin,views.OneToManyListUpdateView):
     title = "Post Burn Actions"
@@ -168,9 +164,7 @@ class PrescriptionPostBurnActionsUpdateView(pbs.forms.GetActionMixin,views.OneTo
     def _get_success_url(self):
         return urls.reverse("risk:prescription_postburn_action_changelist",args=(self.pobject.id,))
 
-    def get_context_data(self,**kwargs):
-        context = super().get_context_data(**kwargs)
+    def update_context_data(self,context):
+        super().update_context_data(context)
         context["documents"] = self.pobject.document_set.filter(tag__id=189)
-
-        return context
 

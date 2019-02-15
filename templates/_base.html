@@ -21,14 +21,14 @@
   <link rel="shortcut icon" type="image/png" href="{{STATIC_URL}}favicon.ico"/>
 
   {% block fieldstyle %}
-  {% for css in form.media.render_css %}
+  {% for css in htmlmedia.render_css %}
   {{css}}
   {% endfor %}
   {% endblock %}
 
   {% block fieldstatements %}
   <script type="text/javascript">
-    {% for statement in form.media.render_statements %}
+    {% for statement in htmlmedia.render_statements %}
     {{statement}}
     {% endfor %}
   </script>
@@ -55,7 +55,7 @@
   <script src="{% static 'pbs/js/is-number.js' %}" type="text/javascript"></script>
 
   {% block fieldjs %}
-  {% for js in form.media.render_js %}
+  {% for js in htmlmedia.render_js %}
   {{js}}
   {% endfor %}
   {% endblock %}
@@ -134,6 +134,8 @@
 {% url 'implementation:prescription_exclusionarea_changelist' prescription.id as exclusionareaurl %}
 {% url 'implementation:prescription_lightingsequence_list' prescription.id as lightingsequenceurl %}
 {% url 'risk:prescription_contingency_list' prescription.id as contingencyurl %}
+{% url 'prescription:prescription_briefingchecklist_list' prescription.id as briefingchecklisturl %}
+{% url 'report:prescription_areaachievement_changelist' prescription.id as areaachievementurl %}
 {% block body %}
 <body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}" style={% page_background %}>
 {% if not is_popup %}
@@ -301,10 +303,10 @@
                   <li{% if request.path == exclusionareaurl %} class="active"{% endif %}><a href="{{ exclusionareaurl }}">B5 - Areas to be Excluded from ignition</a></li>
                   <li{% if request.path == contingencyurl %} class="active"{% endif %}><a href="{{ contingencyurl }}">B6 - Contingency Plan</a></li>
                   <li{% if request.path == orgstructureurl %} class="active"{% endif %}><a href="{{ orgstructureurl }}">B7 - Organisational Structure</a></li>
-                  <li{% if request.path == briefing_checklist %} class="active"{% endif %}><a href="{{ briefing_checklist }}" target=_blank>B8 - Briefing Checklist (SMEACS)</a></li>
+                  <li{% if request.path == briefingchecklisturl %} class="active"{% endif %}><a href="{{ briefingchecklisturl }}" >B8 - Briefing Checklist (SMEACS)</a></li>
                   <li{% if request.path == sectionb9url %} class="active"{% endif %}><a href="{{ sectionb9url }}">B9 - Operations Officer's Day of Burn Checklist</a></li>
                   <li{% if request.path == sectionb10url %} class="active"{% endif %}><a href="{{ sectionb10url }}">B10 - Fire and Weather Observations</a></li>
-                  <li{% if request.path == area_achievement %} class="active"{% endif %}><a href="{{ area_achievement }}">B11 - DoB achievement update</a></li>
+                  <li{% if request.path == areaachievementurl %} class="active"{% endif %}><a href="{{ areaachievementurl }}">B11 - DoB achievement update</a></li>
                 </ul>
               </li>
               <li id="closure-dropdown" class="dropdown">

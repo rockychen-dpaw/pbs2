@@ -8,6 +8,7 @@ from pbs.forms import (BUTTON_ACTIONS,OPTION_ACTIONS)
 from pbs.utils import FinancialYear
 from pbs.report.forms import (SummaryCompletionStateViewForm,BurnImplementationStateViewForm,BurnClosureStateViewForm)
 from pbs.prescription.forms.fundingallocation import FundingAllocationUpdateFormSet
+from pbs.report.models import AreaAchievement
 import pbs.widgets
 import pbs.fields
 
@@ -140,6 +141,7 @@ class PrescriptionCleanMixin(object):
             raise forms.ValidationError("Financial year burnt must be in the current financial year or in the future.")
 
         return financial_year.format(year)
+
     def clean_all_allocations(self):
         total_proportion = 0
         for form in self["all_allocations"].formset:
@@ -148,6 +150,16 @@ class PrescriptionCleanMixin(object):
 
         if total_proportion != 100:
             raise forms.ValidationError("Total proportion allocated must be 100%; currently {}%".format(total_proportion))
+
+    def clean_ignition_completed_date(self):
+        data = self.cleaned_data.get("ignition_completed_date")
+        if data:
+            if AreaAchievement.objects.filter(prescription=self.instance,ignition__gt = data).exists():
+                raise forms.ValidationError(" Ignition Completed date cannot be before the final/latest area burn date. ")
+        return data
+
+            
+
 
     """
     def clean_last_year(self):
@@ -375,7 +387,8 @@ class PrescriptionConfigMixin(object):
             "endorsement_status_modified":forms.widgets.DatetimeDisplay("%d-%m-%Y"),
             "approval_status_modified":forms.widgets.DatetimeDisplay("%d-%m-%Y"),
             "current_approval_valid_period":forms.widgets.DatetimeDisplay("%d-%m-%Y"),
-            "ignition_completed_date":forms.widgets.DatetimeDisplay("%d-%m-%Y"),
+            'ignition_completed_date.edit':forms.widgets.DateInput(maxdate=False,attrs={"style":"width:80px"}),
+            "ignition_completed_date.view":forms.widgets.DatetimeDisplay("%d-%m-%Y"),
             'status.view':pbs.widgets.PrescriptionStatusIconDisplay(),
             'status.list':pbs.widgets.PrescriptionStatusDisplay(),
             "tenures.edit":forms.widgets.FilteredSelectMultiple("Burn Tenures",False),
@@ -444,6 +457,17 @@ class PrescriptionMaximumDraftRiskForm(PrescriptionBaseForm):
         model = Prescription
         purpose = (None,"view")
         all_fields = ("maximum_draft_risk",)
+
+class ClosePrescriptionForm(PrescriptionBaseForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        model = Prescription
+        purpose = ("edit","view")
+        all_fields = ("ignition_completed_date",)
+        editable_fields = ("ignition_completed_date",)
+        extra_update_fields = ('modifier_id','modified','ignition_status','ignition_status_modified')
 
 class PrescriptionUpdateForm(PrescriptionBaseForm):
     all_buttons = [

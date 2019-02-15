@@ -47,10 +47,8 @@ class PrescriptionRoadSegmentListUpdateView(pbs.forms.GetActionMixin,views.OneTo
         return super().post(*args,**kwargs)
     """
 
-    def get_context_data(self,**kwargs):
-        context = super().get_context_data(**kwargs)
+    def update_context_data(self,context):
+        super().update_context_data(context)
         context["trafficdiagramlistform"] = TrafficControlDiagramListForm(instance_list=[o.traffic_diagram for o in self.object_list if o.traffic_diagram])
         context["documents"] = self.pobject.document_set.filter(tag__id=199)
-
-        return context
 

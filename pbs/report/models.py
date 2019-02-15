@@ -9,7 +9,7 @@ from django.core.validators import MinValueValidator
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from dpaw_utils.models import AuditMixin,DictMixin
+from dpaw_utils.models import AuditMixin,ModelDictMixin
 
 from pbs.prescription.models import Prescription, SuccessCriteria
 from pbs.risk.models import Complexity, Context, ContextRelevantAction, Action
@@ -18,7 +18,7 @@ from pbs.implementation.models import IgnitionType, RoadSegment, TrailSegment
 log = logging.getLogger(__name__)
 
 # Create your models here.
-class AbstractState(DictMixin,AuditMixin):
+class AbstractState(ModelDictMixin,AuditMixin):
     """
     Add some helper functions to our state models to track progress.
     """
@@ -788,7 +788,7 @@ class BurnClosureState(AbstractState):
                                   "complete before the ePFP is ready to be "
                                   "closed.")
 
-class AreaAchievement(AuditMixin):
+class AreaAchievement(ModelDictMixin,AuditMixin):
     prescription = models.ForeignKey(Prescription, on_delete=models.PROTECT)
     #Jira issue PBS-1407
     ignition = models.DateField(verbose_name="Ignition Date")# default=lambda: timezone.now().date())

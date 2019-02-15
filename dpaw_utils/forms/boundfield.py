@@ -28,10 +28,57 @@ class BoundFieldIterator(collections.Iterable):
         else:
             return self.form[self.form._meta.ordered_fields[self._index]]
 
+class HtmlStringBoundField(forms.boundfield.BoundField):
+    def __init__(self, form, field, name):
+        self.form_field_name = name
+        super(HtmlStringBoundField,self).__init__(form,field,name)
+
+    @property
+    def is_display(self):
+        return True
+
+    @property
+    def is_hidden(self):
+        return False
+
+
+    @property
+    def initial(self):
+        return self.field.html
+
+    @property
+    def auto_id(self):
+        return ""
+
+    def html(self):
+        return mark_safe(self.as_widget())
+    
+    @property
+    def hascleanvalue(self):
+        return False
+
+    def value(self):
+        """
+        Returns the value for this BoundField, using the initial value if
+        the form is not bound or the data otherwise.
+        """
+        return self.field.html
+
+    def as_widget(self, widget=None, attrs=None, only_initial=False):
+        """
+        Renders the field by rendering the passed widget, adding any HTML
+        attributes passed as attrs.  If no widget is specified, then the
+        field's default widget will be used.
+        """
+        return self.field.widget.render(self.name,self.value())
+
 class BoundField(forms.boundfield.BoundField):
     def __init__(self, form, field, name):
         self.form_field_name = name
         super(BoundField,self).__init__(form,field,field.field_name if isinstance(field,fields.AliasFieldMixin) else name)
+
+    def css_classes(self, extra_classes=None):
+        return None
     """ 
     Extend django's BoundField to support the following features
     1. Get extra css_classes from field's attribute 'css_classes'
@@ -125,9 +172,15 @@ class BoundField(forms.boundfield.BoundField):
             attrs = {'style':'display:none'}
         html = super(BoundField,self).as_widget(widget,attrs,only_initial)
         if not self.is_display and self.name in self.form.errors:
-            html =  "<table class=\"error\" style=\"display:inline;\"><tr><td class=\"error\">{}<p class=\"text-error\" style=\"margin:0px\"><i class=\"icon-warning-sign\"></i> {}</p></td></tr></table>".format(html,"<br>".join(self.form.errors[self.name]))
+            html =  "<table class=\"error\" style=\"display:inline;\"><tr><td class=\"error\">{}<div class=\"text-error\" style=\"margin:0px\"><i class=\"icon-warning-sign\"></i> {}</div></td></tr></table>".format(html,"<br>".join(self.form.errors[self.name]))
             pass
         return html
+
+class AggregateBoundField(BoundField):
+    def value(self):
+        return self.field.value(self.form)
+    def as_widget(self, widget=None, attrs=None, only_initial=False):
+        return self.field.widget.render(self.name,self.value())
 
 @html_safe
 class CompoundBoundField(BoundField):

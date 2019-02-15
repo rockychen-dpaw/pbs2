@@ -49,6 +49,10 @@ class ListDataForm(django_forms.BaseForm,collections.Iterable):
         self.renderer = renderer
 
     @property
+    def boundfields(self):
+        return self.listform.boundfields
+
+    @property
     def fields(self):
         return self.listform.fields
 
@@ -215,6 +219,10 @@ class ListForm(forms.ActionMixin,forms.RequestUrlMixin,forms.ModelFormMetaMixin,
         return boundfield.BoundFieldIterator(self)
 
     @property
+    def haslistfooter(self):
+        return True if self.listfooter else False
+
+    @property
     def toggleablefields(self):
         if hasattr(self._meta,"toggleable_fields") and self._meta.toggleable_fields:
             return ToggleableFieldIterator(self)
@@ -236,10 +244,6 @@ class ListForm(forms.ActionMixin,forms.RequestUrlMixin,forms.ModelFormMetaMixin,
     @property
     def model_verbose_name_plural(self):
         return self._meta.model._meta.verbose_name_plural;
-
-    @property
-    def media(self):
-        return self._meta.media
 
     @property
     def instance(self):
@@ -290,6 +294,9 @@ class ListForm(forms.ActionMixin,forms.RequestUrlMixin,forms.ModelFormMetaMixin,
         self.index = 0
         return self.dataform
 
+    def footerfield(self,name):
+        return self[name].as_widget()
+
     def __iter__(self):
         self.index = -1
         return self
@@ -312,16 +319,23 @@ class ListForm(forms.ActionMixin,forms.RequestUrlMixin,forms.ModelFormMetaMixin,
         try:
             field = self.fields[name]
         except KeyError:
-            raise KeyError(
-                "Key '%s' not found in '%s'. Choices are: %s." % (
-                    name,
-                    self.__class__.__name__,
-                    ', '.join(sorted(f for f in self.fields)),
+            try:
+                field = self.listfooter_fields[name]
+            except:
+                raise KeyError(
+                    "Key '%s' not found in '%s'. Choices are: %s." % (
+                        name,
+                        self.__class__.__name__,
+                        ', '.join(sorted([f for f in self.fields] + [f for f in self.listfooter_fields])),
+                    )
                 )
-            )
         if name not in self._bound_fields_cache:
             if isinstance(field,fields.CompoundField):
                 self._bound_fields_cache[name] = boundfield.CompoundListBoundField(self,field,name)
+            elif isinstance(field,fields.AggregateField):
+                self._bound_fields_cache[name] = boundfield.AggregateBoundField(self,field,name)
+            elif isinstance(field,fields.HtmlStringField):
+                self._bound_fields_cache[name] = boundfield.HtmlStringBoundField(self,field,name)
             else:
                 self._bound_fields_cache[name] = boundfield.ListBoundField(self,field,name)
         return self._bound_fields_cache[name]

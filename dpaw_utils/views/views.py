@@ -8,14 +8,47 @@ from django.http import (Http404,HttpResponse,HttpResponseForbidden,JsonResponse
 import django.views.generic.edit as django_edit_view
 import django.views.generic.list as django_list_view
 from django.db import transaction
+
 from dpaw_utils.forms.utils import ChainDict
+from dpaw_utils.forms.utils import Media
+from dpaw_utils.forms.formsets import ListUpdateForm
+from dpaw_utils.forms.listform import ListForm
 
 
 class ReturnHttpResponse(Exception):
     def __init__(self,response):
         super(ReturnHttpResponse,self).__init__(str(response))
         self.response = response
-    
+
+class ErrorMixin(object):
+    errorform_keys = ("form",)
+
+    def post_update_context_data(self,context):
+        super(ErrorMixin,self).post_update_context_data(context)
+        error_count = 0
+        non_field_errors = []
+        for key in self.errorform_keys:
+            form = context[key]
+            if isinstance(form,ListUpdateForm):
+                for err in form.errors:
+                    error_count += len(err)
+                for member_form in form:
+                    for key,err in member_form.errors.items():
+                        if key:
+                            continue
+                        non_field_errors.append(err)
+            elif isinstance(form,ListForm):
+                continue
+            else:
+                error_count += len(form.errors)
+                for key,err in form.errors.items():
+                    if key:
+                        continue
+                    non_field_errors.append(err)
+        context["error_count"] = error_count
+        context["non_field_errors"] = non_field_errors
+
+
 class NextUrlMixin(object):
     def get_success_url(self):
         if self.request.method == 'GET':
@@ -41,11 +74,10 @@ class NextUrlMixin(object):
             return self.request.POST.get('nexturl')
 
 
-    def get_context_data(self,**kwargs):
-        context_data = super(NextUrlMixin,self).get_context_data(**kwargs)
+    def update_context_data(self,context):
+        super(NextUrlMixin,self).update_context_data(context)
         if self.nexturl:
-            context_data["nexturl"] = self.nexturl
-        return context_data
+            context["nexturl"] = self.nexturl
 
 class SuccessUrlMixin(object):
     def get_success_url(self):
@@ -110,6 +142,12 @@ class ModelMixin(object):
     @property
     def model_verbose_name_plural(self):
         return self.model._meta.verbose_name_plural;
+
+    def update_context_data(self,context):
+        pass
+
+    def post_update_context_data(self,context):
+        pass
 
 
 class AjaxRequestMixin(object):
@@ -399,12 +437,37 @@ class UrlpatternsMixin(object):
     def _get_extra_urlpatterns(cls):
         return None
 
+class HtmlMediaMixin(object):
+    medias = {}
+
+    def get_mediaforms(self):
+        return (self.get_form_class(),)
+
+    def add_htmlmedia_context(self,context):
+        mediaforms = self.get_mediaforms()
+        if len(mediaforms) == 1:
+            context["htmlmedia"] = mediaforms[0].media
+        else:
+            try:
+                context["htmlmedia"] = self.medias[mediaforms]
+            except:
+                media = Media()
+                for mediaform in mediaforms:
+                    media += mediaform.media
+                self.medias[mediaforms] = media
+                context["htmlmedia"] = media
+
+    def update_context_data(self,context):
+        super(HtmlMediaMixin,self).update_context_data(context)
+        self.add_htmlmedia_context(context)
+
 class ParentObjectMixin(object):
     pmodel = None
     pform_class = None
     ppk_url_kwarg = "ppk"
     context_pform_name = None
     context_pobject_name = None
+    pform = None
 
     @property
     def pobject(self):
@@ -425,8 +488,8 @@ class ParentObjectMixin(object):
         kwargs["parent_instance"] = self.pobject
         return kwargs
 
-    def get_context_data(self, **kwargs):
-        context = super(ParentObjectMixin,self).get_context_data(**kwargs)
+    def update_context_data(self,context):
+        super(ParentObjectMixin,self).update_context_data(context)
         context["pobject"] = self.pobject
         pform_class = self.get_pform_class()
         if pform_class:
@@ -437,13 +500,17 @@ class ParentObjectMixin(object):
         if self.context_pobject_name:
             context[self.context_pobject_name] = self.pobject
 
-        return context
-
     def get(self, request, *args, **kwargs):
         pform_class = self.get_pform_class()
         if pform_class:
             self.pform = pform_class(instance=self.pobject,request=self.request)
         return super(ParentObjectMixin,self).get(request,*args,**kwargs)
+
+    def post(self,request,*args,**kwargs):
+        pform_class = self.get_pform_class()
+        if pform_class:
+            self.pform = pform_class(instance=self.pobject,data=self.request.POST,request=self.request)
+        return super(ParentObjectMixin,self).post(request,*args,**kwargs)
 
     def get_pform_class(self):
         return self.pform_class
@@ -471,7 +538,7 @@ class OneToOneModelMixin(ParentObjectMixin):
         return obj
             
         
-class CreateView(NextUrlMixin,SuccessUrlMixin,UrlpatternsMixin,FormMixin,django_edit_view.CreateView):
+class CreateView(ErrorMixin,HtmlMediaMixin,NextUrlMixin,SuccessUrlMixin,UrlpatternsMixin,FormMixin,ModelMixin,django_edit_view.CreateView):
     title = None
     def get_form_kwargs(self):
         kwargs = super(CreateView,self).get_form_kwargs()
@@ -479,11 +546,13 @@ class CreateView(NextUrlMixin,SuccessUrlMixin,UrlpatternsMixin,FormMixin,django_
         return kwargs
 
     def get_context_data(self,**kwargs):
-        context_data = super(CreateView,self).get_context_data(**kwargs)
-        context_data["title"] = self.title or "Add {}".format(self.model._meta.verbose_name)
-        return context_data
+        context = super(CreateView,self).get_context_data(**kwargs)
+        context["title"] = self.title or "Add {}".format(self.model._meta.verbose_name)
+        self.update_context_data(context)
+        self.post_update_context_data(context)
+        return context
 
-class DetailView(UrlpatternsMixin,SuccessUrlMixin,FormMixin,ModelMixin,django_edit_view.UpdateView):
+class DetailView(HtmlMediaMixin,UrlpatternsMixin,SuccessUrlMixin,FormMixin,ModelMixin,django_edit_view.UpdateView):
     title = None
 
     def get_form_kwargs(self):
@@ -492,9 +561,11 @@ class DetailView(UrlpatternsMixin,SuccessUrlMixin,FormMixin,ModelMixin,django_ed
         return kwargs
 
     def get_context_data(self,**kwargs):
-        context_data = super(DetailView,self).get_context_data(**kwargs)
-        context_data["title"] = self.title or self.model._meta.verbose_name
-        return context_data
+        context = super(DetailView,self).get_context_data(**kwargs)
+        context["title"] = self.title or self.model._meta.verbose_name
+        self.update_context_data(context)
+        self.post_update_context_data(context)
+        return context
 
     def pre_action(self,*args,**kwargs):
         self.object = self.get_object()
@@ -505,7 +576,7 @@ class DetailView(UrlpatternsMixin,SuccessUrlMixin,FormMixin,ModelMixin,django_ed
     def put(self,request,*args,**kwargs):
         return HttpResponseForbidden()
 
-class UpdateView(UrlpatternsMixin,SuccessUrlMixin,FormMixin,ModelMixin,django_edit_view.UpdateView):
+class UpdateView(ErrorMixin,HtmlMediaMixin,UrlpatternsMixin,SuccessUrlMixin,FormMixin,ModelMixin,django_edit_view.UpdateView):
     title = None
 
     def get_form_kwargs(self):
@@ -514,9 +585,11 @@ class UpdateView(UrlpatternsMixin,SuccessUrlMixin,FormMixin,ModelMixin,django_ed
         return kwargs
 
     def get_context_data(self,**kwargs):
-        context_data = super(UpdateView,self).get_context_data(**kwargs)
-        context_data["title"] = self.title or "Update {}".format(self.model._meta.verbose_name)
-        return context_data
+        context = super(UpdateView,self).get_context_data(**kwargs)
+        context["title"] = self.title or "Update {}".format(self.model._meta.verbose_name)
+        self.update_context_data(context)
+        self.post_update_context_data(context)
+        return context
 
     def pre_action(self,*args,**kwargs):
         self.object = self.get_object()
@@ -567,6 +640,7 @@ class OneToManyModelMixin(ParentObjectMixin):
             'listform':self.get_listform_class()(instance_list=object_list,request=self.request,requesturl = self.requesturl),
             'nexturl':self.nexturl
         }
+        self.add_htmlmedia_context(context)
         if self.context_pobject_name:
             context[self.context_pobject_name] = self.pobject
         return context
@@ -597,6 +671,7 @@ class OneToManyModelMixin(ParentObjectMixin):
             'listform':self.get_listform_class()(instance_list=object_list,request=self.request,requesturl = self.requesturl),
             'nexturl':self.nexturl
         }
+        self.add_htmlmedia_context(context)
         if self.context_pobject_name:
             context[self.context_pobject_name] = self.pobject
         return self.render_to_response(context)
@@ -771,6 +846,8 @@ class ListBaseView(RequestActionMixin,UrlpatternsMixin,SuccessUrlMixin,ModelMixi
             context[context_object_name] = queryset
         context.update(kwargs)
         context["object_list_length"] = len(queryset)
+        self.update_context_data(context)
+        self.post_update_context_data(context)
         return context
 
     def get_selected_ids(self,queryset=None):
@@ -833,10 +910,14 @@ class ListBaseView(RequestActionMixin,UrlpatternsMixin,SuccessUrlMixin,ModelMixi
     def get_success_url(self):
         return self.request.path
 
-class ListView(NextUrlMixin,ListBaseView):
+class ListView(ErrorMixin,HtmlMediaMixin,NextUrlMixin,ListBaseView):
     listform_class = None
     default_post_action = 'save'
     default_get_action = 'search'
+    errorform_keys = ("listform",)
+
+    def get_mediaforms(self):
+        return (self.get_listform_class(),)
 
     def get_listform_class(self):
         return self.listform_class
@@ -850,19 +931,17 @@ class ListView(NextUrlMixin,ListBaseView):
     def post(self,request,*args,**kwargs):
         raise Http404("Post method is not supported.")
 
-    def get_context_data(self,**kwargs):
-        context_data = super(ListView,self).get_context_data(**kwargs)
-        context_data["title"] = self.title or "{} List".format(self.model._meta.verbose_name)
-        context_data["listform"] = self.listform
-        context_data["modelname"] = self.model_verbose_name
-        context_data["requesturl"] = self.requesturl
+    def update_context_data(self,context):
+        super(ListView,self).update_context_data(context)
+        context["title"] = self.title or "{} List".format(self.model._meta.verbose_name)
+        context["listform"] = self.listform
+        context["modelname"] = self.model_verbose_name
+        context["requesturl"] = self.requesturl
         if self.get_filter_class():
-            context_data["filterform"] = self.filterform
-            context_data["filtertool"] = self.filtertool
+            context["filterform"] = self.filterform
+            context["filtertool"] = self.filtertool
         else:
-            context_data["filtertool"] = False
-
-        return context_data
+            context["filtertool"] = False
 
 class OneToManyListView(OneToManyModelMixin,ListView):
     pass
@@ -877,38 +956,66 @@ class ListUpdateView(ListView):
 
     def post(self,request,*args,**kwargs):
         self.object_list = self.get_queryset()
-        self.listform = self.get_listform_class()(instance_list=self.object_list,data=request.POST,request=self.request,requesturl = self.requesturl)
-        if self.listform.is_valid():
+        self.listform = self.get_listform_class()(instance_list=self.object_list,data=self.request.POST,request=self.request,requesturl = self.requesturl)
+        if not isinstance(self.listform,ListUpdateForm) or self.listform.is_valid():
             return self.form_valid()
         else:
             return self.form_invalid()
 
     def form_invalid(self):
+        print(self.listform.errors)
         context = self.get_context_data()
         return self.render_to_response(context)
 
     def form_valid(self):
-        with transaction.atomic():
-            pform_class = self.get_pform_class()
-            if pform_class:
-                self.pform.save()
+        if isinstance(self.listform,ListUpdateForm):
             self.listform.save()
         return HttpResponseRedirect(self.get_success_url())
 
         
 class OneToManyListUpdateView(OneToManyModelMixin,ListUpdateView):
+    atomic_update = True
+
     def post(self,request,*args,**kwargs):
-        self.object_list = self.get_queryset()
-        self.listform = self.get_listform_class()(instance_list=self.object_list,data=request.POST,request=self.request,requesturl = self.requesturl,parent_instance=self.pobject)
         pform_class = self.get_pform_class()
         if pform_class:
-            self.pform = pform_class(instance=self.pobject,data=request.POST,request=self.request)
-            pform_valid = self.pform.is_valid()
+            self.pform = pform_class(instance=self.pobject,data=self.request.POST,request=self.request)
+
+        self.object_list = self.get_queryset()
+        listform_class = self.get_listform_class()
+        if issubclass(listform_class,ListUpdateForm):
+            self.listform = listform_class(instance_list=self.object_list,data=self.request.POST,request=self.request,requesturl = self.requesturl,parent_instance=self.pobject)
+            if self.listform.is_valid():
+                return self.form_valid()
+            else:
+                return self.form_invalid()
         else:
-            pform_valid = True
-        if self.listform.is_valid()  and pform_valid:
+            self.listform = listform_class(instance_list=self.object_list,data=self.request.POST,request=self.request,requesturl = self.requesturl)
             return self.form_valid()
-        else:
-            print("{}".format(self.listform.errors))
+
+
+    def form_valid(self):
+        try:
+            if self.atomic_update:
+                with transaction.atomic():
+                    if isinstance(self.listform,ListUpdateForm):
+                        self.listform.save()
+                    if self.pform:
+                        if self.pform.is_valid():
+                            self.pform.save()
+                        else:
+                            raise Exception("Invalid input")
+            else:
+                if isinstance(self.listform,ListUpdateForm):
+                    self.listform.save()
+                pform_class = self.get_pform_class()
+                if self.pform:
+                    if self.pform.is_valid():
+                        self.pform.save()
+                    else:
+                        self.listform = self.get_listform_class()(instance_list=self.get_queryset(),request=self.request,requesturl = self.requesturl)
+                        raise Exception("Invalid input")
+            return HttpResponseRedirect(self.get_success_url())
+        except:
             return self.form_invalid()
 

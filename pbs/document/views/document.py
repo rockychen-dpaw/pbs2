@@ -113,8 +113,8 @@ class PrescriptionDocumentsView(pbs.forms.GetActionMixin,views.OneToManyListView
         else:
             return DocumentListForm
 
-    def get_context_data(self,**kwargs):
-        context = super().get_context_data(**kwargs)
+    def update_context_data(self,context):
+        super().update_context_data(context)
         try:
             context["tag"] = DocumentTag.objects.get(id = self.kwargs["tag"])
         except:
@@ -126,7 +126,6 @@ class PrescriptionDocumentsView(pbs.forms.GetActionMixin,views.OneToManyListView
                 if o.modifier:
                     userlist.add(o.modifier)
             context["modifierlist"] = sorted(userlist,key=lambda u:u.username)
-        return context
 
     def archiveconfirmed_post(self):
         document_list = self.get_queryset_4_selected()

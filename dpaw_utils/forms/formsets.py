@@ -75,6 +75,11 @@ def formset_factory(form, formset=BaseFormSet, extra=1, can_order=False,
 class ListUpdateForm(forms.ActionMixin,forms.RequestUrlMixin,forms.RequestMixin,BaseFormSet):
     model_name_lower=None
     model_primary_key = "id"
+    _bound_footerfields_cache = None
+
+    def __init__(self,*args,**kwargs):
+        super(ListUpdateForm,self).__init__(*args,**kwargs)
+        self._bound_footerfields_cache = {}
     @property
     def form_instance(self):
         if len(self) > 0:
@@ -97,9 +102,55 @@ class ListUpdateForm(forms.ActionMixin,forms.RequestUrlMixin,forms.RequestMixin,
     def boundfields(self):
         return boundfield.BoundFieldIterator(self.form_instance)
 
+    def listfooter(self):
+        return self.form_instance.listfooter
+
+    @property
+    def haslistfooter(self):
+        return True if self.form_instance.listfooter else False
+
+    def footerfield(self,name):
+        if self._bound_footerfields_cache is None:
+            self._bound_footerfields_cache = {}
+        try:
+            bound_field = self._bound_footerfields_cache[name]
+        except:
+            if self._bound_footerfields_cache is None:
+                self._bound_footerfields_cache = {}
+            try:
+                field = self.form_instance.listfooter_fields[name]
+            except:
+                raise KeyError(
+                    "Key '%s' not found in '%s'. Choices are: %s." % (
+                        name,
+                        self.__class__.__name__,
+                        ', '.join(sorted(f for f in self.form_instance.listfooter_fields)),
+                    )
+                )
+            if isinstance(field,fields.AggregateField):
+                bound_field = boundfield.AggregateBoundField(self,field,name)
+            elif isinstance(field,fields.HtmlStringField):
+                bound_field = boundfield.HtmlStringBoundField(self,field,name)
+            else:
+                raise NotImplementedError("Not Implemented")
+            self._bound_footerfields_cache[name] = bound_field
+
+        return bound_field.as_widget()
+
     @property
     def boundfieldlength(self):
         return len(self.form_instance._meta.ordered_fields)
+
+    def add_initial_prefix(self,name):
+        return ""
+
+    @property
+    def use_required_attribute(self):
+        return False
+
+    @property
+    def renderer(self):
+        return None
 
     def get_form_kwargs(self, index):
         kwargs = super(ListUpdateForm,self).get_form_kwargs(index)
@@ -116,6 +167,9 @@ class ListUpdateForm(forms.ActionMixin,forms.RequestUrlMixin,forms.RequestMixin,
             if self.can_delete and self._should_delete_form(form):
                 if form._errors:
                     form._errors.clear()
+
+        self._errors = [e for e in self._errors if e]
+        print(self._errors)
  
     def save(self):
         if not self.is_bound:  # Stop further processing.
@@ -128,9 +182,6 @@ class ListUpdateForm(forms.ActionMixin,forms.RequestUrlMixin,forms.RequestMixin,
                         form.instance.delete()
                     continue
                 form.save()
-
- 
-
 
 class ListMemberForm(forms.RequestUrlMixin,forms.ModelForm,metaclass=ListModelFormMetaclass):
     def __init__(self,parent_instance=None,*args,**kwargs):
@@ -146,16 +197,23 @@ class ListMemberForm(forms.RequestUrlMixin,forms.ModelForm,metaclass=ListModelFo
         try:
             field = self.fields[name]
         except KeyError:
-            raise KeyError(
-                "Key '%s' not found in '%s'. Choices are: %s." % (
-                    name,
-                    self.__class__.__name__,
-                    ', '.join(sorted(f for f in self.fields)),
+            try:
+                field = self.listfooter_fields[name]
+            except:
+                raise KeyError(
+                    "Key '%s' not found in '%s'. Choices are: %s." % (
+                        name,
+                        self.__class__.__name__,
+                        ', '.join(sorted([f for f in self.fields] + [f for f in self.listfooter_fields])),
+                    )
                 )
-            )
         if name not in self._bound_fields_cache:
             if isinstance(field,fields.CompoundField):
                 self._bound_fields_cache[name] = boundfield.CompoundListBoundField(self,field,name)
+            elif isinstance(field,fields.AggregateField):
+                self._bound_fields_cache[name] = boundfield.AggregateBoundField(self,field,name)
+            elif isinstance(field,fields.HtmlStringField):
+                self._bound_fields_cache[name] = boundfield.HtmlStringBoundField(self,field,name)
             else:
                 self._bound_fields_cache[name] = boundfield.ListBoundField(self,field,name)
         return self._bound_fields_cache[name]

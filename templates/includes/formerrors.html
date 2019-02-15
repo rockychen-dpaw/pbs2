@@ -1,0 +1,21 @@
+{% if error_count > 0 %}
+<p class="errornote alert alert-block alert-error fade in">
+    {% if error_count > 1 %}
+    Please correct {{error_count}} errors below.
+    {% else %}
+    Please correct the error below.
+    {% endif %}
+</p>
+<div class="row">
+    <div class="span12">
+        <div id="id_pageerrors"><span id="id__all__">
+            {% if non_field_errors %}
+                {% for error in errors %}
+                    <p class='text-error'><i class='icon-warning-sign'></i>{{ error }}</p>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+

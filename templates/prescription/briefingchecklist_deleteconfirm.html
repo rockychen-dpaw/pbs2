@@ -6,10 +6,10 @@
 <ul class="breadcrumb">
   <li><a href="{% url 'prescription:prescription_list' %}">{% trans 'Regional Overview' %}</a> <span class="divider">/</span></li>
   <li><a href="{% url 'prescription:prescription_home' prescription.id %}">{{ prescription.burn_id }}</a> <span class="divider">/</span></li>
-  <li><a href="{% url 'report:prescription_pre_state_update' prescription.id %}">Part A</a> <span class="divider">/</span></li>
-  <li><a href="{% url 'prescription:prescription_objective_changelist' prescription.id %}">Burn Objectives</a> <span class="divider">/</span></li>
+  <li><a href="{% url 'report:prescription_day_state_update' prescription.id %}">Part B</a> <span class="divider">/</span></li>
+  <li><a href="{% url 'prescription:prescription_briefingchecklist_list' prescription.id %}">Briefing Checklist</a> <span class="divider">/</span></li>
   {% if listform|length == 1 %}
-  <li>{{listform.first.instance.id}}<span class="divider">/</span></li>
+  <li>{{listform.first.instance.title}}<span class="divider">/</span></li>
   {% endif %}
   <li>{% trans 'Delete' %}</li>
 </ul>

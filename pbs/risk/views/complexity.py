@@ -46,8 +46,6 @@ class PrescriptionComplexitiesUpdateView(pbs.forms.GetActionMixin,views.OneToMan
         else:
             return super().get_listform_class()
 
-    def get_context_data(self,**kwargs):
-        context = super().get_context_data(**kwargs)
+    def update_context_data(self,context):
+        super().update_context_data(context)
         context["factorlist"] = factorlist
-
-        return context

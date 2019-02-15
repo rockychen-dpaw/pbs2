@@ -47,9 +47,7 @@ class PrescriptionTrailSegmentListUpdateView(pbs.forms.GetActionMixin,views.OneT
         return super().post(*args,**kwargs)
     """
 
-    def get_context_data(self,**kwargs):
-        context = super().get_context_data(**kwargs)
+    def update_context_data(self,context):
+        super().update_context_data(context)
         context["documents"] = self.pobject.document_set.filter(tag__id=151)
-
-        return context
 

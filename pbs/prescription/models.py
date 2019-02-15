@@ -1247,6 +1247,7 @@ class Prescription(ModelDictMixin,AuditMixin):
             if self.areaachievement_set.all().count() > 0:
                 self.ignition_status = self.IGNITION_COMMENCED
                 self.ignition_status_modified = timezone.now()
+            else:
                 self.ignition_status = self.IGNITION_NOT_STARTED
                 self.ignition_status_modified = timezone.now()
 
@@ -1426,7 +1427,7 @@ class SuccessCriteria(ModelDictMixin,AuditMixin):
         verbose_name_plural = "Success Criterias"
         ordering = ["created"]
 
-class BriefingChecklist(AuditMixin):
+class BriefingChecklist(ModelDictMixin,AuditMixin):
     prescription = models.ForeignKey(Prescription, on_delete=models.PROTECT)
     title = models.TextField(verbose_name="Topic")
     smeac = models.ForeignKey(SMEAC, verbose_name="SMEACS", on_delete=models.PROTECT)

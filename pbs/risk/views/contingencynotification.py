@@ -22,11 +22,9 @@ class ContingencyNotificationCreateView(pbs.forms.GetActionMixin,views.OneToMany
     def _get_success_url(self):
         return urls.reverse("risk:prescription_contingency_list",args=(self.pobject.prescription.id,))
 
-    def get_context_data(self,**kwargs):
-        context = super().get_context_data(**kwargs)
+    def update_context_data(self,context):
+        super().update_context_data(context)
         context["prescription"] = self.pobject.prescription
-
-        return context
 
 class ContingencyNotificationUpdateView(pbs.forms.GetActionMixin,views.OneToManyUpdateView):
     title = "Change ContingencyNotification Plan"
@@ -42,11 +40,9 @@ class ContingencyNotificationUpdateView(pbs.forms.GetActionMixin,views.OneToMany
     def _get_success_url(self):
         return urls.reverse("risk:prescription_contingency_list",args=(self.pobject.prescription.id,))
 
-    def get_context_data(self,**kwargs):
-        context = super().get_context_data(**kwargs)
+    def update_context_data(self,context):
+        super().update_context_data(context)
         context["prescription"] = self.pobject.prescription
-
-        return context
 
 
 class ContingencyNotificationListView(pbs.forms.GetActionMixin,views.OneToManyListView):
@@ -82,11 +78,9 @@ class ContingencyNotificationListView(pbs.forms.GetActionMixin,views.OneToManyLi
         import ipdb;ipdb.set_trace()
         return super().post(*args,**kwargs)
     """
-    def get_context_data(self,**kwargs):
-        context = super().get_context_data(**kwargs)
+    def update_context_data(self,context):
+        super().update_context_data(context)
         context["prescription"] = self.pobject.prescription
-
-        return context
 
 
     def get_deleteconfirm_context(self):
